@@ -1,0 +1,7 @@
+strands-agents==1.42.0
+mcp==1.27.2
+boto3==1.43.25
+pydantic==2.13.4
+python-dotenv==1.2.2
+pydantic-settings==2.14.1
+streamlit==1.58.0

@@ -1,0 +1,552 @@
+# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+# SPDX-License-Identifier: MIT-0
+
+AWSTemplateFormatVersion: '2010-09-09'
+Description: >
+  Autonomous Business Insights with MCP Servers and Amazon Bedrock AgentCore.
+  Provisions all data infrastructure: Aurora PostgreSQL, Timestream, Redshift Serverless,
+  OpenSearch Serverless, S3 Data Lake, Cognito, and supporting IAM/networking.
+
+Parameters:
+  Environment:
+    Type: String
+    Default: dev
+    AllowedValues: [dev, staging, prod]
+    Description: Deployment environment
+
+  VpcCidr:
+    Type: String
+    Default: 10.0.0.0/16
+    Description: CIDR block for the VPC
+
+  DatabasePassword:
+    Type: String
+    NoEcho: true
+    MinLength: 12
+    Description: Password for Aurora PostgreSQL admin user
+
+Metadata:
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+      - Label:
+          default: Environment
+        Parameters:
+          - Environment
+      - Label:
+          default: Networking
+        Parameters:
+          - VpcCidr
+      - Label:
+          default: Database
+        Parameters:
+          - DatabasePassword
+
+Resources:
+  # ============================================================
+  # Networking — VPC for Aurora and Redshift
+  # ============================================================
+  VPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: !Ref VpcCidr
+      EnableDnsHostnames: true
+      EnableDnsSupport: true
+      Tags:
+        - Key: Name
+          Value: !Sub 'manufacturing-insights-vpc-${Environment}'
+
+  PrivateSubnet1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: !Select [0, !Cidr [!Ref VpcCidr, 4, 8]]
+      AvailabilityZone: !Select [0, !GetAZs '']
+      Tags:
+        - Key: Name
+          Value: !Sub 'private-subnet-1-${Environment}'
+
+  PrivateSubnet2:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: !Select [1, !Cidr [!Ref VpcCidr, 4, 8]]
+      AvailabilityZone: !Select [1, !GetAZs '']
+      Tags:
+        - Key: Name
+          Value: !Sub 'private-subnet-2-${Environment}'
+
+  DBSubnetGroup:
+    Type: AWS::RDS::DBSubnetGroup
+    Properties:
+      DBSubnetGroupDescription: Subnets for Aurora cluster
+      SubnetIds:
+        - !Ref PrivateSubnet1
+        - !Ref PrivateSubnet2
+
+  SecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Security group for data infrastructure
+      VpcId: !Ref VPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 5432
+          ToPort: 5432
+          CidrIp: !Ref VpcCidr
+
+  # ============================================================
+  # Amazon Aurora PostgreSQL Serverless v2 (Equipment + Maintenance)
+  # ============================================================
+  AuroraCluster:
+    Type: AWS::RDS::DBCluster
+    Properties:
+      DBClusterIdentifier: !Sub 'manufacturing-equipment-${Environment}'
+      Engine: aurora-postgresql
+      EngineVersion: '15.4'
+      DatabaseName: manufacturing
+      MasterUsername: admin
+      MasterUserPassword: !Ref DatabasePassword
+      ServerlessV2ScalingConfiguration:
+        MinCapacity: 0.5
+        MaxCapacity: 4
+      DBSubnetGroupName: !Ref DBSubnetGroup
+      VpcSecurityGroupIds:
+        - !Ref SecurityGroup
+      StorageEncrypted: true
+      EnableHttpEndpoint: true
+      DeletionProtection: false
+      Tags:
+        - Key: Purpose
+          Value: Equipment and Maintenance data
+
+  AuroraInstance:
+    Type: AWS::RDS::DBInstance
+    Properties:
+      DBClusterIdentifier: !Ref AuroraCluster
+      DBInstanceClass: db.serverless
+      Engine: aurora-postgresql
+      PubliclyAccessible: false
+
+  AuroraSecret:
+    Type: AWS::SecretsManager::Secret
+    Properties:
+      Name: !Sub 'manufacturing-aurora-credentials-${Environment}'
+      Description: Aurora PostgreSQL credentials for Manufacturing Insights
+      SecretString: !Sub '{"username":"admin","password":"${DatabasePassword}","host":"${AuroraCluster.Endpoint.Address}","port":5432,"dbname":"manufacturing"}'
+
+  # ============================================================
+  # Amazon Timestream (IoT Sensor Telemetry)
+  # ============================================================
+  TimestreamDatabase:
+    Type: AWS::Timestream::Database
+    Properties:
+      DatabaseName: !Sub 'manufacturing_iot_${Environment}'
+
+  TimestreamTable:
+    Type: AWS::Timestream::Table
+    Properties:
+      DatabaseName: !Ref TimestreamDatabase
+      TableName: sensor_readings
+      RetentionProperties:
+        MemoryStoreRetentionPeriodInHours: '168'
+        MagneticStoreRetentionPeriodInDays: '365'
+      MagneticStoreWriteProperties:
+        EnableMagneticStoreWrites: true
+
+  # ============================================================
+  # Amazon Redshift Serverless (Supply Chain + Analytics/OEE)
+  # ============================================================
+  RedshiftNamespace:
+    Type: AWS::RedshiftServerless::Namespace
+    Properties:
+      NamespaceName: !Sub 'manufacturing-analytics-${Environment}'
+      DbName: manufacturing
+      AdminUsername: admin
+      AdminUserPassword: !Ref DatabasePassword
+      DefaultIamRoleArn: !GetAtt RedshiftRole.Arn
+      IamRoles:
+        - !GetAtt RedshiftRole.Arn
+
+  RedshiftWorkgroup:
+    Type: AWS::RedshiftServerless::Workgroup
+    Properties:
+      WorkgroupName: !Sub 'manufacturing-analytics-${Environment}'
+      NamespaceName: !Ref RedshiftNamespace
+      BaseCapacity: 8
+      PubliclyAccessible: false
+      SubnetIds:
+        - !Ref PrivateSubnet1
+        - !Ref PrivateSubnet2
+      SecurityGroupIds:
+        - !Ref SecurityGroup
+
+  RedshiftRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub 'redshift-manufacturing-${Environment}'
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: redshift.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: S3Access
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - s3:GetObject
+                  - s3:ListBucket
+                Resource:
+                  - !GetAtt DataLakeBucket.Arn
+                  - !Sub '${DataLakeBucket.Arn}/*'
+
+  # ============================================================
+  # Amazon OpenSearch Serverless (Quality Metrics + Semantic Search)
+  # ============================================================
+  OpenSearchCollection:
+    Type: AWS::OpenSearchServerless::Collection
+    DependsOn: OpenSearchEncryptionPolicy
+    Properties:
+      Name: !Sub 'quality-metrics-${Environment}'
+      Type: SEARCH
+      Description: Quality metrics and inspection documents for semantic search
+
+  OpenSearchEncryptionPolicy:
+    Type: AWS::OpenSearchServerless::SecurityPolicy
+    Properties:
+      Name: !Sub 'quality-encryption-${Environment}'
+      Type: encryption
+      Policy: !Sub >
+        {"Rules":[{"ResourceType":"collection","Resource":["collection/quality-metrics-${Environment}"]}],"AWSOwnedKey":true}
+
+  OpenSearchNetworkPolicy:
+    Type: AWS::OpenSearchServerless::SecurityPolicy
+    Properties:
+      Name: !Sub 'quality-network-${Environment}'
+      Type: network
+      Policy: !Sub >
+        [{"Rules":[{"ResourceType":"collection","Resource":["collection/quality-metrics-${Environment}"]},{"ResourceType":"dashboard","Resource":["collection/quality-metrics-${Environment}"]}],"AllowFromPublic":true}]
+
+  OpenSearchDataAccessPolicy:
+    Type: AWS::OpenSearchServerless::AccessPolicy
+    Properties:
+      Name: !Sub 'quality-access-${Environment}'
+      Type: data
+      Policy: !Sub >
+        [{"Rules":[{"ResourceType":"index","Resource":["index/quality-metrics-${Environment}/*"],"Permission":["aoss:*"]},{"ResourceType":"collection","Resource":["collection/quality-metrics-${Environment}"],"Permission":["aoss:*"]}],"Principal":["${AgentExecutionRole.Arn}"]}]
+
+  # ============================================================
+  # Amazon S3 — Data Lake + Memory + Configuration
+  # ============================================================
+  DataLakeBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub 'manufacturing-datalake-${AWS::AccountId}-${Environment}'
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      VersioningConfiguration:
+        Status: Enabled
+
+  DataLakeBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref DataLakeBucket
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: DenyNonSSLAccess
+            Effect: Deny
+            Principal: '*'
+            Action: 's3:*'
+            Resource:
+              - !GetAtt DataLakeBucket.Arn
+              - !Sub '${DataLakeBucket.Arn}/*'
+            Condition:
+              Bool:
+                aws:SecureTransport: 'false'
+
+  MemoryBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub 'agentcore-memory-${AWS::AccountId}-${Environment}'
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      LifecycleConfiguration:
+        Rules:
+          - Id: ExpireUserMemory
+            Status: Enabled
+            Prefix: user-memory/
+            ExpirationInDays: 90
+
+  # ============================================================
+  # AWS IoT Core Rule → Timestream (Sensor Data Pipeline)
+  # ============================================================
+  IoTTimestreamRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub 'iot-timestream-role-${Environment}'
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: iot.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: TimestreamWrite
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - timestream:WriteRecords
+                  - timestream:DescribeEndpoints
+                Resource: '*'
+
+  IoTTopicRule:
+    Type: AWS::IoT::TopicRule
+    Properties:
+      RuleName: !Sub 'manufacturing_sensor_to_timestream_${Environment}'
+      TopicRulePayload:
+        Sql: "SELECT machine_id, machine_name, line_name, plant, metric, value, unit FROM 'manufacturing/sensors/+'"
+        Actions:
+          - Timestream:
+              DatabaseName: !Ref TimestreamDatabase
+              TableName: sensor_readings
+              RoleArn: !GetAtt IoTTimestreamRole.Arn
+              Dimensions:
+                - Name: machine_id
+                  Value: "${machine_id}"
+                - Name: machine_name
+                  Value: "${machine_name}"
+                - Name: line_name
+                  Value: "${line_name}"
+                - Name: plant
+                  Value: "${plant}"
+                - Name: metric
+                  Value: "${metric}"
+                - Name: unit
+                  Value: "${unit}"
+
+  # ============================================================
+  # Identity — Amazon Cognito User Pool
+  # ============================================================
+  UserPool:
+    Type: AWS::Cognito::UserPool
+    Properties:
+      UserPoolName: !Sub 'manufacturing-insights-users-${Environment}'
+      AutoVerifiedAttributes:
+        - email
+      Schema:
+        - Name: role
+          AttributeDataType: String
+          Mutable: true
+        - Name: plant_scope
+          AttributeDataType: String
+          Mutable: true
+        - Name: line_scope
+          AttributeDataType: String
+          Mutable: true
+      Policies:
+        PasswordPolicy:
+          MinimumLength: 12
+          RequireLowercase: true
+          RequireNumbers: true
+          RequireSymbols: true
+          RequireUppercase: true
+
+  UserPoolClient:
+    Type: AWS::Cognito::UserPoolClient
+    Properties:
+      UserPoolId: !Ref UserPool
+      ClientName: !Sub 'insights-agent-client-${Environment}'
+      ExplicitAuthFlows:
+        - ALLOW_USER_PASSWORD_AUTH
+        - ALLOW_REFRESH_TOKEN_AUTH
+      GenerateSecret: false
+
+  # ============================================================
+  # Logging — CloudWatch
+  # ============================================================
+  AgentLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub '/manufacturing-insights/agent/${Environment}'
+      RetentionInDays: 30
+
+  # ============================================================
+  # IAM — Agent Execution Role (least-privilege)
+  # ============================================================
+  AgentExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub 'manufacturing-agent-execution-${Environment}'
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: bedrock.amazonaws.com
+            Action: sts:AssumeRole
+          - Effect: Allow
+            Principal:
+              AWS: !Sub 'arn:aws:iam::${AWS::AccountId}:root'
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: BedrockAccess
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - bedrock:InvokeModel
+                  - bedrock:InvokeModelWithResponseStream
+                Resource: !Sub 'arn:aws:bedrock:${AWS::Region}::foundation-model/*'
+        - PolicyName: AuroraDataAPI
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - rds-data:ExecuteStatement
+                  - rds-data:BatchExecuteStatement
+                Resource: !GetAtt AuroraCluster.DBClusterArn
+              - Effect: Allow
+                Action:
+                  - secretsmanager:GetSecretValue
+                Resource: !Ref AuroraSecret
+        - PolicyName: TimestreamQuery
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - timestream:Select
+                  - timestream:DescribeEndpoints
+                  - timestream:DescribeTable
+                Resource: '*'
+        - PolicyName: RedshiftDataAPI
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - redshift-data:ExecuteStatement
+                  - redshift-data:DescribeStatement
+                  - redshift-data:GetStatementResult
+                  - redshift-serverless:GetCredentials
+                Resource: '*'
+        - PolicyName: OpenSearchAccess
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - aoss:APIAccessAll
+                Resource: !Sub 'arn:aws:aoss:${AWS::Region}:${AWS::AccountId}:collection/*'
+        - PolicyName: S3DataLake
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - s3:GetObject
+                  - s3:ListBucket
+                  - s3:PutObject
+                Resource:
+                  - !GetAtt DataLakeBucket.Arn
+                  - !Sub '${DataLakeBucket.Arn}/*'
+                  - !GetAtt MemoryBucket.Arn
+                  - !Sub '${MemoryBucket.Arn}/*'
+        - PolicyName: CloudWatchLogs
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource: !GetAtt AgentLogGroup.Arn
+
+Outputs:
+  # Aurora
+  AuroraClusterArn:
+    Description: Aurora cluster ARN (set as AURORA_CLUSTER_ARN)
+    Value: !GetAtt AuroraCluster.DBClusterArn
+  AuroraSecretArn:
+    Description: Secrets Manager ARN for Aurora credentials (set as AURORA_SECRET_ARN)
+    Value: !Ref AuroraSecret
+  AuroraEndpoint:
+    Description: Aurora cluster endpoint
+    Value: !GetAtt AuroraCluster.Endpoint.Address
+
+  # Timestream
+  TimestreamDatabaseName:
+    Description: Timestream database name (set as TIMESTREAM_DATABASE)
+    Value: !Ref TimestreamDatabase
+  TimestreamTableName:
+    Description: Timestream table name (set as TIMESTREAM_TABLE)
+    Value: sensor_readings
+
+  # Redshift
+  RedshiftWorkgroupName:
+    Description: Redshift Serverless workgroup (set as REDSHIFT_WORKGROUP)
+    Value: !Sub 'manufacturing-analytics-${Environment}'
+  RedshiftDatabase:
+    Description: Redshift database name (set as REDSHIFT_DATABASE)
+    Value: manufacturing
+
+  # OpenSearch
+  OpenSearchEndpoint:
+    Description: OpenSearch collection endpoint (set as OPENSEARCH_ENDPOINT)
+    Value: !GetAtt OpenSearchCollection.CollectionEndpoint
+  OpenSearchIndex:
+    Description: OpenSearch index name (set as OPENSEARCH_INDEX)
+    Value: quality_metrics
+
+  # S3
+  DataLakeBucketName:
+    Description: S3 data lake bucket (set as DATA_LAKE_BUCKET)
+    Value: !Ref DataLakeBucket
+  MemoryBucketName:
+    Description: S3 memory bucket
+    Value: !Ref MemoryBucket
+
+  # Identity
+  UserPoolId:
+    Description: Cognito User Pool ID
+    Value: !Ref UserPool
+  UserPoolClientId:
+    Description: Cognito Client ID
+    Value: !Ref UserPoolClient
+
+  # IAM
+  AgentExecutionRoleArn:
+    Description: IAM role ARN for agent execution
+    Value: !GetAtt AgentExecutionRole.Arn
+
+  # IoT
+  IoTTopicRuleName:
+    Description: IoT rule for sensor data ingestion
+    Value: !Ref IoTTopicRule
+  IoTSensorTopic:
+    Description: MQTT topic for publishing sensor data
+    Value: manufacturing/sensors/+

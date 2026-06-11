@@ -1,0 +1,2 @@
+templates:
+  - deploy/cloudformation/template.yaml
