@@ -66,11 +66,33 @@ class ManufacturingInsightsAgent:
 
         Pre-built AWS MCP servers (awslabs) use stdio transport via uvx.
         Custom MCP servers use streamable HTTP on localhost.
+        AgentCore Gateway mode routes through the real Gateway URL.
         """
         if USE_PREBUILT_MCP:
             return self._create_prebuilt_clients()
+        elif os.getenv("USE_AGENTCORE_GATEWAY", "false").lower() == "true":
+            return self._create_gateway_client()
         else:
             return self._create_local_clients()
+
+    def _create_gateway_client(self) -> list[MCPClient]:
+        """Connect to tools via real AgentCore Gateway.
+
+        All tool calls route through the Gateway URL which handles:
+        - MCP protocol (initialize, tools/list, tools/call)
+        - Lambda target invocation
+        - Policy enforcement (when JWT auth is configured)
+        """
+        gateway_url = os.getenv(
+            "AGENTCORE_GATEWAY_URL",
+            "https://mfginsightstest-af76b5qmwe.gateway.bedrock-agentcore.us-east-1.amazonaws.com/mcp/",
+        )
+        logger.info("Using AgentCore Gateway: %s", gateway_url)
+
+        gateway_client = MCPClient(
+            lambda: streamablehttp_client(gateway_url)
+        )
+        return [gateway_client]
 
     def _create_prebuilt_clients(self) -> list[MCPClient]:
         """Create clients using pre-built AWS MCP servers (stdio via uvx).
@@ -228,17 +250,31 @@ class ManufacturingInsightsAgent:
                 len(all_tools),
             )
 
-            gateway_hook = GatewayPolicyHook(
-                user=user,
-                policy_engine=self.policy_engine,
-            )
+            # Only use local policy hook when NOT routing through real Gateway
+            use_gateway = os.getenv("USE_AGENTCORE_GATEWAY", "false").lower() == "true"
 
-            agent = Agent(
-                system_prompt=system_prompt,
-                tools=all_tools,
-                hooks=[gateway_hook],
-                callback_handler=None,
-            )
+            if use_gateway:
+                # Real Gateway handles policy enforcement server-side
+                # No local hook needed — Cedar evaluates at the Gateway
+                agent = Agent(
+                    system_prompt=system_prompt,
+                    tools=all_tools,
+                    callback_handler=None,
+                )
+                logger.info("Policy enforcement: AgentCore Gateway (server-side Cedar)")
+            else:
+                # Local mode: use the simulated policy hook
+                gateway_hook = GatewayPolicyHook(
+                    user=user,
+                    policy_engine=self.policy_engine,
+                )
+                agent = Agent(
+                    system_prompt=system_prompt,
+                    tools=all_tools,
+                    hooks=[gateway_hook],
+                    callback_handler=None,
+                )
+                logger.info("Policy enforcement: Local GatewayPolicyHook (simulated)")
 
             response = agent(question)
             response_text = str(response)

@@ -12,7 +12,7 @@ Go to: https://console.harmony.a2z.com/open-sourcerer/aws-sample-code
 
 **Repository Name:**
 ```
-sample-autonomous-business-insights-mcp-multi-agents
+sample-autonomous-business-insights-with-ai-agent-and-mcp-servers
 ```
 
 **Description:**
@@ -32,12 +32,12 @@ Blog post code sample
 
 **Blog Title:**
 ```
-Generate Autonomous Business Insights with MCP Servers and Multi-Agents
+Generate Autonomous Business Insights with AI Agent and MCP Servers
 ```
 
 **Blog URL (draft):**
 ```
-https://aws.amazon.com/blogs/machine-learning/generate-autonomous-business-insights-with-mcp-servers-and-multi-agents/
+https://aws.amazon.com/blogs/machine-learning/generate-autonomous-business-insights-with-ai-agent-and-mcp-servers/
 ```
 
 **AWS Services Used:**
@@ -81,7 +81,7 @@ After self-certification creates a SIM ticket:
 Go to: https://console.harmony.a2z.com/open-sourcerer/create-repo
 
 - **SIM Ticket:** (paste the SIM ID from step 1)
-- **Repository Name:** `sample-autonomous-business-insights-mcp-multi-agents`
+- **Repository Name:** `sample-autonomous-business-insights-with-ai-agent-and-mcp-servers`
 - **Template:** MIT-0
 - **GitHub Team:** (your team — e.g., `us-aisasp-team` or ask your manager)
 
@@ -100,7 +100,7 @@ git clone git@ssh.gitlab.aws.dev:dbbegimh/automated-security-helper.git --recurs
 
 # 3. Run scan against our code
 cd automated-security-helper
-./ash --source-dir /path/to/sample-autonomous-business-insights-mcp-multi-agents --output-dir ./ash-output
+./ash --source-dir /path/to/sample-autonomous-business-insights-with-ai-agent-and-mcp-servers --output-dir ./ash-output
 
 # 4. Review results
 cat ash-output/ash_report.txt
@@ -128,9 +128,9 @@ Go to: https://river.amazon.com/?org=SAESO
 ```
 Content Security Review Request — Blog Code Sample
 
-Blog Title: Generate Autonomous Business Insights with MCP Servers and Multi-Agents
+Blog Title: Generate Autonomous Business Insights with AI Agent and MCP Servers
 
-Repository: sample-autonomous-business-insights-mcp-multi-agents (aws-samples)
+Repository: sample-autonomous-business-insights-with-ai-agent-and-mcp-servers (aws-samples)
 
 Summary:
 Sample code for an AWS Machine Learning blog demonstrating how to build an
@@ -176,10 +176,10 @@ SIM Ticket: [paste SIM ID from Step 1]
 After CSR approval and repo creation:
 
 ```bash
-cd /path/to/sample-autonomous-business-insights-mcp-multi-agents
+cd /path/to/sample-autonomous-business-insights-with-ai-agent-and-mcp-servers
 
 # Add the remote (repo URL from OpenSourcerer)
-git remote add origin git@github.com:aws-samples/sample-autonomous-business-insights-mcp-multi-agents.git
+git remote add origin git@github.com:aws-samples/sample-autonomous-business-insights-with-ai-agent-and-mcp-servers.git
 
 # Push (keep PRIVATE until blog publishes)
 git push -u origin main

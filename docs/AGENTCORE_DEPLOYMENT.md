@@ -1,0 +1,277 @@
+# AgentCore Deployment Guide
+
+## Deployed Resources (Live)
+
+> **Account:** 338277320360 | **Region:** us-east-1 | **Status:** READY
+
+| Resource | ID / ARN | Status |
+|----------|----------|--------|
+| Gateway | `mfginsightsgateway-kbvnf0ga6j` | READY |
+| Gateway URL | `https://mfginsightsgateway-kbvnf0ga6j.gateway.bedrock-agentcore.us-east-1.amazonaws.com` | Active |
+| Policy Engine | `MfgInsightsPolicyEngine-w1do75vmrk` | ENFORCE |
+| Cedar Policies | `permit_all`, `forbid_line_scope`, `forbid_equipment_scope` | Active |
+| Cognito User Pool | `us-east-1_wBnf60sfQ` | Active |
+| Cognito Users | `sarah.chen`, `raj.patel`, `priya.nair` | Confirmed |
+| Cognito M2M Client | `4knqrdhikscn2d4gjr1ler12nc` | Active |
+| Cognito Domain | `mfginsights-33827732.auth.us-east-1.amazoncognito.com` | Active |
+| Lambda: Equipment | `MfgInsights-EquipmentTools` | READY |
+| Lambda: IoT | `MfgInsights-IoTTools` | READY |
+| Lambda: Analytics | `MfgInsights-AnalyticsTools` | READY |
+| Test Gateway (no auth) | `mfginsightstest-af76b5qmwe` | READY |
+| IAM Role (Gateway) | `MfgInsights-Gateway-Role` | Active |
+
+---
+
+## Overview
+
+This guide deploys the Manufacturing Insights system using **real** Amazon Bedrock AgentCore services instead of local simulations.
+
+### Architecture (Production)
+
+```
+Users (Sarah/Raj/Priya)
+    │ Cognito JWT
+    ▼
+┌─────────────────────────────────────────────────────────────┐
+│  AgentCore Gateway                                           │
+│  ┌─────────────┐  ┌─────────────┐  ┌─────────────────────┐ │
+│  │  REQUEST     │  │  Policy     │  │  RESPONSE           │ │
+│  │  Interceptor │→ │  Engine     │→ │  Interceptor        │ │
+│  │  (Lambda)    │  │  (Cedar)    │  │  (Lambda)           │ │
+│  └─────────────┘  └─────────────┘  └─────────────────────┘ │
+└──────────┬──────────────────────────────────────────────────┘
+           │
+    ┌──────┼──────┬──────────┬──────────┐
+    ▼      ▼      ▼          ▼          ▼
+Equipment  IoT   Supply   Analytics  Semantic
+ Target   Target  Target   Target     Target
+(Lambda)  (Lambda)(Lambda) (Lambda)  (Lambda)
+```
+
+### What Gets Created
+
+| Component | AWS Service | Purpose |
+|-----------|-------------|---------|
+| Identity | Cognito User Pool | 3 users with role/scope attributes |
+| Gateway | AgentCore Gateway | MCP router, JWT validation |
+| Tool Targets | Lambda (x5) | Domain tool implementations |
+| Policy Engine | AgentCore Policy | Cedar rules enforcement |
+| Interceptors | Lambda (x2) | Request enrichment, response filtering |
+
+## Prerequisites
+
+- AWS Account with AgentCore access (us-west-2 or us-east-1)
+- AWS CLI configured (`aws configure`)
+- Python 3.10+
+- IAM permissions for: Cognito, Lambda, IAM, AgentCore
+
+```bash
+pip install boto3 bedrock-agentcore-starter-toolkit requests
+```
+
+## Deployment Steps
+
+### Quick Deploy (All at Once)
+
+```bash
+python deploy/agentcore/deploy_all.py --region us-east-1
+```
+
+### Step-by-Step Deploy (Actual Commands Run)
+
+#### Step 1: Identity (Cognito)
+
+```bash
+python deploy/agentcore/setup_identity.py --region us-east-1
+```
+
+Output:
+```
+✅ Created User Pool: us-east-1_wBnf60sfQ
+✅ Created App Client: 4knqrdhikscn2d4gjr1ler12nc
+✅ Created Cognito Domain: mfginsights-33827732.auth.us-east-1.amazoncognito.com
+✅ Created user: sarah.chen (plant_managers)
+✅ Created user: raj.patel (line_supervisors)
+✅ Created user: priya.nair (maintenance_technicians)
+```
+
+Creates:
+- User Pool with custom attributes: `role`, `line_scope`, `plant_scope`, `equipment_scope`
+- 3 users: sarah.chen, raj.patel, priya.nair
+- 3 groups: plant_managers, line_supervisors, maintenance_technicians
+- M2M client for machine-to-machine auth: `4knqrdhikscn2d4gjr1ler12nc`
+
+#### Step 2: Gateway + Lambda Targets
+
+```bash
+python deploy/agentcore/setup_gateway.py --region us-east-1
+```
+
+Output:
+```
+✅ Created Lambda: MfgInsights-EquipmentTools
+✅ Created Lambda: MfgInsights-IoTTools
+✅ Created Lambda: MfgInsights-AnalyticsTools
+✅ Created IAM Role: MfgInsights-Gateway-Role
+✅ Created Gateway: mfginsightsgateway-kbvnf0ga6j
+   URL: https://mfginsightsgateway-kbvnf0ga6j.gateway.bedrock-agentcore.us-east-1.amazonaws.com
+✅ Created Test Gateway (no auth): mfginsightstest-af76b5qmwe
+✅ All Lambda targets: READY
+```
+
+Creates:
+- Gateway with Cognito OAuth authorizer
+- 3 Lambda tool targets with MCP tool schemas
+- Test gateway (no auth) for development validation
+
+#### Step 3: Policy Engine (Cedar)
+
+```bash
+python deploy/agentcore/setup_policy.py --region us-east-1 --mode ENFORCE
+```
+
+Output:
+```
+✅ Created Policy Engine: MfgInsightsPolicyEngine-w1do75vmrk (mode: ENFORCE)
+✅ Created policy: permit_all
+✅ Created policy: forbid_line_scope
+✅ Created policy: forbid_equipment_scope
+✅ Attached Policy Engine to Gateway: mfginsightsgateway-kbvnf0ga6j
+```
+
+Creates:
+- Policy Engine: `MfgInsightsPolicyEngine-w1do75vmrk`
+- 3 Cedar policies (permit_all + 2 forbid rules)
+- Attaches to Gateway
+- Mode set directly to `ENFORCE` (validated via test gateway first)
+
+#### Step 4: Interceptors
+
+```bash
+python deploy/agentcore/setup_interceptor.py --region us-east-1
+```
+
+Creates:
+- REQUEST interceptor (JWT → user context injection)
+- RESPONSE interceptor (tool list filtering)
+
+---
+
+## Verifying Deployment
+
+### Check Gateway Status
+
+```bash
+aws bedrock-agentcore get-gateway --gateway-id mfginsightsgateway-kbvnf0ga6j --region us-east-1
+```
+
+Expected: `"status": "READY"`
+
+### Check Policy Engine Status
+
+```bash
+aws bedrock-agentcore get-policy-engine --policy-engine-id MfgInsightsPolicyEngine-w1do75vmrk --region us-east-1
+```
+
+Expected: `"mode": "ENFORCE"`, `"status": "ACTIVE"`
+
+### Check Lambda Targets
+
+```bash
+aws lambda get-function --function-name MfgInsights-EquipmentTools --region us-east-1
+aws lambda get-function --function-name MfgInsights-IoTTools --region us-east-1
+aws lambda get-function --function-name MfgInsights-AnalyticsTools --region us-east-1
+```
+
+Expected: `"State": "Active"` for all three.
+
+### Check Cognito Users
+
+```bash
+aws cognito-idp list-users --user-pool-id us-east-1_wBnf60sfQ --region us-east-1
+```
+
+Expected: 3 users (sarah.chen, raj.patel, priya.nair) with status CONFIRMED.
+
+### Test Policy Enforcement (Quick Smoke Test)
+
+```bash
+curl -X POST https://mfginsightsgateway-kbvnf0ga6j.gateway.bedrock-agentcore.us-east-1.amazonaws.com/mcp \
+  -H "Content-Type: application/json" \
+  -d '{"jsonrpc":"2.0","method":"tools/call","params":{"name":"get_equipment_status"},"id":1}'
+```
+
+Expected (no auth): `"Tool Execution Denied: No policy applies"` — confirms deny-by-default enforcement.
+
+## Testing
+
+```bash
+python deploy/agentcore/test_agentcore.py --region us-east-1
+```
+
+Expected output:
+```
+  User            Tool           Args           Expected  Actual  Status
+  sarah.chen      get_equipment  {"line":"L4"}  ALLOW     ALLOW   ✅
+  raj.patel       get_equipment  {"line":"L7"}  ALLOW     ALLOW   ✅
+  raj.patel       get_equipment  {"line":"L4"}  DENY      DENY    ✅
+  priya.nair      get_sensor     {"machine":42} ALLOW     ALLOW   ✅
+  priya.nair      get_sensor     {"machine":72} DENY      DENY    ✅
+```
+
+> **Note:** Without a valid JWT (unauthenticated request), all `tools/call` requests return:
+> `"Tool Execution Denied: No policy applies"` — this confirms deny-by-default enforcement in ENFORCE mode.
+
+## Cedar Policy Details
+
+### How Policies Map to Roles
+
+| Policy | Who It Restricts | What It Checks |
+|--------|-----------------|----------------|
+| permit_all | Nobody (baseline) | Allows all authenticated users |
+| forbid_line_scope | line_supervisors group | `context.input.line` vs `custom:line_scope` |
+| forbid_equipment_scope | maintenance_technicians group | `context.input.machine_id` vs `custom:equipment_scope` |
+| forbid_plant_scope | All non-admin users | `context.input.plant` vs `custom:plant_scope` |
+
+### Evaluation Order
+
+1. REQUEST interceptor enriches request (adds user context)
+2. Cedar evaluates ALL policies simultaneously
+3. If ANY `forbid` matches → DENY (forbid overrides permit)
+4. If `permit` matches and no `forbid` → ALLOW
+5. If nothing matches → DENY (deny-by-default)
+
+## Adding New Users
+
+```python
+# In setup_identity.py, add to DEMO_USERS:
+{
+    "username": "new.user",
+    "email": "new.user@example.com",
+    "password": "NewUser!2026",
+    "role": "line_supervisor",
+    "plant_scope": "Plant 1",
+    "line_scope": "Line 3,Line 4",
+    "equipment_scope": "",
+    "group": "line_supervisors",
+}
+```
+
+No Cedar policy changes needed — the existing rules evaluate the user's scope dynamically.
+
+## Cleanup
+
+```bash
+python deploy/agentcore/cleanup.py --region us-east-1 --confirm
+```
+
+## Cost Estimate
+
+| Service | Monthly Cost (demo usage) |
+|---------|--------------------------|
+| Cognito | Free (< 50K MAU) |
+| Lambda | Free tier (~1M requests) |
+| AgentCore Gateway | ~$0.50/1000 requests |
+| AgentCore Policy | Included with Gateway |
+| CloudWatch Logs | ~$0.50/GB ingested |
+| **Total** | **~$2-5/month** |

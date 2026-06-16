@@ -1,0 +1,21 @@
+{
+  "region": "us-east-1",
+  "account": "338277320360",
+  "gateway_id": "mfginsightsgateway-kbvnf0ga6j",
+  "gateway_url": "https://mfginsightsgateway-kbvnf0ga6j.gateway.bedrock-agentcore.us-east-1.amazonaws.com",
+  "gateway_status": "READY",
+  "policy_engine_id": "MfgInsightsPolicyEngine-w1do75vmrk",
+  "policy_mode": "ENFORCE",
+  "pool_id": "us-east-1_wBnf60sfQ",
+  "client_id": "5fu4vkccn1ndlr62vp79nnb5po",
+  "targets": [
+    "IoTTarget",
+    "AnalyticsTarget",
+    "EquipmentTarget"
+  ],
+  "policies": [
+    "forbid_equipment_scope",
+    "forbid_line_scope",
+    "permit_all"
+  ]
+}

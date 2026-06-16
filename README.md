@@ -1,8 +1,10 @@
-# Generate Autonomous Business Insights with MCP Servers and Multi-Agents
+# Generate Autonomous Business Insights with AI Agent and MCP Servers
 
-This repository contains the sample code for the AWS blog post: [Generate Autonomous Business Insights with MCP Servers and Multi-Agents](https://aws.amazon.com/blogs/machine-learning/generate-autonomous-business-insights-with-mcp-servers-and-multi-agents/).
+This repository contains the sample code for the AWS blog post: [Generate Autonomous Business Insights with AI Agent and MCP Servers](https://aws.amazon.com/blogs/machine-learning/generate-autonomous-business-insights-with-ai-agent-and-mcp-servers/).
 
 ## Overview
+
+> **Important:** This sample code is provided for **demonstration and educational purposes only**. It is not intended for production use without further review, testing, and hardening. Use this code as a reference implementation to understand the architecture patterns. Before deploying to production, conduct your own security review, implement proper error handling, and follow your organization's deployment practices.
 
 This sample implements a **working multi-agent system** that transforms natural language questions into cross-system manufacturing insights. It uses [Amazon Bedrock AgentCore](https://aws.amazon.com/bedrock/agentcore/), [Strands Agents SDK](https://strandsagents.com/), and the [Model Context Protocol (MCP)](https://modelcontextprotocol.io/) to demonstrate how enterprises can close the gap between data and decisions through configuration, not custom platform engineering.
 
@@ -126,8 +128,8 @@ No AWS infrastructure required beyond Bedrock model access. Includes a Streamlit
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/aws-samples/sample-autonomous-business-insights-mcp-multi-agents.git
-cd sample-autonomous-business-insights-mcp-multi-agents
+git clone https://github.com/aws-samples/sample-autonomous-business-insights-with-ai-agent-and-mcp-servers.git
+cd sample-autonomous-business-insights-with-ai-agent-and-mcp-servers
 
 # 2. Create and activate virtual environment
 python3 -m venv .venv

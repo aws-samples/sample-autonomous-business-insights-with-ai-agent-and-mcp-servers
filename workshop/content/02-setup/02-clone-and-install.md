@@ -8,8 +8,8 @@ weight: 22
 ## 1. Clone the repository
 
 ```bash
-git clone https://github.com/aws-samples/sample-autonomous-business-insights-mcp-multi-agents.git
-cd sample-autonomous-business-insights-mcp-multi-agents
+git clone https://github.com/aws-samples/sample-autonomous-business-insights-with-ai-agent-and-mcp-servers.git
+cd sample-autonomous-business-insights-with-ai-agent-and-mcp-servers
 ```
 
 ## 2. Create a Python virtual environment

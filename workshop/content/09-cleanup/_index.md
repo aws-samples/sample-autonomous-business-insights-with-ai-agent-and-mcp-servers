@@ -54,7 +54,7 @@ aws cloudformation describe-stacks --stack-name manufacturing-insights-dev 2>&1
 
 ```bash
 cd ..
-rm -rf sample-autonomous-business-insights-mcp-multi-agents
+rm -rf sample-autonomous-business-insights-with-ai-agent-and-mcp-servers
 ```
 
 ## What Was Deleted

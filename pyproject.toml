@@ -1,5 +1,5 @@
 [project]
-name = "sample-autonomous-business-insights-mcp-multi-agents"
+name = "sample-autonomous-business-insights-with-ai-agent-and-mcp-servers"
 version = "1.0.0"
 description = "Generate autonomous business insights with MCP servers on Amazon Bedrock AgentCore"
 requires-python = ">=3.10"

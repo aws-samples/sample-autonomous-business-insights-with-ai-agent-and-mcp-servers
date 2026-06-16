@@ -1,0 +1,317 @@
+Run started:2026-06-11 10:32:02.342937+00:00
+
+Test results:
+>> Issue: [B110:try_except_pass] Try, Except, Pass detected.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b110_try_except_pass.html
+   Location: src/agent/agent.py:258:16
+257	                    client.__exit__(None, None, None)
+258	                except Exception:
+259	                    pass
+
+--------------------------------------------------
+>> Issue: [B608:hardcoded_sql_expressions] Possible SQL injection vector through string-based query construction.
+   Severity: Medium   Confidence: Low
+   CWE: CWE-89 (https://cwe.mitre.org/data/definitions/89.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b608_hardcoded_sql_expressions.html
+   Location: src/data/lakehouse_client.py:266:14
+265	
+266	    sql = f"""
+267	        SELECT machine_name, line_name, metric, current_value,
+268	               threshold_warning, threshold_critical, unit, severity, detected_at
+269	        FROM detected_anomalies
+270	        WHERE {' AND '.join(where_clauses)}
+271	        ORDER BY
+272	            CASE severity WHEN 'CRITICAL' THEN 0 ELSE 1 END,
+273	            current_value DESC
+274	    """
+275	    return client.execute_query(sql, params if params else None)
+
+--------------------------------------------------
+>> Issue: [B608:hardcoded_sql_expressions] Possible SQL injection vector through string-based query construction.
+   Severity: Medium   Confidence: Low
+   CWE: CWE-89 (https://cwe.mitre.org/data/definitions/89.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b608_hardcoded_sql_expressions.html
+   Location: src/data/lakehouse_client.py:344:14
+343	
+344	    sql = f"""
+345	        SELECT line_name, plant, week_start, availability, performance,
+346	               quality, oee
+347	        FROM oee_weekly
+348	        WHERE {' AND '.join(where_clauses)}
+349	        ORDER BY line_name, week_start
+350	    """
+351	    return client.execute_query(sql, params if params else None)
+
+--------------------------------------------------
+>> Issue: [B608:hardcoded_sql_expressions] Possible SQL injection vector through string-based query construction.
+   Severity: Medium   Confidence: Low
+   CWE: CWE-89 (https://cwe.mitre.org/data/definitions/89.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b608_hardcoded_sql_expressions.html
+   Location: src/data/lakehouse_client.py:374:14
+373	
+374	    sql = f"""
+375	        SELECT line_name, inspection_date, scrap_rate_pct,
+376	               defect_category, units_produced, units_scrapped
+377	        FROM quality_metrics
+378	        WHERE {' AND '.join(where_clauses)}
+379	        ORDER BY line_name, inspection_date DESC
+380	    """
+381	    return client.execute_query(sql, params if params else None)
+
+--------------------------------------------------
+>> Issue: [B310:blacklist] Audit url open for permitted schemes. Allowing use of file:/ or custom schemes is often unexpected.
+   Severity: Medium   Confidence: High
+   CWE: CWE-22 (https://cwe.mitre.org/data/definitions/22.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/blacklists/blacklist_calls.html#b310-urllib-urlopen
+   Location: src/data/opensearch_client.py:66:13
+65	        )
+66	        with urllib.request.urlopen(req) as resp:
+67	            result = json.loads(resp.read().decode("utf-8"))
+
+--------------------------------------------------
+>> Issue: [B311:blacklist] Standard pseudo-random generators are not suitable for security/cryptographic purposes.
+   Severity: Low   Confidence: High
+   CWE: CWE-330 (https://cwe.mitre.org/data/definitions/330.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/blacklists/blacklist_calls.html#b311-random
+   Location: src/data/sample_data.py:40:20
+39	            "plant": line_info["plant"],
+40	            "type": random.choice(["CNC Mill", "Press", "Robot Arm", "Conveyor Motor", "Welder"]),
+41	            "install_date": "2022-03-15",
+
+--------------------------------------------------
+>> Issue: [B311:blacklist] Standard pseudo-random generators are not suitable for security/cryptographic purposes.
+   Severity: Low   Confidence: High
+   CWE: CWE-330 (https://cwe.mitre.org/data/definitions/330.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/blacklists/blacklist_calls.html#b311-random
+   Location: src/data/sample_data.py:43:48
+42	            "last_maintenance": (
+43	                datetime.now() - timedelta(days=random.randint(30, 240))
+44	            ).strftime("%Y-%m-%d"),
+
+--------------------------------------------------
+>> Issue: [B311:blacklist] Standard pseudo-random generators are not suitable for security/cryptographic purposes.
+   Severity: Low   Confidence: High
+   CWE: CWE-330 (https://cwe.mitre.org/data/definitions/330.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/blacklists/blacklist_calls.html#b311-random
+   Location: src/data/sample_data.py:45:31
+44	            ).strftime("%Y-%m-%d"),
+45	            "operating_hours": random.randint(5000, 15000),
+46	            "rated_capacity_factor": round(random.uniform(0.8, 1.4), 2),
+
+--------------------------------------------------
+>> Issue: [B311:blacklist] Standard pseudo-random generators are not suitable for security/cryptographic purposes.
+   Severity: Low   Confidence: High
+   CWE: CWE-330 (https://cwe.mitre.org/data/definitions/330.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/blacklists/blacklist_calls.html#b311-random
+   Location: src/data/sample_data.py:46:43
+45	            "operating_hours": random.randint(5000, 15000),
+46	            "rated_capacity_factor": round(random.uniform(0.8, 1.4), 2),
+47	        }
+
+--------------------------------------------------
+>> Issue: [B311:blacklist] Standard pseudo-random generators are not suitable for security/cryptographic purposes.
+   Severity: Low   Confidence: High
+   CWE: CWE-330 (https://cwe.mitre.org/data/definitions/330.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/blacklists/blacklist_calls.html#b311-random
+   Location: src/data/sample_data.py:85:47
+84	                    trend = min(12.0, (days - day) * 4.0)
+85	                    value = baseline + trend + random.uniform(-1.5, 1.5)
+86	                else:
+
+--------------------------------------------------
+>> Issue: [B311:blacklist] Standard pseudo-random generators are not suitable for security/cryptographic purposes.
+   Severity: Low   Confidence: High
+   CWE: CWE-330 (https://cwe.mitre.org/data/definitions/330.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/blacklists/blacklist_calls.html#b311-random
+   Location: src/data/sample_data.py:87:39
+86	                else:
+87	                    value = baseline + random.uniform(-3, 3)
+88	            elif metric == "vibration":
+
+--------------------------------------------------
+>> Issue: [B311:blacklist] Standard pseudo-random generators are not suitable for security/cryptographic purposes.
+   Severity: Low   Confidence: High
+   CWE: CWE-330 (https://cwe.mitre.org/data/definitions/330.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/blacklists/blacklist_calls.html#b311-random
+   Location: src/data/sample_data.py:93:47
+92	                    trend = (days - day) * 0.3
+93	                    value = baseline + trend + random.uniform(-0.2, 0.2)
+94	                else:
+
+--------------------------------------------------
+>> Issue: [B311:blacklist] Standard pseudo-random generators are not suitable for security/cryptographic purposes.
+   Severity: Low   Confidence: High
+   CWE: CWE-330 (https://cwe.mitre.org/data/definitions/330.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/blacklists/blacklist_calls.html#b311-random
+   Location: src/data/sample_data.py:95:39
+94	                else:
+95	                    value = baseline + random.uniform(-0.5, 0.5)
+96	            elif metric == "pressure":
+
+--------------------------------------------------
+>> Issue: [B311:blacklist] Standard pseudo-random generators are not suitable for security/cryptographic purposes.
+   Severity: Low   Confidence: High
+   CWE: CWE-330 (https://cwe.mitre.org/data/definitions/330.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/blacklists/blacklist_calls.html#b311-random
+   Location: src/data/sample_data.py:98:35
+97	                baseline = 4.2  # bar
+98	                value = baseline + random.uniform(-0.3, 0.3)
+99	            else:
+
+--------------------------------------------------
+>> Issue: [B311:blacklist] Standard pseudo-random generators are not suitable for security/cryptographic purposes.
+   Severity: Low   Confidence: High
+   CWE: CWE-330 (https://cwe.mitre.org/data/definitions/330.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/blacklists/blacklist_calls.html#b311-random
+   Location: src/data/sample_data.py:100:24
+99	            else:
+100	                value = random.uniform(0, 100)
+101	
+
+--------------------------------------------------
+>> Issue: [B311:blacklist] Standard pseudo-random generators are not suitable for security/cryptographic purposes.
+   Severity: Low   Confidence: High
+   CWE: CWE-330 (https://cwe.mitre.org/data/definitions/330.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/blacklists/blacklist_calls.html#b311-random
+   Location: src/data/sample_data.py:134:24
+133	    weekly_oee = []
+134	    base_availability = random.uniform(88, 96)
+135	    for week in range(4, 0, -1):
+
+--------------------------------------------------
+>> Issue: [B311:blacklist] Standard pseudo-random generators are not suitable for security/cryptographic purposes.
+   Severity: Low   Confidence: High
+   CWE: CWE-330 (https://cwe.mitre.org/data/definitions/330.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/blacklists/blacklist_calls.html#b311-random
+   Location: src/data/sample_data.py:142:47
+141	        else:
+142	            availability = base_availability + random.uniform(-1, 1)
+143	
+
+--------------------------------------------------
+>> Issue: [B311:blacklist] Standard pseudo-random generators are not suitable for security/cryptographic purposes.
+   Severity: Low   Confidence: High
+   CWE: CWE-330 (https://cwe.mitre.org/data/definitions/330.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/blacklists/blacklist_calls.html#b311-random
+   Location: src/data/sample_data.py:147:33
+146	            "availability": round(availability, 1),
+147	            "performance": round(random.uniform(85, 95), 1),
+148	            "quality": round(random.uniform(96, 99.5), 1),
+
+--------------------------------------------------
+>> Issue: [B311:blacklist] Standard pseudo-random generators are not suitable for security/cryptographic purposes.
+   Severity: Low   Confidence: High
+   CWE: CWE-330 (https://cwe.mitre.org/data/definitions/330.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/blacklists/blacklist_calls.html#b311-random
+   Location: src/data/sample_data.py:148:29
+147	            "performance": round(random.uniform(85, 95), 1),
+148	            "quality": round(random.uniform(96, 99.5), 1),
+149	            "oee": round(
+
+--------------------------------------------------
+>> Issue: [B311:blacklist] Standard pseudo-random generators are not suitable for security/cryptographic purposes.
+   Severity: Low   Confidence: High
+   CWE: CWE-330 (https://cwe.mitre.org/data/definitions/330.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/blacklists/blacklist_calls.html#b311-random
+   Location: src/data/sample_data.py:150:31
+149	            "oee": round(
+150	                availability * random.uniform(85, 95) * random.uniform(96, 99.5) / 10000, 1
+151	            ),
+
+--------------------------------------------------
+>> Issue: [B311:blacklist] Standard pseudo-random generators are not suitable for security/cryptographic purposes.
+   Severity: Low   Confidence: High
+   CWE: CWE-330 (https://cwe.mitre.org/data/definitions/330.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/blacklists/blacklist_calls.html#b311-random
+   Location: src/data/sample_data.py:150:56
+149	            "oee": round(
+150	                availability * random.uniform(85, 95) * random.uniform(96, 99.5) / 10000, 1
+151	            ),
+
+--------------------------------------------------
+>> Issue: [B311:blacklist] Standard pseudo-random generators are not suitable for security/cryptographic purposes.
+   Severity: Low   Confidence: High
+   CWE: CWE-330 (https://cwe.mitre.org/data/definitions/330.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/blacklists/blacklist_calls.html#b311-random
+   Location: src/data/sample_data.py:166:28
+165	    else:
+166	        scrap_rate = [round(random.uniform(0.8, 1.5), 1) for _ in range(4)]
+167	
+
+--------------------------------------------------
+>> Issue: [B608:hardcoded_sql_expressions] Possible SQL injection vector through string-based query construction.
+   Severity: Medium   Confidence: Low
+   CWE: CWE-89 (https://cwe.mitre.org/data/definitions/89.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b608_hardcoded_sql_expressions.html
+   Location: src/data/timestream_client.py:78:10
+77	    query = (
+78	        f"SELECT time, machine_id, metric, measure_value::double as value, unit "
+79	        f"FROM \"{client.database}\".\"{client.table}\" "
+80	        f"WHERE machine_id = '{machine_id}' "
+81	        f"AND metric = '{metric}' "
+82	        f"AND time >= ago({days}d) "
+83	        f"ORDER BY time ASC"
+84	    )
+
+--------------------------------------------------
+>> Issue: [B608:hardcoded_sql_expressions] Possible SQL injection vector through string-based query construction.
+   Severity: Medium   Confidence: Low
+   CWE: CWE-89 (https://cwe.mitre.org/data/definitions/89.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b608_hardcoded_sql_expressions.html
+   Location: src/data/timestream_client.py:108:10
+107	    query = (
+108	        f"SELECT machine_id, machine_name, line_name, metric, "
+109	        f"MAX(measure_value::double) as current_value, unit "
+110	        f"FROM \"{client.database}\".\"{client.table}\" "
+111	        f"WHERE {' AND '.join(where_clauses)} "
+112	        f"GROUP BY machine_id, machine_name, line_name, metric, unit "
+113	        f"HAVING MAX(measure_value::double) > 4.0 "  # Simplified threshold
+114	        f"ORDER BY current_value DESC"
+115	    )
+
+--------------------------------------------------
+>> Issue: [B404:blacklist] Consider possible security implications associated with the subprocess module.
+   Severity: Low   Confidence: High
+   CWE: CWE-78 (https://cwe.mitre.org/data/definitions/78.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/blacklists/blacklist_imports.html#b404-import-subprocess
+   Location: src/servers/start_all.py:13:0
+12	
+13	import subprocess
+14	import sys
+
+--------------------------------------------------
+>> Issue: [B603:subprocess_without_shell_equals_true] subprocess call - check for execution of untrusted input.
+   Severity: Low   Confidence: High
+   CWE: CWE-78 (https://cwe.mitre.org/data/definitions/78.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b603_subprocess_without_shell_equals_true.html
+   Location: src/servers/start_all.py:68:15
+67	
+68	        proc = subprocess.Popen(
+69	            [sys.executable, "-m", server["module"]],
+70	            env=env,
+71	            stdout=subprocess.PIPE,
+72	            stderr=subprocess.PIPE,
+73	        )
+74	        processes.append(proc)
+
+--------------------------------------------------
+
+Code scanned:
+	Total lines of code: 2694
+	Total lines skipped (#nosec): 0
+	Total potential issues skipped due to specifically being disabled (e.g., #nosec BXXX): 0
+
+Run metrics:
+	Total issues (by severity):
+		Undefined: 0
+		Low: 20
+		Medium: 6
+		High: 0
+	Total issues (by confidence):
+		Undefined: 0
+		Low: 5
+		Medium: 0
+		High: 21
+Files skipped (0):
