@@ -5,9 +5,9 @@ import httpx
 import asyncio
 
 REGION = "us-east-1"
-POOL_ID = "us-east-1_wBnf60sfQ"
-CLIENT_ID = "5fu4vkccn1ndlr62vp79nnb5po"
-GW_URL = "https://mfginsightsgateway-kbvnf0ga6j.gateway.bedrock-agentcore.us-east-1.amazonaws.com/mcp/"
+POOL_ID = "us-east-1_EXAMPLE"
+CLIENT_ID = "EXAMPLE_CLIENT_ID"
+GW_URL = "https://your-gateway-id.gateway.bedrock-agentcore.us-east-1.amazonaws.com/mcp/"
 
 cognito = boto3.client("cognito-idp", region_name=REGION)
 

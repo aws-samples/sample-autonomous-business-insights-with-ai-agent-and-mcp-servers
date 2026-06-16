@@ -8,15 +8,15 @@ A precision manufacturing company with 3 plants, 12 assembly lines, and 60 machi
 
 > "Sarah sees everything. Raj sees only Line 7. Priya sees only her assigned machines. Same agent. Same question interface. Different data access."
 
-### Deployed Infrastructure (LIVE on AWS Account 338277320360)
+### Deployed Infrastructure (LIVE on AWS Account 123456789012)
 
 | Component | AWS Resource | Identifier |
 |-----------|-------------|------------|
-| Gateway | AgentCore Gateway (MCP) | `mfginsightsgateway-kbvnf0ga6j` |
-| Gateway URL | HTTPS endpoint | `https://mfginsightsgateway-kbvnf0ga6j.gateway.bedrock-agentcore.us-east-1.amazonaws.com` |
-| Policy Engine | AgentCore Policy (Cedar) | `MfgInsightsPolicyEngine-w1do75vmrk` |
+| Gateway | AgentCore Gateway (MCP) | `your-gateway-id` |
+| Gateway URL | HTTPS endpoint | `https://your-gateway-id.gateway.bedrock-agentcore.us-east-1.amazonaws.com` |
+| Policy Engine | AgentCore Policy (Cedar) | `your-policy-engine-id` |
 | Cedar Policies | 3 rules (permit_all + 2 forbid) | ENFORCE mode |
-| Identity | Cognito User Pool | `us-east-1_wBnf60sfQ` |
+| Identity | Cognito User Pool | `us-east-1_EXAMPLE` |
 | Tool: Equipment | Lambda | `MfgInsights-EquipmentTools` |
 | Tool: IoT | Lambda | `MfgInsights-IoTTools` |
 | Tool: Analytics | Lambda | `MfgInsights-AnalyticsTools` |

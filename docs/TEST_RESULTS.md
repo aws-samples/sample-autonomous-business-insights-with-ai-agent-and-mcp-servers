@@ -1,6 +1,6 @@
 # Test Results — AgentCore Manufacturing Insights
 
-> **Account:** 338277320360 | **Region:** us-east-1
+> **Account:** 123456789012 | **Region:** us-east-1
 > **Test Run:** July 2025
 > **Environment:** Production deployment (ENFORCE mode)
 
@@ -12,11 +12,11 @@
 
 | User | Pool | Status | Auth Flow |
 |------|------|--------|-----------|
-| sarah.chen | us-east-1_wBnf60sfQ | CONFIRMED | ✅ Authenticated |
-| raj.patel | us-east-1_wBnf60sfQ | CONFIRMED | ✅ Authenticated |
-| priya.nair | us-east-1_wBnf60sfQ | CONFIRMED | ✅ Authenticated |
+| sarah.chen | us-east-1_EXAMPLE | CONFIRMED | ✅ Authenticated |
+| raj.patel | us-east-1_EXAMPLE | CONFIRMED | ✅ Authenticated |
+| priya.nair | us-east-1_EXAMPLE | CONFIRMED | ✅ Authenticated |
 
-**Method:** `admin-initiate-auth` with `ADMIN_USER_PASSWORD_AUTH` flow against pool `us-east-1_wBnf60sfQ`.
+**Method:** `admin-initiate-auth` with `ADMIN_USER_PASSWORD_AUTH` flow against pool `us-east-1_EXAMPLE`.
 
 All three users successfully authenticate and receive JWT tokens containing custom claims (`custom:role`, `custom:line_scope`, `custom:plant_scope`, `custom:equipment_scope`).
 
@@ -24,9 +24,9 @@ All three users successfully authenticate and receive JWT tokens containing cust
 
 | Client ID | Grant Type | Status |
 |-----------|-----------|--------|
-| 4knqrdhikscn2d4gjr1ler12nc | client_credentials | ✅ Configured |
+| EXAMPLE_M2M_CLIENT_ID | client_credentials | ✅ Configured |
 
-**Cognito Domain:** `mfginsights-33827732.auth.us-east-1.amazoncognito.com`
+**Cognito Domain:** `your-cognito-domain.auth.us-east-1.amazoncognito.com`
 
 ---
 
@@ -35,21 +35,21 @@ All three users successfully authenticate and receive JWT tokens containing cust
 ### Initialize Request ✅
 
 ```bash
-curl -X POST https://mfginsightsgateway-kbvnf0ga6j.gateway.bedrock-agentcore.us-east-1.amazonaws.com/mcp \
+curl -X POST https://your-gateway-id.gateway.bedrock-agentcore.us-east-1.amazonaws.com/mcp \
   -H "Content-Type: application/json" \
   -d '{"jsonrpc":"2.0","method":"initialize","id":1}'
 ```
 
 **Result:** `200 OK`
 
-The Gateway accepts MCP JSON-RPC protocol messages and responds correctly to the `initialize` handshake. This confirms the Gateway (`mfginsightsgateway-kbvnf0ga6j`) is operational and routing MCP traffic.
+The Gateway accepts MCP JSON-RPC protocol messages and responds correctly to the `initialize` handshake. This confirms the Gateway (`your-gateway-id`) is operational and routing MCP traffic.
 
 ### Gateway Status ✅
 
 ```
-Gateway ID: mfginsightsgateway-kbvnf0ga6j
+Gateway ID: your-gateway-id
 Status: READY
-URL: https://mfginsightsgateway-kbvnf0ga6j.gateway.bedrock-agentcore.us-east-1.amazonaws.com
+URL: https://your-gateway-id.gateway.bedrock-agentcore.us-east-1.amazonaws.com
 ```
 
 ---
@@ -59,7 +59,7 @@ URL: https://mfginsightsgateway-kbvnf0ga6j.gateway.bedrock-agentcore.us-east-1.a
 ### Cedar Policy Engine Status ✅
 
 ```
-Engine: MfgInsightsPolicyEngine-w1do75vmrk
+Engine: your-policy-engine-id
 Mode: ENFORCE
 Policies: permit_all, forbid_line_scope, forbid_equipment_scope
 ```
@@ -67,7 +67,7 @@ Policies: permit_all, forbid_line_scope, forbid_equipment_scope
 ### Deny-by-Default (No Principal) ✅
 
 ```bash
-curl -X POST https://mfginsightsgateway-kbvnf0ga6j.gateway.bedrock-agentcore.us-east-1.amazonaws.com/mcp \
+curl -X POST https://your-gateway-id.gateway.bedrock-agentcore.us-east-1.amazonaws.com/mcp \
   -H "Content-Type: application/json" \
   -d '{"jsonrpc":"2.0","method":"tools/call","params":{"name":"get_equipment_status","arguments":{"line":"Line 4"}},"id":1}'
 ```
@@ -115,7 +115,7 @@ curl -X POST https://mfginsightsgateway-kbvnf0ga6j.gateway.bedrock-agentcore.us-
 
 | Gateway | Status | Purpose |
 |---------|--------|---------|
-| mfginsightstest-af76b5qmwe | READY | Development/testing without auth overhead |
+| your-test-gateway-id | READY | Development/testing without auth overhead |
 
 ---
 
@@ -123,14 +123,14 @@ curl -X POST https://mfginsightsgateway-kbvnf0ga6j.gateway.bedrock-agentcore.us-
 
 ### JWT `insufficient_scope` Error
 
-**Symptom:** When using `client_credentials` grant type with the M2M client (`4knqrdhikscn2d4gjr1ler12nc`), token requests may return `insufficient_scope`.
+**Symptom:** When using `client_credentials` grant type with the M2M client (`EXAMPLE_M2M_CLIENT_ID`), token requests may return `insufficient_scope`.
 
-**Root Cause:** Cognito custom domain DNS propagation. The domain `mfginsights-33827732.auth.us-east-1.amazoncognito.com` requires full DNS propagation before `client_credentials` flow works with custom scopes.
+**Root Cause:** Cognito custom domain DNS propagation. The domain `your-cognito-domain.auth.us-east-1.amazoncognito.com` requires full DNS propagation before `client_credentials` flow works with custom scopes.
 
 **Workaround:**
 1. Wait 15-30 minutes after domain creation for DNS propagation
 2. Use `admin-initiate-auth` (ADMIN_USER_PASSWORD_AUTH) for user-based tokens — this works immediately
-3. For M2M testing, use the test gateway (`mfginsightstest-af76b5qmwe`) which bypasses auth
+3. For M2M testing, use the test gateway (`your-test-gateway-id`) which bypasses auth
 
 **Status:** Non-blocking for workshop demo purposes. User-based auth works correctly.
 

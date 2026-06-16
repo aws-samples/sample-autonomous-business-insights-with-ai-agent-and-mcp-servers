@@ -56,7 +56,7 @@ def main():
     add_para(doc, 'Technical Architecture & Implementation Guide', italic=True, size=14)
     add_para(doc, 'Manufacturing Insights — Multi-Agent System with MCP Servers', size=12)
     doc.add_paragraph()
-    add_para(doc, 'Version 2.0 | June 2026 | DEPLOYED on AWS Account 338277320360', size=10)
+    add_para(doc, 'Version 2.0 | June 2026 | DEPLOYED on AWS Account 123456789012', size=10)
     doc.add_page_break()
 
     # Deployed Resources
@@ -65,16 +65,16 @@ def main():
     add_table(doc,
         ['Component', 'Resource ID', 'Status'],
         [
-            ['Gateway', 'mfginsightsgateway-kbvnf0ga6j', 'READY'],
+            ['Gateway', 'your-gateway-id', 'READY'],
             ['Gateway URL', 'https://mfginsightsgateway-...us-east-1.amazonaws.com', 'Active'],
-            ['Policy Engine', 'MfgInsightsPolicyEngine-w1do75vmrk', 'ENFORCE'],
+            ['Policy Engine', 'your-policy-engine-id', 'ENFORCE'],
             ['Cedar Policies', 'permit_all, forbid_line_scope, forbid_equipment_scope', '3 Active'],
-            ['Cognito Pool', 'us-east-1_wBnf60sfQ', 'Active'],
+            ['Cognito Pool', 'us-east-1_EXAMPLE', 'Active'],
             ['Users', 'sarah.chen, raj.patel, priya.nair', 'Confirmed'],
             ['Lambda: Equipment', 'MfgInsights-EquipmentTools', 'READY'],
             ['Lambda: IoT', 'MfgInsights-IoTTools', 'READY'],
             ['Lambda: Analytics', 'MfgInsights-AnalyticsTools', 'READY'],
-            ['Test Gateway', 'mfginsightstest-af76b5qmwe', 'READY (no auth)'],
+            ['Test Gateway', 'your-test-gateway-id', 'READY (no auth)'],
         ]
     )
     doc.add_page_break()
@@ -235,7 +235,7 @@ Users (Cognito JWT)
     add_para(doc, (
         'Every tool call from the agent passes through the Gateway. This is non-negotiable — '
         'the agent cannot bypass it because it only has the Gateway URL, not direct MCP server URLs. '
-        'DEPLOYED: mfginsightsgateway-kbvnf0ga6j (READY, ENFORCE mode).'
+        'DEPLOYED: your-gateway-id (READY, ENFORCE mode).'
     ))
     doc.add_paragraph()
     add_para(doc, 'Gateway capabilities used:', bold=True)

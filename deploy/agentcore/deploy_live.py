@@ -7,7 +7,7 @@ import time
 from pathlib import Path
 
 REGION = "us-east-1"
-ACCOUNT = "338277320360"
+ACCOUNT = "123456789012"
 
 def main():
     cognito = boto3.client("cognito-idp", region_name=REGION)

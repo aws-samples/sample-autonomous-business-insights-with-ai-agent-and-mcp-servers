@@ -2,22 +2,22 @@
 
 ## Deployed Resources (Live)
 
-> **Account:** 338277320360 | **Region:** us-east-1 | **Status:** READY
+> **Account:** 123456789012 | **Region:** us-east-1 | **Status:** READY
 
 | Resource | ID / ARN | Status |
 |----------|----------|--------|
-| Gateway | `mfginsightsgateway-kbvnf0ga6j` | READY |
-| Gateway URL | `https://mfginsightsgateway-kbvnf0ga6j.gateway.bedrock-agentcore.us-east-1.amazonaws.com` | Active |
-| Policy Engine | `MfgInsightsPolicyEngine-w1do75vmrk` | ENFORCE |
+| Gateway | `your-gateway-id` | READY |
+| Gateway URL | `https://your-gateway-id.gateway.bedrock-agentcore.us-east-1.amazonaws.com` | Active |
+| Policy Engine | `your-policy-engine-id` | ENFORCE |
 | Cedar Policies | `permit_all`, `forbid_line_scope`, `forbid_equipment_scope` | Active |
-| Cognito User Pool | `us-east-1_wBnf60sfQ` | Active |
+| Cognito User Pool | `us-east-1_EXAMPLE` | Active |
 | Cognito Users | `sarah.chen`, `raj.patel`, `priya.nair` | Confirmed |
-| Cognito M2M Client | `4knqrdhikscn2d4gjr1ler12nc` | Active |
-| Cognito Domain | `mfginsights-33827732.auth.us-east-1.amazoncognito.com` | Active |
+| Cognito M2M Client | `EXAMPLE_M2M_CLIENT_ID` | Active |
+| Cognito Domain | `your-cognito-domain.auth.us-east-1.amazoncognito.com` | Active |
 | Lambda: Equipment | `MfgInsights-EquipmentTools` | READY |
 | Lambda: IoT | `MfgInsights-IoTTools` | READY |
 | Lambda: Analytics | `MfgInsights-AnalyticsTools` | READY |
-| Test Gateway (no auth) | `mfginsightstest-af76b5qmwe` | READY |
+| Test Gateway (no auth) | `your-test-gateway-id` | READY |
 | IAM Role (Gateway) | `MfgInsights-Gateway-Role` | Active |
 
 ---
@@ -87,9 +87,9 @@ python deploy/agentcore/setup_identity.py --region us-east-1
 
 Output:
 ```
-✅ Created User Pool: us-east-1_wBnf60sfQ
-✅ Created App Client: 4knqrdhikscn2d4gjr1ler12nc
-✅ Created Cognito Domain: mfginsights-33827732.auth.us-east-1.amazoncognito.com
+✅ Created User Pool: us-east-1_EXAMPLE
+✅ Created App Client: EXAMPLE_M2M_CLIENT_ID
+✅ Created Cognito Domain: your-cognito-domain.auth.us-east-1.amazoncognito.com
 ✅ Created user: sarah.chen (plant_managers)
 ✅ Created user: raj.patel (line_supervisors)
 ✅ Created user: priya.nair (maintenance_technicians)
@@ -99,7 +99,7 @@ Creates:
 - User Pool with custom attributes: `role`, `line_scope`, `plant_scope`, `equipment_scope`
 - 3 users: sarah.chen, raj.patel, priya.nair
 - 3 groups: plant_managers, line_supervisors, maintenance_technicians
-- M2M client for machine-to-machine auth: `4knqrdhikscn2d4gjr1ler12nc`
+- M2M client for machine-to-machine auth: `EXAMPLE_M2M_CLIENT_ID`
 
 #### Step 2: Gateway + Lambda Targets
 
@@ -113,9 +113,9 @@ Output:
 ✅ Created Lambda: MfgInsights-IoTTools
 ✅ Created Lambda: MfgInsights-AnalyticsTools
 ✅ Created IAM Role: MfgInsights-Gateway-Role
-✅ Created Gateway: mfginsightsgateway-kbvnf0ga6j
-   URL: https://mfginsightsgateway-kbvnf0ga6j.gateway.bedrock-agentcore.us-east-1.amazonaws.com
-✅ Created Test Gateway (no auth): mfginsightstest-af76b5qmwe
+✅ Created Gateway: your-gateway-id
+   URL: https://your-gateway-id.gateway.bedrock-agentcore.us-east-1.amazonaws.com
+✅ Created Test Gateway (no auth): your-test-gateway-id
 ✅ All Lambda targets: READY
 ```
 
@@ -132,15 +132,15 @@ python deploy/agentcore/setup_policy.py --region us-east-1 --mode ENFORCE
 
 Output:
 ```
-✅ Created Policy Engine: MfgInsightsPolicyEngine-w1do75vmrk (mode: ENFORCE)
+✅ Created Policy Engine: your-policy-engine-id (mode: ENFORCE)
 ✅ Created policy: permit_all
 ✅ Created policy: forbid_line_scope
 ✅ Created policy: forbid_equipment_scope
-✅ Attached Policy Engine to Gateway: mfginsightsgateway-kbvnf0ga6j
+✅ Attached Policy Engine to Gateway: your-gateway-id
 ```
 
 Creates:
-- Policy Engine: `MfgInsightsPolicyEngine-w1do75vmrk`
+- Policy Engine: `your-policy-engine-id`
 - 3 Cedar policies (permit_all + 2 forbid rules)
 - Attaches to Gateway
 - Mode set directly to `ENFORCE` (validated via test gateway first)
@@ -162,7 +162,7 @@ Creates:
 ### Check Gateway Status
 
 ```bash
-aws bedrock-agentcore get-gateway --gateway-id mfginsightsgateway-kbvnf0ga6j --region us-east-1
+aws bedrock-agentcore get-gateway --gateway-id your-gateway-id --region us-east-1
 ```
 
 Expected: `"status": "READY"`
@@ -170,7 +170,7 @@ Expected: `"status": "READY"`
 ### Check Policy Engine Status
 
 ```bash
-aws bedrock-agentcore get-policy-engine --policy-engine-id MfgInsightsPolicyEngine-w1do75vmrk --region us-east-1
+aws bedrock-agentcore get-policy-engine --policy-engine-id your-policy-engine-id --region us-east-1
 ```
 
 Expected: `"mode": "ENFORCE"`, `"status": "ACTIVE"`
@@ -188,7 +188,7 @@ Expected: `"State": "Active"` for all three.
 ### Check Cognito Users
 
 ```bash
-aws cognito-idp list-users --user-pool-id us-east-1_wBnf60sfQ --region us-east-1
+aws cognito-idp list-users --user-pool-id us-east-1_EXAMPLE --region us-east-1
 ```
 
 Expected: 3 users (sarah.chen, raj.patel, priya.nair) with status CONFIRMED.
@@ -196,7 +196,7 @@ Expected: 3 users (sarah.chen, raj.patel, priya.nair) with status CONFIRMED.
 ### Test Policy Enforcement (Quick Smoke Test)
 
 ```bash
-curl -X POST https://mfginsightsgateway-kbvnf0ga6j.gateway.bedrock-agentcore.us-east-1.amazonaws.com/mcp \
+curl -X POST https://your-gateway-id.gateway.bedrock-agentcore.us-east-1.amazonaws.com/mcp \
   -H "Content-Type: application/json" \
   -d '{"jsonrpc":"2.0","method":"tools/call","params":{"name":"get_equipment_status"},"id":1}'
 ```

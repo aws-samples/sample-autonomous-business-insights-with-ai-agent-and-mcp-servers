@@ -8,18 +8,18 @@
 
 ## Lab Environment (Pre-Deployed)
 
-> All resources are deployed in **account 338277320360**, region **us-east-1**.
+> All resources are deployed in **account 123456789012**, region **us-east-1**.
 
 | Resource | Value |
 |----------|-------|
-| Gateway ID | `mfginsightsgateway-kbvnf0ga6j` |
-| Gateway URL | `https://mfginsightsgateway-kbvnf0ga6j.gateway.bedrock-agentcore.us-east-1.amazonaws.com` |
-| Test Gateway (no auth) | `mfginsightstest-af76b5qmwe` |
-| Policy Engine | `MfgInsightsPolicyEngine-w1do75vmrk` (ENFORCE mode) |
+| Gateway ID | `your-gateway-id` |
+| Gateway URL | `https://your-gateway-id.gateway.bedrock-agentcore.us-east-1.amazonaws.com` |
+| Test Gateway (no auth) | `your-test-gateway-id` |
+| Policy Engine | `your-policy-engine-id` (ENFORCE mode) |
 | Cedar Policies | `permit_all`, `forbid_line_scope`, `forbid_equipment_scope` |
-| Cognito User Pool | `us-east-1_wBnf60sfQ` |
-| Cognito Domain | `mfginsights-33827732.auth.us-east-1.amazoncognito.com` |
-| M2M Client ID | `4knqrdhikscn2d4gjr1ler12nc` |
+| Cognito User Pool | `us-east-1_EXAMPLE` |
+| Cognito Domain | `your-cognito-domain.auth.us-east-1.amazoncognito.com` |
+| M2M Client ID | `EXAMPLE_M2M_CLIENT_ID` |
 | Lambda: Equipment | `MfgInsights-EquipmentTools` |
 | Lambda: IoT | `MfgInsights-IoTTools` |
 | Lambda: Analytics | `MfgInsights-AnalyticsTools` |
@@ -103,7 +103,7 @@ These attributes are **immutable by the user** and **included in every JWT**. Th
 
 In the pre-deployed environment, verify the Cognito pool:
 ```bash
-aws cognito-idp list-users --user-pool-id us-east-1_wBnf60sfQ --region us-east-1
+aws cognito-idp list-users --user-pool-id us-east-1_EXAMPLE --region us-east-1
 ```
 
 ### Challenge
@@ -133,7 +133,7 @@ python deploy/agentcore/setup_gateway.py --region us-east-1
 
 Check the deployed gateway:
 ```bash
-aws bedrock-agentcore get-gateway --gateway-id mfginsightsgateway-kbvnf0ga6j --region us-east-1
+aws bedrock-agentcore get-gateway --gateway-id your-gateway-id --region us-east-1
 # Expected: "status": "READY"
 ```
 
@@ -204,7 +204,7 @@ python deploy/agentcore/setup_policy.py --region us-east-1 --mode ENFORCE
 python deploy/agentcore/test_agentcore.py --region us-east-1
 ```
 
-> **Lab Note:** The pre-deployed environment already has the Policy Engine in ENFORCE mode (`MfgInsightsPolicyEngine-w1do75vmrk`).
+> **Lab Note:** The pre-deployed environment already has the Policy Engine in ENFORCE mode (`your-policy-engine-id`).
 
 ---
 
@@ -280,14 +280,14 @@ When calling `tools/call` without a valid authenticated principal, the Gateway r
 ```
 
 This confirms:
-- Policy Engine `MfgInsightsPolicyEngine-w1do75vmrk` is actively evaluating requests
+- Policy Engine `your-policy-engine-id` is actively evaluating requests
 - **Deny-by-default** behavior is working — no matching `permit` rule means DENY
 - Cedar policies `forbid_line_scope` and `forbid_equipment_scope` will override `permit_all` for scoped users
 
 #### MCP Protocol — Gateway Health Check
 
 ```bash
-curl -X POST https://mfginsightsgateway-kbvnf0ga6j.gateway.bedrock-agentcore.us-east-1.amazonaws.com/mcp \
+curl -X POST https://your-gateway-id.gateway.bedrock-agentcore.us-east-1.amazonaws.com/mcp \
   -H "Content-Type: application/json" \
   -d '{"jsonrpc":"2.0","method":"initialize","id":1}'
 ```

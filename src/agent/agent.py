@@ -85,7 +85,7 @@ class ManufacturingInsightsAgent:
         """
         gateway_url = os.getenv(
             "AGENTCORE_GATEWAY_URL",
-            "https://mfginsightstest-af76b5qmwe.gateway.bedrock-agentcore.us-east-1.amazonaws.com/mcp/",
+            "https://your-test-gateway-id.gateway.bedrock-agentcore.us-east-1.amazonaws.com/mcp/",
         )
         logger.info("Using AgentCore Gateway: %s", gateway_url)
 

@@ -144,12 +144,12 @@ Key property: `forbid` ALWAYS overrides `permit`. Even if a user has a matching 
 
 ## Deployment Verification (Confirmed)
 
-> Verified against account **338277320360**, region **us-east-1**.
+> Verified against account **123456789012**, region **us-east-1**.
 
 ### Cedar Policy Engine — ENFORCE Mode ✅
 
 ```
-Policy Engine: MfgInsightsPolicyEngine-w1do75vmrk
+Policy Engine: your-policy-engine-id
 Mode: ENFORCE
 Status: ACTIVE
 Policies: permit_all, forbid_line_scope, forbid_equipment_scope
@@ -160,7 +160,7 @@ Confirmed: Policy evaluation actively denies requests. Unauthenticated `tools/ca
 ### Deny-by-Default for Unauthenticated Requests ✅
 
 ```bash
-curl -X POST https://mfginsightsgateway-kbvnf0ga6j.gateway.bedrock-agentcore.us-east-1.amazonaws.com/mcp \
+curl -X POST https://your-gateway-id.gateway.bedrock-agentcore.us-east-1.amazonaws.com/mcp \
   -H "Content-Type: application/json" \
   -d '{"jsonrpc":"2.0","method":"tools/call","params":{"name":"get_equipment_status"},"id":1}'
 ```
@@ -194,7 +194,7 @@ Policies: bedrock-agentcore:* (full AgentCore permissions)
     "bedrock-agentcore:EvaluatePolicy",
     "bedrock-agentcore:InvokeTarget"
   ],
-  "Resource": "arn:aws:bedrock-agentcore:us-east-1:338277320360:gateway/mfginsightsgateway-kbvnf0ga6j"
+  "Resource": "arn:aws:bedrock-agentcore:us-east-1:123456789012:gateway/your-gateway-id"
 }
 ```
 

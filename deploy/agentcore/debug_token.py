@@ -5,8 +5,8 @@ import json
 import base64
 
 REGION = "us-east-1"
-POOL_ID = "us-east-1_wBnf60sfQ"
-CLIENT_ID = "5fu4vkccn1ndlr62vp79nnb5po"
+POOL_ID = "us-east-1_EXAMPLE"
+CLIENT_ID = "EXAMPLE_CLIENT_ID"
 
 cognito = boto3.client("cognito-idp", region_name=REGION)
 resp = cognito.admin_initiate_auth(
