@@ -10,6 +10,14 @@ REGION = "us-east-1"
 ACCOUNT = "123456789012"
 
 def main():
+    # Auto-detect from AWS credentials
+    sts = boto3.client("sts")
+    identity = sts.get_caller_identity()
+    global REGION, ACCOUNT
+    ACCOUNT = identity["Account"]
+    session = boto3.Session()
+    REGION = session.region_name or "us-east-1"
+
     cognito = boto3.client("cognito-idp", region_name=REGION)
     agentcore = boto3.client("bedrock-agentcore-control", region_name=REGION)
 
