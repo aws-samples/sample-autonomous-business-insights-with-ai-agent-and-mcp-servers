@@ -6,8 +6,8 @@
 Exposes tools for querying real-time sensor data and detecting anomalies.
 
 Data path (live mode):
-  MCP Tool → data_provider → lakehouse_client → Redshift Data API → SageMaker Lakehouse
-    └── Source: AWS IoT Core → Amazon MSK → S3 Tables (Iceberg) → Redshift Spectrum
+  MCP Tool → data_provider → timestream_client → Amazon Timestream
+    └── Source: AWS IoT Core → IoT Rule → Amazon Timestream (time-series)
 
 Data path (simulated mode, default):
   MCP Tool → data_provider → sample_data.py (in-memory generation)

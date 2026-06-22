@@ -45,7 +45,7 @@ DATA_SOURCES = [
         "description": "Real-time and historical sensor readings from 2000+ sensors — temperature, vibration, pressure",
         "mcp_tools": ["get_sensor_readings", "detect_anomaly"],
         "glossary_terms": ["temperature", "vibration", "pressure", "sensor", "anomaly", "threshold", "trend", "IoT", "telemetry"],
-        "data_origin": "AWS IoT Core → Amazon MSK → S3 Tables (Iceberg) → Redshift Spectrum",
+        "data_origin": "AWS IoT Core → IoT Rule → Amazon Timestream",
         "refresh_frequency": "Streaming (sub-second)",
     },
     {

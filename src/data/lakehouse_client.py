@@ -223,8 +223,8 @@ def query_sensor_readings(
 ) -> list[dict]:
     """Query IoT sensor time-series from Lakehouse.
 
-    Source: AWS IoT Core → Amazon MSK → Zero-ETL → S3 Tables (Iceberg)
-    Queried via Redshift Spectrum over S3 Tables in SageMaker Lakehouse.
+    Source: AWS IoT Core → IoT Rule → Amazon Timestream (time-series store)
+    In live mode, queries Timestream via the Timestream Query API.
     """
     client = _get_client()
     sql = """
