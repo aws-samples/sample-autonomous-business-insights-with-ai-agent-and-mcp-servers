@@ -413,6 +413,9 @@ Resources:
             Principal:
               AWS: !Sub 'arn:aws:iam::${AWS::AccountId}:root'
             Action: sts:AssumeRole
+            Condition:
+              StringEquals:
+                aws:PrincipalAccount: !Ref AWS::AccountId
       Policies:
         - PolicyName: BedrockAccess
           PolicyDocument:
