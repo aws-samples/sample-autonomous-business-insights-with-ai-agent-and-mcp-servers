@@ -3,12 +3,16 @@
 
 import boto3
 import json
+import os
 import requests
 
 REGION = "us-east-1"
-POOL_ID = "us-east-1_EXAMPLE"
-CLIENT_ID = "EXAMPLE_CLIENT_ID"
-GATEWAY_URL = "https://your-gateway-id.gateway.bedrock-agentcore.us-east-1.amazonaws.com"
+POOL_ID = os.environ.get("COGNITO_POOL_ID", "us-east-1_EXAMPLE")
+CLIENT_ID = os.environ.get("COGNITO_CLIENT_ID", "EXAMPLE_CLIENT_ID")
+GATEWAY_URL = os.environ.get(
+    "AGENTCORE_GATEWAY_URL",
+    "https://your-gateway-id.gateway.bedrock-agentcore.us-east-1.amazonaws.com",
+)
 
 cognito = boto3.client("cognito-idp", region_name=REGION)
 
@@ -39,11 +43,21 @@ def main():
     print(f"  URL: {GATEWAY_URL}")
     print("=" * 70)
 
-    # Authenticate
+    # Authenticate — passwords from environment variables
     print("\n[Auth] Getting Cognito tokens...")
-    sarah_token = get_token("sarah.chen", "SarahChen!2026")
-    raj_token = get_token("raj.patel", "RajPatel!2026")
-    priya_token = get_token("priya.nair", "PriyaNair!2026")
+    passwords = {
+        "sarah.chen": os.environ.get("DEMO_PASSWORD_SARAH", ""),
+        "raj.patel": os.environ.get("DEMO_PASSWORD_RAJ", ""),
+        "priya.nair": os.environ.get("DEMO_PASSWORD_PRIYA", ""),
+    }
+    missing = [u for u, p in passwords.items() if not p]
+    if missing:
+        print(f"  ERROR: Set env vars: DEMO_PASSWORD_SARAH, DEMO_PASSWORD_RAJ, DEMO_PASSWORD_PRIYA")
+        return
+
+    sarah_token = get_token("sarah.chen", passwords["sarah.chen"])
+    raj_token = get_token("raj.patel", passwords["raj.patel"])
+    priya_token = get_token("priya.nair", passwords["priya.nair"])
     print("  OK: All 3 users authenticated via Cognito")
 
     # Tests

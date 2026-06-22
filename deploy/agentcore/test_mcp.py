@@ -4,12 +4,16 @@
 import asyncio
 import boto3
 import json
+import os
 import httpx
 
 REGION = "us-east-1"
-POOL_ID = "us-east-1_EXAMPLE"
-CLIENT_ID = "EXAMPLE_CLIENT_ID"
-GATEWAY_URL = "https://your-gateway-id.gateway.bedrock-agentcore.us-east-1.amazonaws.com/mcp/"
+POOL_ID = os.environ.get("COGNITO_POOL_ID", "us-east-1_EXAMPLE")
+CLIENT_ID = os.environ.get("COGNITO_CLIENT_ID", "EXAMPLE_CLIENT_ID")
+GATEWAY_URL = os.environ.get(
+    "AGENTCORE_GATEWAY_URL",
+    "https://your-gateway-id.gateway.bedrock-agentcore.us-east-1.amazonaws.com/mcp/",
+)
 
 
 def get_token(username, password):
@@ -38,11 +42,21 @@ async def main():
     print("  TESTING GATEWAY via MCP PROTOCOL")
     print("=" * 70)
 
-    # Get tokens
+    # Get tokens — passwords from environment variables
     print("\n[1] Authenticating users via Cognito...")
-    raj_token = get_token("raj.patel", "RajPatel!2026")
-    sarah_token = get_token("sarah.chen", "SarahChen!2026")
-    priya_token = get_token("priya.nair", "PriyaNair!2026")
+    passwords = {
+        "sarah.chen": os.environ.get("DEMO_PASSWORD_SARAH", ""),
+        "raj.patel": os.environ.get("DEMO_PASSWORD_RAJ", ""),
+        "priya.nair": os.environ.get("DEMO_PASSWORD_PRIYA", ""),
+    }
+    missing = [u for u, p in passwords.items() if not p]
+    if missing:
+        print(f"  ERROR: Set env vars: DEMO_PASSWORD_SARAH, DEMO_PASSWORD_RAJ, DEMO_PASSWORD_PRIYA")
+        return
+
+    raj_token = get_token("raj.patel", passwords["raj.patel"])
+    sarah_token = get_token("sarah.chen", passwords["sarah.chen"])
+    priya_token = get_token("priya.nair", passwords["priya.nair"])
     print("  OK: 3 tokens obtained")
 
     # Initialize MCP session
