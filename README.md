@@ -430,8 +430,8 @@ aws cloudformation wait stack-delete-complete --stack-name manufacturing-insight
 
 > **Note:** S3 buckets must be empty before stack deletion. Empty them first:
 > ```bash
-> aws s3 rm s3://manufacturing-datalake-<ACCOUNT_ID>-dev --recursive
-> aws s3 rm s3://agentcore-memory-<ACCOUNT_ID>-dev --recursive
+> aws s3 rm s3://amzn-s3-demo-manufacturing-datalake-<ACCOUNT_ID>-dev --recursive
+> aws s3 rm s3://amzn-s3-demo-agentcore-memory-<ACCOUNT_ID>-dev --recursive
 > ```
 
 ## Related Resources

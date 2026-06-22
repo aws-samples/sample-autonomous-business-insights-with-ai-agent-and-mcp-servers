@@ -22,8 +22,8 @@ S3 buckets must be empty before CloudFormation can delete them:
 # Replace with your actual account ID
 ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
 
-aws s3 rm s3://manufacturing-datalake-${ACCOUNT_ID}-dev --recursive
-aws s3 rm s3://agentcore-memory-${ACCOUNT_ID}-dev --recursive
+aws s3 rm s3://amzn-s3-demo-manufacturing-datalake-${ACCOUNT_ID}-dev --recursive
+aws s3 rm s3://amzn-s3-demo-agentcore-memory-${ACCOUNT_ID}-dev --recursive
 ```
 
 ## Step 3: Delete CloudFormation Stack

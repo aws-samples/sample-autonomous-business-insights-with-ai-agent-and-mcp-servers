@@ -1,4 +1,9 @@
-Run started:2026-06-16 18:04:54.495742+00:00
+[main]	INFO	profile include tests: None
+[main]	INFO	profile exclude tests: None
+[main]	INFO	cli include tests: None
+[main]	INFO	cli exclude tests: None
+[main]	INFO	running on Python 3.12.13
+Run started:2026-06-22 10:59:55.389759+00:00
 
 Test results:
 >> Issue: [B110:try_except_pass] Try, Except, Pass detected.
@@ -10,16 +15,6 @@ Test results:
 66	            except Exception:
 67	                pass
 68	        cognito_client.delete_user_pool(UserPoolId=pool_id)
-
---------------------------------------------------
->> Issue: [B105:hardcoded_password_string] Possible hardcoded password: 'RajPatel!2026'
-   Severity: Low   Confidence: Medium
-   CWE: CWE-259 (https://cwe.mitre.org/data/definitions/259.html)
-   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b105_hardcoded_password_string.html
-   Location: deploy/agentcore/debug_token.py:15:45
-14	    AuthFlow="ADMIN_USER_PASSWORD_AUTH",
-15	    AuthParameters={"USERNAME": "raj.patel", "PASSWORD": "RajPatel!2026"},
-16	)
 
 --------------------------------------------------
 >> Issue: [B404:blacklist] Consider possible security implications associated with the subprocess module.
@@ -45,83 +40,74 @@ Test results:
 65	
 
 --------------------------------------------------
->> Issue: [B105:hardcoded_password_string] Possible hardcoded password: 'SarahChen!2026'
+>> Issue: [B105:hardcoded_password_string] Possible hardcoded password: 'Set environment variables DEMO_PASSWORD_SARAH, DEMO_PASSWORD_RAJ, DEMO_PASSWORD_PRIYA before running this script.'
    Severity: Low   Confidence: Medium
    CWE: CWE-259 (https://cwe.mitre.org/data/definitions/259.html)
    More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b105_hardcoded_password_string.html
-   Location: deploy/agentcore/setup_identity.py:33:8
-32	        "email": "sarah.chen@example.com",
-33	        "password": "SarahChen!2026",
-34	        "role": "plant_manager",
-35	        "plant_scope": "Plant 1,Plant 2,Plant 3",
-36	        "line_scope": ",".join(f"Line {i}" for i in range(1, 13)),
-37	        "equipment_scope": "",  # Full access
-38	        "group": "plant_managers",
-39	    },
-40	    {
-41	        "username": "raj.patel",
-42	        "email": "raj.patel@example.com",
-43	        "password": "RajPatel!2026",
-
---------------------------------------------------
->> Issue: [B105:hardcoded_password_string] Possible hardcoded password: 'RajPatel!2026'
-   Severity: Low   Confidence: Medium
-   CWE: CWE-259 (https://cwe.mitre.org/data/definitions/259.html)
-   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b105_hardcoded_password_string.html
-   Location: deploy/agentcore/setup_identity.py:43:8
-42	        "email": "raj.patel@example.com",
-43	        "password": "RajPatel!2026",
-44	        "role": "line_supervisor",
-45	        "plant_scope": "Plant 2",
-46	        "line_scope": "Line 7",
-47	        "equipment_scope": "Machine 71,Machine 72,Machine 73,Machine 74,Machine 75",
-48	        "group": "line_supervisors",
-49	    },
-50	    {
-51	        "username": "priya.nair",
-52	        "email": "priya.nair@example.com",
-53	        "password": "PriyaNair!2026",
-
---------------------------------------------------
->> Issue: [B105:hardcoded_password_string] Possible hardcoded password: 'PriyaNair!2026'
-   Severity: Low   Confidence: Medium
-   CWE: CWE-259 (https://cwe.mitre.org/data/definitions/259.html)
-   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b105_hardcoded_password_string.html
-   Location: deploy/agentcore/setup_identity.py:53:8
-52	        "email": "priya.nair@example.com",
-53	        "password": "PriyaNair!2026",
-54	        "role": "maintenance_technician",
-55	        "plant_scope": "Plant 1",
-56	        "line_scope": "Line 4",
-57	        "equipment_scope": "Machine 41,Machine 42,Machine 43,Machine 44,Machine 45",
-58	        "group": "maintenance_technicians",
-59	    },
-60	]
-61	
-62	GROUPS = ["plant_managers", "line_supervisors", "maintenance_technicians"]
-63	
+   Location: deploy/agentcore/setup_identity.py:36:4
+35	_DEFAULT_PASSWORD_MSG = (
+36	    "Set environment variables DEMO_PASSWORD_SARAH, DEMO_PASSWORD_RAJ, "
+37	    "DEMO_PASSWORD_PRIYA before running this script."
+38	)
+39	
+40	DEMO_USERS = [
 
 --------------------------------------------------
 >> Issue: [B113:request_without_timeout] Call to requests without timeout
    Severity: Medium   Confidence: Low
    CWE: CWE-400 (https://cwe.mitre.org/data/definitions/400.html)
    More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b113_request_without_timeout.html
-   Location: deploy/agentcore/test_agentcore.py:46:15
-45	    """Make a tool call through the AgentCore Gateway (MCP JSON-RPC)."""
-46	    response = requests.post(
-47	        gateway_url,
-48	        headers={
-49	            "Content-Type": "application/json",
-50	            "Authorization": f"Bearer {token}",
-51	        },
-52	        json={
-53	            "jsonrpc": "2.0",
-54	            "id": 1,
-55	            "method": "tools/call",
-56	            "params": {"name": tool_name, "arguments": arguments},
-57	        },
-58	    )
-59	    return {"status": response.status_code, "body": response.json()}
+   Location: deploy/agentcore/test_agentcore.py:47:15
+46	    """Make a tool call through the AgentCore Gateway (MCP JSON-RPC)."""
+47	    response = requests.post(
+48	        gateway_url,
+49	        headers={
+50	            "Content-Type": "application/json",
+51	            "Authorization": f"Bearer {token}",
+52	        },
+53	        json={
+54	            "jsonrpc": "2.0",
+55	            "id": 1,
+56	            "method": "tools/call",
+57	            "params": {"name": tool_name, "arguments": arguments},
+58	        },
+59	    )
+60	    return {"status": response.status_code, "body": response.json()}
+
+--------------------------------------------------
+>> Issue: [B608:hardcoded_sql_expressions] Possible SQL injection vector through string-based query construction.
+   Severity: Medium   Confidence: Medium
+   CWE: CWE-89 (https://cwe.mitre.org/data/definitions/89.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b608_hardcoded_sql_expressions.html
+   Location: deploy/seed_data.py:101:20
+100	    for eq in equipment:
+101	        execute(f"""
+102	            INSERT INTO equipment_registry VALUES ({eq[0]}, '{eq[1]}', '{eq[2]}', '{eq[3]}',
+103	            '{eq[4]}', '{eq[5]}', '{eq[6]}', {eq[7]}, {eq[8]},
+104	            {eq[9] if eq[9] else 'NULL'}, {f"'{eq[10]}'" if eq[10] else 'NULL'})
+105	            ON CONFLICT (machine_id) DO NOTHING
+106	        """)
+107	
+
+--------------------------------------------------
+>> Issue: [B608:hardcoded_sql_expressions] Possible SQL injection vector through string-based query construction.
+   Severity: Medium   Confidence: Medium
+   CWE: CWE-89 (https://cwe.mitre.org/data/definitions/89.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b608_hardcoded_sql_expressions.html
+   Location: deploy/seed_data.py:115:18
+114	    for ln in lines:
+115	        execute(f"INSERT INTO assembly_lines VALUES ('{ln[0]}', '{ln[1]}', '{ln[2]}', {ln[3]}) ON CONFLICT DO NOTHING")
+116	
+
+--------------------------------------------------
+>> Issue: [B310:blacklist] Audit url open for permitted schemes. Allowing use of file:/ or custom schemes is often unexpected.
+   Severity: Medium   Confidence: High
+   CWE: CWE-22 (https://cwe.mitre.org/data/definitions/22.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/blacklists/blacklist_calls.html#b310-urllib-urlopen
+   Location: deploy/seed_data.py:351:12
+350	        try:
+351	            urllib.request.urlopen(req)
+352	        except Exception as e:
 
 --------------------------------------------------
 >> Issue: [B110:try_except_pass] Try, Except, Pass detected.
@@ -422,19 +408,19 @@ Test results:
 --------------------------------------------------
 
 Code scanned:
-	Total lines of code: 4444
+	Total lines of code: 5007
 	Total lines skipped (#nosec): 0
 	Total potential issues skipped due to specifically being disabled (e.g., #nosec BXXX): 0
 
 Run metrics:
 	Total issues (by severity):
 		Undefined: 0
-		Low: 27
-		Medium: 7
+		Low: 24
+		Medium: 10
 		High: 0
 	Total issues (by confidence):
 		Undefined: 0
 		Low: 6
-		Medium: 4
-		High: 24
+		Medium: 3
+		High: 25
 Files skipped (0):

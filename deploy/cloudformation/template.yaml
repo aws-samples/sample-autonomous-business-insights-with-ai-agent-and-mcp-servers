@@ -242,10 +242,30 @@ Resources:
   # ============================================================
   # Amazon S3 — Data Lake + Memory + Configuration
   # ============================================================
+  # S3 Access Logging Bucket
+  LoggingBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub 'amzn-s3-demo-mfg-insights-logs-${AWS::AccountId}-${Environment}'
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      LifecycleConfiguration:
+        Rules:
+          - Id: ExpireOldLogs
+            Status: Enabled
+            ExpirationInDays: 90
+
   DataLakeBucket:
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: !Sub 'manufacturing-datalake-${AWS::AccountId}-${Environment}'
+      BucketName: !Sub 'amzn-s3-demo-manufacturing-datalake-${AWS::AccountId}-${Environment}'
       BucketEncryption:
         ServerSideEncryptionConfiguration:
           - ServerSideEncryptionByDefault:
@@ -257,6 +277,9 @@ Resources:
         RestrictPublicBuckets: true
       VersioningConfiguration:
         Status: Enabled
+      LoggingConfiguration:
+        DestinationBucketName: !Ref LoggingBucket
+        LogFilePrefix: s3-access-logs/datalake-bucket/
 
   DataLakeBucketPolicy:
     Type: AWS::S3::BucketPolicy
@@ -279,7 +302,7 @@ Resources:
   MemoryBucket:
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: !Sub 'agentcore-memory-${AWS::AccountId}-${Environment}'
+      BucketName: !Sub 'amzn-s3-demo-agentcore-memory-${AWS::AccountId}-${Environment}'
       BucketEncryption:
         ServerSideEncryptionConfiguration:
           - ServerSideEncryptionByDefault:
@@ -289,12 +312,35 @@ Resources:
         BlockPublicPolicy: true
         IgnorePublicAcls: true
         RestrictPublicBuckets: true
+      VersioningConfiguration:
+        Status: Enabled
+      LoggingConfiguration:
+        DestinationBucketName: !Ref LoggingBucket
+        LogFilePrefix: s3-access-logs/memory-bucket/
       LifecycleConfiguration:
         Rules:
           - Id: ExpireUserMemory
             Status: Enabled
             Prefix: user-memory/
             ExpirationInDays: 90
+
+  MemoryBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref MemoryBucket
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: DenyNonSSLAccess
+            Effect: Deny
+            Principal: '*'
+            Action: 's3:*'
+            Resource:
+              - !GetAtt MemoryBucket.Arn
+              - !Sub '${MemoryBucket.Arn}/*'
+            Condition:
+              Bool:
+                aws:SecureTransport: 'false'
 
   # ============================================================
   # AWS IoT Core Rule → Timestream (Sensor Data Pipeline)
