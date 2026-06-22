@@ -237,7 +237,7 @@ Resources:
       Name: !Sub 'quality-access-${Environment}'
       Type: data
       Policy: !Sub >
-        [{"Rules":[{"ResourceType":"index","Resource":["index/quality-metrics-${Environment}/*"],"Permission":["aoss:*"]},{"ResourceType":"collection","Resource":["collection/quality-metrics-${Environment}"],"Permission":["aoss:*"]}],"Principal":["${AgentExecutionRole.Arn}"]}]
+        [{"Rules":[{"ResourceType":"index","Resource":["index/quality-metrics-${Environment}/*"],"Permission":["aoss:CreateIndex","aoss:DeleteIndex","aoss:UpdateIndex","aoss:DescribeIndex","aoss:ReadDocument","aoss:WriteDocument"]},{"ResourceType":"collection","Resource":["collection/quality-metrics-${Environment}"],"Permission":["aoss:CreateCollectionItems","aoss:DescribeCollectionItems","aoss:UpdateCollectionItems"]}],"Principal":["${AgentExecutionRole.Arn}"]}]
 
   # ============================================================
   # Amazon S3 — Data Lake + Memory + Configuration
@@ -318,6 +318,9 @@ Resources:
               - Effect: Allow
                 Action:
                   - timestream:WriteRecords
+                Resource: !Sub 'arn:aws:timestream:${AWS::Region}:${AWS::AccountId}:database/${TimestreamDatabase}/table/${TimestreamTable}'
+              - Effect: Allow
+                Action:
                   - timestream:DescribeEndpoints
                 Resource: '*'
 
@@ -440,8 +443,11 @@ Resources:
               - Effect: Allow
                 Action:
                   - timestream:Select
-                  - timestream:DescribeEndpoints
                   - timestream:DescribeTable
+                Resource: !Sub 'arn:aws:timestream:${AWS::Region}:${AWS::AccountId}:database/${TimestreamDatabase}/table/${TimestreamTable}'
+              - Effect: Allow
+                Action:
+                  - timestream:DescribeEndpoints
                 Resource: '*'
         - PolicyName: RedshiftDataAPI
           PolicyDocument:
@@ -452,8 +458,11 @@ Resources:
                   - redshift-data:ExecuteStatement
                   - redshift-data:DescribeStatement
                   - redshift-data:GetStatementResult
-                  - redshift-serverless:GetCredentials
                 Resource: '*'
+              - Effect: Allow
+                Action:
+                  - redshift-serverless:GetCredentials
+                Resource: !Sub 'arn:aws:redshift-serverless:${AWS::Region}:${AWS::AccountId}:workgroup/*'
         - PolicyName: OpenSearchAccess
           PolicyDocument:
             Version: '2012-10-17'

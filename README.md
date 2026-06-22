@@ -122,6 +122,8 @@ This sample works in any AWS region where Amazon Bedrock Claude Sonnet is availa
 
 ## Deployment
 
+> **Important:** The `.env` file used in this sample is suitable for **local development only**. For production deployments, use [AWS Secrets Manager](https://docs.aws.amazon.com/secretsmanager/latest/userguide/) to store sensitive credentials and reference them via IAM roles. Never commit `.env` files to version control.
+
 ### Option 1: Local Demo with Web UI (Recommended)
 
 No AWS infrastructure required beyond Bedrock model access. Includes a Streamlit chat interface.
@@ -175,7 +177,7 @@ aws cloudformation deploy \
   --template-file deploy/cloudformation/template.yaml \
   --stack-name manufacturing-insights-dev \
   --capabilities CAPABILITY_NAMED_IAM \
-  --parameter-overrides Environment=dev DatabasePassword=YourSecureP@ss123
+  --parameter-overrides Environment=dev DatabasePassword='<YOUR_SECURE_PASSWORD>'
 
 # 2. Get stack outputs and configure .env
 aws cloudformation describe-stacks \

@@ -76,9 +76,10 @@ These are standard patterns for demo/sample code and do not represent security v
 
 ## Pre-Publication Checklist
 
-- [x] No AWS account IDs in code (replaced with 123456789012)
+- [x] No AWS account IDs in code (masked with placeholders)
 - [x] No resource ARNs from real accounts
 - [x] No API keys, tokens, or secrets
+- [x] No hardcoded passwords (all read from environment variables)
 - [x] No personal email addresses (using @example.com)
 - [x] .env in .gitignore
 - [x] MIT-0 license headers on all source files

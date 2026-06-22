@@ -8,7 +8,7 @@
 
 ## Lab Environment (Pre-Deployed)
 
-> All resources are deployed in **account 123456789012**, region **us-east-1**.
+> All resources are deployed in **your AWS account**, region **us-east-1**.
 
 | Resource | Value |
 |----------|-------|

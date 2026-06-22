@@ -144,7 +144,7 @@ Key property: `forbid` ALWAYS overrides `permit`. Even if a user has a matching 
 
 ## Deployment Verification (Confirmed)
 
-> Verified against account **123456789012**, region **us-east-1**.
+> Verified against account **<YOUR_AWS_ACCOUNT_ID>**, region **us-east-1**.
 
 ### Cedar Policy Engine — ENFORCE Mode ✅
 
@@ -194,7 +194,7 @@ Policies: bedrock-agentcore:* (full AgentCore permissions)
     "bedrock-agentcore:EvaluatePolicy",
     "bedrock-agentcore:InvokeTarget"
   ],
-  "Resource": "arn:aws:bedrock-agentcore:us-east-1:123456789012:gateway/your-gateway-id"
+  "Resource": "arn:aws:bedrock-agentcore:us-east-1:<YOUR_AWS_ACCOUNT_ID>:gateway/your-gateway-id"
 }
 ```
 

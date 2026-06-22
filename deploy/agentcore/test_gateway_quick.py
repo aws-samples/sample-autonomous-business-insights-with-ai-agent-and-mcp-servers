@@ -3,11 +3,15 @@
 import boto3
 import httpx
 import asyncio
+import os
 
 REGION = "us-east-1"
-POOL_ID = "us-east-1_EXAMPLE"
-CLIENT_ID = "EXAMPLE_CLIENT_ID"
-GW_URL = "https://your-gateway-id.gateway.bedrock-agentcore.us-east-1.amazonaws.com/mcp/"
+POOL_ID = os.environ.get("COGNITO_POOL_ID", "us-east-1_EXAMPLE")
+CLIENT_ID = os.environ.get("COGNITO_CLIENT_ID", "EXAMPLE_CLIENT_ID")
+GW_URL = os.environ.get(
+    "AGENTCORE_GATEWAY_URL",
+    "https://your-gateway-id.gateway.bedrock-agentcore.us-east-1.amazonaws.com/mcp/",
+)
 
 cognito = boto3.client("cognito-idp", region_name=REGION)
 
@@ -34,7 +38,12 @@ async def call(token, method, params=None):
 
 
 async def main():
-    tokens = get_tokens("raj.patel", "RajPatel!2026")
+    password = os.environ.get("DEMO_PASSWORD_RAJ", "")
+    if not password:
+        print("ERROR: Set DEMO_PASSWORD_RAJ environment variable before running.")
+        return
+
+    tokens = get_tokens("raj.patel", password)
 
     print("Testing with ID token:")
     s, b = await call(tokens["id"], "initialize", {"protocolVersion": "2024-11-05", "capabilities": {}, "clientInfo": {"name": "t", "version": "1"}})

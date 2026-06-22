@@ -2,7 +2,7 @@
 
 ## Deployed Resources (Live)
 
-> **Account:** 123456789012 | **Region:** us-east-1 | **Status:** READY
+> **Account:** *<your-account-id>* | **Region:** us-east-1 | **Status:** READY
 
 | Resource | ID / ARN | Status |
 |----------|----------|--------|

@@ -3,16 +3,24 @@
 import boto3
 import json
 import base64
+import os
 
 REGION = "us-east-1"
-POOL_ID = "us-east-1_EXAMPLE"
-CLIENT_ID = "EXAMPLE_CLIENT_ID"
+POOL_ID = os.environ.get("COGNITO_POOL_ID", "us-east-1_EXAMPLE")
+CLIENT_ID = os.environ.get("COGNITO_CLIENT_ID", "EXAMPLE_CLIENT_ID")
 
 cognito = boto3.client("cognito-idp", region_name=REGION)
+
+# Password must be provided via environment variable
+password = os.environ.get("DEMO_PASSWORD_RAJ", "")
+if not password:
+    print("ERROR: Set DEMO_PASSWORD_RAJ environment variable before running.")
+    raise SystemExit(1)
+
 resp = cognito.admin_initiate_auth(
     UserPoolId=POOL_ID, ClientId=CLIENT_ID,
     AuthFlow="ADMIN_USER_PASSWORD_AUTH",
-    AuthParameters={"USERNAME": "raj.patel", "PASSWORD": "RajPatel!2026"},
+    AuthParameters={"USERNAME": "raj.patel", "PASSWORD": password},
 )
 
 # Decode ID token

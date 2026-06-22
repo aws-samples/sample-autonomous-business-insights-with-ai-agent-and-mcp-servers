@@ -56,7 +56,7 @@ def main():
     add_para(doc, 'Technical Architecture & Implementation Guide', italic=True, size=14)
     add_para(doc, 'Manufacturing Insights — Multi-Agent System with MCP Servers', size=12)
     doc.add_paragraph()
-    add_para(doc, 'Version 2.0 | June 2026 | DEPLOYED on AWS Account 123456789012', size=10)
+    add_para(doc, 'Version 2.0 | June 2026', size=10)
     doc.add_page_break()
 
     # Deployed Resources

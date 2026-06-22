@@ -1,6 +1,6 @@
 # Test Results — AgentCore Manufacturing Insights
 
-> **Account:** 123456789012 | **Region:** us-east-1
+> **Account:** *<your-account-id>* | **Region:** us-east-1
 > **Test Run:** July 2025
 > **Environment:** Production deployment (ENFORCE mode)
 

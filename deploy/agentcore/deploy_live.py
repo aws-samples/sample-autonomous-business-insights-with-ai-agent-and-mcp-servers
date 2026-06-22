@@ -3,11 +3,12 @@
 
 import boto3
 import json
+import os
 import time
 from pathlib import Path
 
 REGION = "us-east-1"
-ACCOUNT = "123456789012"
+ACCOUNT = ""  # Auto-detected from AWS credentials at runtime
 
 def main():
     # Auto-detect from AWS credentials
@@ -67,13 +68,27 @@ def main():
     config["pool_id"] = pool_id
     config["pool_arn"] = pool_arn
 
-    # Create users
+    # Create users — passwords must be provided via environment variables
+    demo_passwords = {
+        "sarah.chen": os.environ.get("DEMO_PASSWORD_SARAH", ""),
+        "raj.patel": os.environ.get("DEMO_PASSWORD_RAJ", ""),
+        "priya.nair": os.environ.get("DEMO_PASSWORD_PRIYA", ""),
+    }
+    missing_pw = [u for u, p in demo_passwords.items() if not p]
+    if missing_pw:
+        print(f"\n  ERROR: Set environment variables for demo passwords before deploying.")
+        print(f"    export DEMO_PASSWORD_SARAH='<YourPassword>'")
+        print(f"    export DEMO_PASSWORD_RAJ='<YourPassword>'")
+        print(f"    export DEMO_PASSWORD_PRIYA='<YourPassword>'")
+        print(f"  Passwords must meet Cognito policy: 8+ chars, upper, lower, number, symbol.")
+        return
+
     users = [
-        ("sarah.chen", "SarahChen!2026", "sarah@example.com", "plant_manager",
+        ("sarah.chen", demo_passwords["sarah.chen"], "sarah@example.com", "plant_manager",
          "Plant 1,Plant 2,Plant 3", ",".join(f"Line {i}" for i in range(1, 13)), ""),
-        ("raj.patel", "RajPatel!2026", "raj@example.com", "line_supervisor",
+        ("raj.patel", demo_passwords["raj.patel"], "raj@example.com", "line_supervisor",
          "Plant 2", "Line 7", "Machine 71,Machine 72,Machine 73,Machine 74,Machine 75"),
-        ("priya.nair", "PriyaNair!2026", "priya@example.com", "maintenance_technician",
+        ("priya.nair", demo_passwords["priya.nair"], "priya@example.com", "maintenance_technician",
          "Plant 1", "Line 4", "Machine 41,Machine 42,Machine 43,Machine 44,Machine 45"),
     ]
 

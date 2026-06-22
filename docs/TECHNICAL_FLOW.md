@@ -8,7 +8,7 @@ A precision manufacturing company with 3 plants, 12 assembly lines, and 60 machi
 
 > "Sarah sees everything. Raj sees only Line 7. Priya sees only her assigned machines. Same agent. Same question interface. Different data access."
 
-### Deployed Infrastructure (LIVE on AWS Account 123456789012)
+### Deployed Infrastructure (LIVE on your AWS Account)
 
 | Component | AWS Resource | Identifier |
 |-----------|-------------|------------|

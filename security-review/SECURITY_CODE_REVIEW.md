@@ -82,7 +82,7 @@ grep -rn "[0-9]\{12\}" --include="*.py" --include="*.json" --include="*.md" .
 ```
 
 ### Result: **CLEAN**
-- All AWS account IDs replaced with `123456789012` (standard AWS docs placeholder)
+- All AWS account IDs removed (replaced with `<YOUR_AWS_ACCOUNT_ID>` or descriptive text)
 - All resource IDs replaced with descriptive placeholders (`your-gateway-id`, etc.)
 - No Cognito pool IDs, client IDs, or ARNs from real accounts
 

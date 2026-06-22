@@ -26,11 +26,22 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(me
 logger = logging.getLogger(__name__)
 
 # Demo users matching the blog narrative
+# Passwords are read from environment variables. Users must set these before running.
+# Example:  export DEMO_PASSWORD_SARAH="YourSecureP@ss1"
+#           export DEMO_PASSWORD_RAJ="YourSecureP@ss2"
+#           export DEMO_PASSWORD_PRIYA="YourSecureP@ss3"
+import os
+
+_DEFAULT_PASSWORD_MSG = (
+    "Set environment variables DEMO_PASSWORD_SARAH, DEMO_PASSWORD_RAJ, "
+    "DEMO_PASSWORD_PRIYA before running this script."
+)
+
 DEMO_USERS = [
     {
         "username": "sarah.chen",
         "email": "sarah.chen@example.com",
-        "password": "SarahChen!2026",
+        "password": os.environ.get("DEMO_PASSWORD_SARAH", ""),
         "role": "plant_manager",
         "plant_scope": "Plant 1,Plant 2,Plant 3",
         "line_scope": ",".join(f"Line {i}" for i in range(1, 13)),
@@ -40,7 +51,7 @@ DEMO_USERS = [
     {
         "username": "raj.patel",
         "email": "raj.patel@example.com",
-        "password": "RajPatel!2026",
+        "password": os.environ.get("DEMO_PASSWORD_RAJ", ""),
         "role": "line_supervisor",
         "plant_scope": "Plant 2",
         "line_scope": "Line 7",
@@ -50,7 +61,7 @@ DEMO_USERS = [
     {
         "username": "priya.nair",
         "email": "priya.nair@example.com",
-        "password": "PriyaNair!2026",
+        "password": os.environ.get("DEMO_PASSWORD_PRIYA", ""),
         "role": "maintenance_technician",
         "plant_scope": "Plant 1",
         "line_scope": "Line 4",
@@ -217,6 +228,14 @@ def main():
     parser.add_argument("--region", default="us-west-2", help="AWS region")
     parser.add_argument("--pool-name", default="ManufacturingInsightsPool")
     args = parser.parse_args()
+
+    # Validate that passwords are provided via environment variables
+    missing = [u["username"] for u in DEMO_USERS if not u["password"]]
+    if missing:
+        print(f"\nERROR: Passwords not set for: {', '.join(missing)}")
+        print(_DEFAULT_PASSWORD_MSG)
+        print("\nPasswords must meet Cognito policy: 8+ chars, upper, lower, number, symbol.")
+        raise SystemExit(1)
 
     session = boto3.Session(region_name=args.region)
     cognito = session.client("cognito-idp")

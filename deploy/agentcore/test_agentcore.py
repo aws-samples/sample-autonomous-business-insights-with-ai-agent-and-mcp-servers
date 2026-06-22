@@ -21,6 +21,7 @@ Usage:
 import argparse
 import json
 import logging
+import os
 from pathlib import Path
 
 import boto3
@@ -76,30 +77,41 @@ def main():
     client_id = identity_config["client_id"]
     gateway_url = gateway_config.get("gateway_url", "http://localhost:8000/mcp/")
 
+    # Passwords read from environment variables
+    passwords = {
+        "sarah.chen": os.environ.get("DEMO_PASSWORD_SARAH", ""),
+        "raj.patel": os.environ.get("DEMO_PASSWORD_RAJ", ""),
+        "priya.nair": os.environ.get("DEMO_PASSWORD_PRIYA", ""),
+    }
+    missing_pw = [u for u, p in passwords.items() if not p]
+    if missing_pw:
+        print(f"\n  ERROR: Set password env vars: DEMO_PASSWORD_SARAH, DEMO_PASSWORD_RAJ, DEMO_PASSWORD_PRIYA")
+        return
+
     # Test cases: (user, tool, args, expected_result)
     TESTS = [
         # Sarah (Plant Manager) — full access
-        ("sarah.chen", "SarahChen!2026", "EquipmentTarget___get_equipment_status",
+        ("sarah.chen", passwords["sarah.chen"], "EquipmentTarget___get_equipment_status",
          {"line": "Line 4"}, "ALLOW"),
-        ("sarah.chen", "SarahChen!2026", "IoTTarget___get_sensor_readings",
+        ("sarah.chen", passwords["sarah.chen"], "IoTTarget___get_sensor_readings",
          {"machine_id": 72}, "ALLOW"),
 
         # Raj (Line Supervisor) — Line 7 only
-        ("raj.patel", "RajPatel!2026", "EquipmentTarget___get_equipment_status",
+        ("raj.patel", passwords["raj.patel"], "EquipmentTarget___get_equipment_status",
          {"line": "Line 7"}, "ALLOW"),
-        ("raj.patel", "RajPatel!2026", "EquipmentTarget___get_equipment_status",
+        ("raj.patel", passwords["raj.patel"], "EquipmentTarget___get_equipment_status",
          {"line": "Line 4"}, "DENY"),
-        ("raj.patel", "RajPatel!2026", "AnalyticsTarget___get_oee_trends",
+        ("raj.patel", passwords["raj.patel"], "AnalyticsTarget___get_oee_trends",
          {"line": "Line 4"}, "DENY"),
 
         # Priya (Maintenance Tech) — Machine 41-45 only
-        ("priya.nair", "PriyaNair!2026", "IoTTarget___get_sensor_readings",
+        ("priya.nair", passwords["priya.nair"], "IoTTarget___get_sensor_readings",
          {"machine_id": 42}, "ALLOW"),
-        ("priya.nair", "PriyaNair!2026", "IoTTarget___get_sensor_readings",
+        ("priya.nair", passwords["priya.nair"], "IoTTarget___get_sensor_readings",
          {"machine_id": 72}, "DENY"),
-        ("priya.nair", "PriyaNair!2026", "EquipmentTarget___get_maintenance_history",
+        ("priya.nair", passwords["priya.nair"], "EquipmentTarget___get_maintenance_history",
          {"machine_id": 42}, "ALLOW"),
-        ("priya.nair", "PriyaNair!2026", "EquipmentTarget___get_maintenance_history",
+        ("priya.nair", passwords["priya.nair"], "EquipmentTarget___get_maintenance_history",
          {"machine_id": 99}, "DENY"),
     ]
 
