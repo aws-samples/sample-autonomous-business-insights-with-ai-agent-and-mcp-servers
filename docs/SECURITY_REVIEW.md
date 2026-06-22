@@ -138,7 +138,7 @@ Key property: `forbid` ALWAYS overrides `permit`. Even if a user has a matching 
 8. **Add canary tests** — Automated daily policy validation tests
 9. **Enable Policy Engine in LOG_ONLY first** — Validate before enforcing
 10. **Review Cedar policies quarterly** — Ensure least-privilege is maintained
-11. **Tighten Gateway IAM role** — `MfgInsights-Gateway-Role` currently has `bedrock-agentcore:*` permissions; narrow to specific actions (`bedrock-agentcore:InvokeGateway`, `bedrock-agentcore:EvaluatePolicy`) after testing is complete
+11. **Gateway IAM role** — `MfgInsights-Gateway-Role` uses inline policy scoped to `MfgInsights-*` Lambda functions and specific `bedrock-agentcore` actions
 
 ---
 
@@ -176,16 +176,8 @@ Policies: AWSLambdaBasicExecutionRole (only CloudWatch Logs: CreateLogGroup, Cre
 
 All three Lambda targets (`MfgInsights-EquipmentTools`, `MfgInsights-IoTTools`, `MfgInsights-AnalyticsTools`) use this single role with only BasicExecution permissions. No data source access, no cross-service access.
 
-### Gateway IAM Role — Requires Tightening ⚠️
+### Gateway IAM Role — Least-Privilege ✅
 
-```
-Role: MfgInsights-Gateway-Role
-Policies: bedrock-agentcore:* (full AgentCore permissions)
-```
-
-**Current state:** Functional but overly permissive. This is acceptable for development/testing.
-
-**Recommendation:** After testing is complete, tighten to least-privilege:
 ```json
 {
   "Effect": "Allow",
@@ -194,9 +186,13 @@ Policies: bedrock-agentcore:* (full AgentCore permissions)
     "bedrock-agentcore:EvaluatePolicy",
     "bedrock-agentcore:InvokeTarget"
   ],
-  "Resource": "arn:aws:bedrock-agentcore:us-east-1:<YOUR_AWS_ACCOUNT_ID>:gateway/your-gateway-id"
+  "Resource": "arn:aws:bedrock-agentcore:<REGION>:<ACCOUNT_ID>:gateway/<your-gateway-id>"
 }
 ```
+
+The Gateway role is scoped to invoke only the specific Gateway resource and its
+associated policy evaluation actions. Lambda invocation is restricted to
+`MfgInsights-*` function name prefix via an inline policy.
 
 ### Cognito Users — All Confirmed ✅
 
@@ -213,7 +209,7 @@ Policies: bedrock-agentcore:* (full AgentCore permissions)
 | Cedar policies in ENFORCE mode | ✅ Confirmed |
 | Deny-by-default for unauthenticated requests | ✅ Confirmed |
 | Lambda targets have minimal IAM | ✅ Confirmed (BasicExecution only) |
-| Gateway role scoped to least-privilege | ⚠️ Pending (currently `bedrock-agentcore:*`) |
+| Gateway role scoped to least-privilege | ✅ Confirmed |
 | All Lambda targets operational | ✅ Confirmed (3/3 READY) |
 | Gateway accepting MCP protocol | ✅ Confirmed (initialize: 200 OK) |
 

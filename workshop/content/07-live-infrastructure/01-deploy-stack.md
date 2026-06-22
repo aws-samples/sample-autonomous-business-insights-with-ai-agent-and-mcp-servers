@@ -30,7 +30,7 @@ aws cloudformation deploy \
   --capabilities CAPABILITY_NAMED_IAM \
   --parameter-overrides \
     Environment=dev \
-    DatabasePassword=YourSecureP@ssw0rd123
+    DatabasePassword='<YOUR_SECURE_PASSWORD>'
 ```
 
 {{% notice info %}}

@@ -27,9 +27,9 @@ logger = logging.getLogger(__name__)
 
 # Demo users matching the blog narrative
 # Passwords are read from environment variables. Users must set these before running.
-# Example:  export DEMO_PASSWORD_SARAH="YourSecureP@ss1"
-#           export DEMO_PASSWORD_RAJ="YourSecureP@ss2"
-#           export DEMO_PASSWORD_PRIYA="YourSecureP@ss3"
+# Example:  export DEMO_PASSWORD_SARAH="<your-secure-password>"
+#           export DEMO_PASSWORD_RAJ="<your-secure-password>"
+#           export DEMO_PASSWORD_PRIYA="<your-secure-password>"
 import os
 
 _DEFAULT_PASSWORD_MSG = (

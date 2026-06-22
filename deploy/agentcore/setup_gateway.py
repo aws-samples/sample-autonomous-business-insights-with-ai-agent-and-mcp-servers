@@ -177,10 +177,20 @@ def create_gateway_role(iam_client, role_name: str) -> str:
         )
         role_arn = response["Role"]["Arn"]
 
-        # Attach Lambda invoke policy
-        iam_client.attach_role_policy(
+        # Inline policy: invoke only MfgInsights Lambda tool targets (least-privilege)
+        iam_client.put_role_policy(
             RoleName=role_name,
-            PolicyArn="arn:aws:iam::aws:policy/service-role/AWSLambdaRole",
+            PolicyName="InvokeMfgInsightsLambdaTargets",
+            PolicyDocument=json.dumps({
+                "Version": "2012-10-17",
+                "Statement": [
+                    {
+                        "Effect": "Allow",
+                        "Action": "lambda:InvokeFunction",
+                        "Resource": f"arn:aws:lambda:*:*:function:MfgInsights-*",
+                    }
+                ],
+            }),
         )
 
         logger.info(f"  Gateway role created: {role_arn}")

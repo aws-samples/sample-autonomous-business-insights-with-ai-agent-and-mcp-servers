@@ -70,7 +70,7 @@ CREATE TABLE IF NOT EXISTS maintenance_history (
 -- Note: In production, this would be:
 -- CREATE EXTERNAL TABLE sensor_readings (...)
 -- STORED AS ICEBERG
--- LOCATION 's3://lakehouse-bucket/sensor_readings/'
+-- LOCATION 's3://amzn-s3-demo-lakehouse-bucket/sensor_readings/'
 
 CREATE TABLE IF NOT EXISTS sensor_readings (
     reading_timestamp   TIMESTAMP NOT NULL,
