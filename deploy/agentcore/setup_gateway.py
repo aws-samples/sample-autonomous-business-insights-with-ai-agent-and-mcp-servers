@@ -156,7 +156,7 @@ def load_identity_config() -> dict:
         return json.load(f)
 
 
-def create_gateway_role(iam_client, role_name: str) -> str:
+def create_gateway_role(iam_client, role_name: str, region: str, account_id: str) -> str:
     """Create IAM role for the Gateway to invoke Lambda targets."""
     trust_policy = {
         "Version": "2012-10-17",
@@ -187,7 +187,7 @@ def create_gateway_role(iam_client, role_name: str) -> str:
                     {
                         "Effect": "Allow",
                         "Action": "lambda:InvokeFunction",
-                        "Resource": f"arn:aws:lambda:*:*:function:MfgInsights-*",
+                        "Resource": f"arn:aws:lambda:{region}:{account_id}:function:MfgInsights-*",
                     }
                 ],
             }),
@@ -289,6 +289,8 @@ def main():
     session = boto3.Session(region_name=args.region)
     iam = session.client("iam")
     lambda_client = session.client("lambda")
+    sts = session.client("sts")
+    account_id = sts.get_caller_identity()["Account"]
 
     print("\n" + "=" * 60)
     print("  AgentCore Gateway Setup")
@@ -296,7 +298,7 @@ def main():
 
     # Step 1: Create Gateway IAM role
     logger.info("Step 1: Creating Gateway IAM role...")
-    gateway_role_arn = create_gateway_role(iam, "AgentCore-ManufacturingGateway-Role")
+    gateway_role_arn = create_gateway_role(iam, "AgentCore-ManufacturingGateway-Role", args.region, account_id)
 
     # Step 2: Create Lambda functions for each target
     logger.info("\nStep 2: Creating Lambda tool targets...")

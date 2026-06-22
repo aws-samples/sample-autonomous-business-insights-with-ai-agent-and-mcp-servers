@@ -124,8 +124,8 @@ def configure_policies(region: str) -> None:
         {
             "description": "Plant managers can access all equipment and sensor data across all plants",
             "principal": "role::plant_manager",
-            "action": "*",
-            "resource": "*",
+            "action": "get_equipment_status, get_maintenance_history, get_shared_infrastructure, get_sensor_readings, detect_anomaly, check_parts_inventory, get_supplier_lead_times, get_oee_trends, get_quality_metrics, discover_data_sources, get_data_catalog",
+            "resource": "gateway::${gateway_arn}",
             "effect": "permit",
         },
         {
