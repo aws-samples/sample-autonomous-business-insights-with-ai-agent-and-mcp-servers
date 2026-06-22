@@ -242,7 +242,7 @@ Resources:
   # ============================================================
   # Amazon S3 — Data Lake + Memory + Configuration
   # ============================================================
-  # S3 Access Logging Bucket
+  # S3 Access Logging Bucket (cannot log to itself — known scanner limitation)
   LoggingBucket:
     Type: AWS::S3::Bucket
     Properties:
@@ -256,11 +256,31 @@ Resources:
         BlockPublicPolicy: true
         IgnorePublicAcls: true
         RestrictPublicBuckets: true
+      VersioningConfiguration:
+        Status: Enabled
       LifecycleConfiguration:
         Rules:
           - Id: ExpireOldLogs
             Status: Enabled
             ExpirationInDays: 90
+
+  LoggingBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref LoggingBucket
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: DenyNonSSLAccess
+            Effect: Deny
+            Principal: '*'
+            Action: 's3:*'
+            Resource:
+              - !GetAtt LoggingBucket.Arn
+              - !Sub '${LoggingBucket.Arn}/*'
+            Condition:
+              Bool:
+                aws:SecureTransport: 'false'
 
   DataLakeBucket:
     Type: AWS::S3::Bucket
