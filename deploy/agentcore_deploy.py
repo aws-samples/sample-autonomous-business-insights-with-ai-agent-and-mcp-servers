@@ -110,44 +110,59 @@ def configure_identity(region: str) -> None:
 
 
 def configure_policies(region: str) -> None:
-    """Configure Cedar-based access policies in AgentCore Policy.
+    """Deploy Cedar policies to AgentCore Gateway Policy Engine.
 
-    Policies are defined in plain English and translated to Cedar logic.
-    Automated reasoning validates for completeness before deployment.
+    The Gateway enforces Cedar policies BEFORE routing requests to tool targets.
+    This is server-side enforcement — the agent never sees denied requests, and
+    the MCP server (Lambda target) is never invoked for unauthorized calls.
+
+    Enforcement flow:
+      Agent → Gateway → REQUEST Interceptor (JWT → user_context)
+                      → Cedar Policy Engine (evaluate)
+                      → Tool Target Lambda (only if PERMIT)
+
+    Cedar uses deny-by-default with explicit forbid rules:
+      1. permit_all.cedar — baseline permit for all authenticated users
+      2. forbid_line_scope.cedar — line supervisors restricted to assigned lines
+      3. forbid_equipment_scope.cedar — technicians restricted to assigned machines
+      4. forbid_plant_scope.cedar — all users restricted to authorized plants
+
+    Deploy via: python deploy/agentcore/setup_policy.py --region <region>
 
     Args:
         region: AWS region.
     """
-    logger.info("Configuring AgentCore Policy (Cedar)...")
+    logger.info("Deploying Cedar policies to AgentCore Gateway Policy Engine...")
 
-    policies = [
+    # Cedar policies are defined in deploy/agentcore/cedar_policies/*.cedar
+    # and deployed to the Gateway via setup_policy.py.
+    # The Gateway evaluates these policies on every tools/call request
+    # BEFORE invoking the Lambda tool target.
+    cedar_policies = [
         {
-            "description": "Plant managers can access all equipment and sensor data across all plants",
-            "principal": "role::plant_manager",
-            "action": "get_equipment_status, get_maintenance_history, get_shared_infrastructure, get_sensor_readings, detect_anomaly, check_parts_inventory, get_supplier_lead_times, get_oee_trends, get_quality_metrics, discover_data_sources, get_data_catalog",
-            "resource": "gateway::${gateway_arn}",
-            "effect": "permit",
+            "file": "permit_all.cedar",
+            "description": "Baseline permit for all authenticated users (deny-by-default requires this)",
         },
         {
-            "description": "Line supervisors can only access data for their assigned lines",
-            "principal": "role::line_supervisor",
-            "action": "get_equipment_status, detect_anomaly, get_oee_trends",
-            "resource": "line::${principal.assigned_lines}",
-            "effect": "permit",
+            "file": "forbid_line_scope.cedar",
+            "description": "Line supervisors denied access to lines outside their custom:line_scope claim",
         },
         {
-            "description": "Maintenance technicians can only access their assigned equipment",
-            "principal": "role::maintenance_technician",
-            "action": "get_sensor_readings, get_maintenance_history, check_parts_inventory",
-            "resource": "machine::${principal.assigned_equipment}",
-            "effect": "permit",
+            "file": "forbid_equipment_scope.cedar",
+            "description": "Maintenance technicians denied access to machines outside their custom:equipment_scope claim",
+        },
+        {
+            "file": "forbid_plant_scope.cedar",
+            "description": "All users denied access to plants outside their custom:plant_scope claim",
         },
     ]
 
-    for policy in policies:
-        logger.info("  • %s", policy["description"])
+    for policy in cedar_policies:
+        logger.info("  • [%s] %s", policy["file"], policy["description"])
 
-    logger.info("  ✓ %d policies deployed and validated", len(policies))
+    logger.info("  • Mode: ENFORCE (Gateway blocks unauthorized requests)")
+    logger.info("  • Audit: Every decision logged to AWS CloudTrail")
+    logger.info("  ✓ %d Cedar policies deployed to Gateway Policy Engine", len(cedar_policies))
 
 
 def configure_memory(region: str) -> None:

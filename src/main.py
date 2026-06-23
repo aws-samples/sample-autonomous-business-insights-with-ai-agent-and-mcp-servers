@@ -1,17 +1,21 @@
 # Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 # SPDX-License-Identifier: MIT-0
 
-"""Interactive CLI for the Multi-Agent Business Insights system.
+"""Interactive CLI for the Manufacturing Insights Agent.
 
-This is the entry point for running the demo locally. It simulates the
-experience of three different users (Sarah, Raj, Priya) querying the
-same system and receiving personalized, scope-appropriate responses.
+This is the entry point for running the demo. By default, it connects to
+the deployed AgentCore Gateway which handles MCP routing, Cedar policy
+enforcement, and Lambda tool target invocation.
 
-In production, this interface would be replaced by a chat UI connected
+For local development without a Gateway, set SIMULATION_MODE=true to use
+local MCP servers with a simulated policy hook.
+
+In production, this CLI would be replaced by a chat UI connected
 to AgentCore via API Gateway, with authentication flowing from your IdP.
 """
 
 import logging
+import os
 import sys
 
 from src.config import AppConfig
@@ -47,7 +51,7 @@ SAMPLE_QUERIES = {
 def print_header() -> None:
     """Print the application header."""
     print("\n" + "=" * 70)
-    print("  🏭  Autonomous Business Insights — Multi-Agent Demo")
+    print("  🏭  Manufacturing Insights Agent")
     print("  Powered by Amazon Bedrock AgentCore + Strands Agents + MCP")
     print("=" * 70)
 
@@ -140,8 +144,14 @@ def main() -> None:
     config = AppConfig()
     agent = ManufacturingInsightsAgent(config)
 
-    print("\n  Note: Ensure MCP servers are running in another terminal:")
-    print("    python -m src.servers.start_all\n")
+    simulation_mode = os.getenv("SIMULATION_MODE", "false").lower() == "true"
+    if simulation_mode:
+        print("\n  Mode: SIMULATION (local MCP servers)")
+        print("  Ensure MCP servers are running in another terminal:")
+        print("    python -m src.servers.start_all\n")
+    else:
+        print("\n  Mode: AgentCore Gateway (default)")
+        print(f"  Gateway: {config.gateway.url}\n")
 
     while True:
         result = select_user()

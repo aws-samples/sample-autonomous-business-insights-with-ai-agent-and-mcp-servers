@@ -625,8 +625,8 @@ deploy/agentcore/
     for client in mcp_clients:
         all_tools.extend(client.list_tools_sync())
 
-    # 4. Create agent (Gateway mode = no local hook)
-    if USE_AGENTCORE_GATEWAY:
+    # 4. Create agent (Gateway mode = default, no local hook needed)
+    if not SIMULATION_MODE:
         agent = Agent(system_prompt, tools=all_tools)  # Gateway handles policy
     else:
         agent = Agent(system_prompt, tools=all_tools, hooks=[gateway_hook])
@@ -640,7 +640,7 @@ deploy/agentcore/
 
     add_heading(doc, '13. Two Operating Modes', level=1)
     add_table(doc,
-        ['Aspect', 'Local Simulation', 'Real AgentCore Gateway'],
+        ['Aspect', 'Local Simulation', 'AgentCore Gateway (Default)'],
         [
             ['Policy', 'Python if/else (policy.py)', 'Cedar evaluated server-side at Gateway'],
             ['Tools', 'Local FastMCP servers (ports 8001-8005)', 'Lambda targets invoked by Gateway'],
@@ -648,7 +648,7 @@ deploy/agentcore/
             ['Enforcement', 'In-process Strands hook', 'Server-side (Gateway service)'],
             ['Audit', 'logging.warning()', 'CloudWatch + CloudTrail'],
             ['Isolation', 'Same process', 'Firecracker microVM per session'],
-            ['Env var', 'USE_AGENTCORE_GATEWAY=false', 'USE_AGENTCORE_GATEWAY=true'],
+            ['Env var', 'SIMULATION_MODE=true', 'SIMULATION_MODE=false (default)'],
         ]
     )
 

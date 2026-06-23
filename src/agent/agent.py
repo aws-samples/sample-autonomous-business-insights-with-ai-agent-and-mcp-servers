@@ -3,10 +3,30 @@
 
 """Manufacturing Insights Agent — single agent, multiple MCP servers.
 
-Architecture:
-  User Query → Agent (Strands + Bedrock) → Gateway (policy) → MCP Servers → Data
+Architecture (Default — AgentCore Gateway):
+  User Query → Agent (Strands + Bedrock) → AgentCore Gateway → MCP Targets (Lambda)
+                                                ↓
+                                    REQUEST Interceptor (JWT → user_context)
+                                    Cedar Policy Engine (ENFORCE)
+                                    Tool Target Lambda (only if PERMIT)
 
-This agent connects to a mix of:
+  Policy enforcement is handled entirely by the Gateway. The agent has no
+  policy logic — it simply sends tool calls to the Gateway URL, and the Gateway
+  evaluates Cedar policies before invoking the Lambda tool target.
+
+  This is the DEFAULT and RECOMMENDED architecture. The Gateway provides
+  production-grade policy enforcement, observability, and isolation.
+
+Architecture (Simulation Fallback — SIMULATION_MODE=true):
+  User Query → Agent (Strands + Bedrock) → [Local PolicyHook] → MCP Servers (HTTP)
+
+  A local GatewayPolicyHook simulates Gateway enforcement for development.
+  Use this ONLY when you don't have a deployed AgentCore Gateway.
+  See src/identity/gateway_hook.py for details.
+
+  Set SIMULATION_MODE=true to activate this fallback.
+
+MCP Server Connectivity:
   - PRE-BUILT AWS MCP servers (via stdio/uvx):
     - awslabs.postgres-mcp-server → Aurora PostgreSQL (equipment, maintenance)
     - awslabs.redshift-mcp-server → Redshift Serverless (supply chain, OEE)
@@ -23,6 +43,7 @@ This demonstrates the "configuration, not code" approach:
 import logging
 import os
 import uuid
+from contextlib import ExitStack
 
 from mcp.client.streamable_http import streamablehttp_client
 from mcp.client.stdio import StdioServerParameters, stdio_client
@@ -38,22 +59,42 @@ from src.agent.prompts import build_agent_prompt
 
 logger = logging.getLogger(__name__)
 
-# Environment variable to control whether to use pre-built AWS MCP servers
+# ---------------------------------------------------------------------------
+# Operating mode flags
+# ---------------------------------------------------------------------------
+# SIMULATION_MODE: When true, the agent uses local MCP servers and a local
+# policy hook instead of the real AgentCore Gateway. This is the development
+# fallback — NOT the default production path.
+SIMULATION_MODE = os.getenv("SIMULATION_MODE", "false").lower() == "true"
+
+# USE_PREBUILT_MCP: When true (and not in simulation mode), use pre-built
+# AWS MCP servers (postgres, redshift) via stdio/uvx for the data layer.
 USE_PREBUILT_MCP = os.getenv("USE_PREBUILT_MCP", "false").lower() == "true"
+
+# Memory summary truncation length
+MEMORY_SUMMARY_MAX_LEN = 200
 
 
 class ManufacturingInsightsAgent:
-    """Single agent connected to multiple MCP servers (pre-built + custom).
+    """Single agent connected to multiple MCP servers via AgentCore Gateway.
 
-    When USE_PREBUILT_MCP=true:
-      - Equipment/Maintenance: awslabs.postgres-mcp-server (via stdio/uvx)
-      - Supply Chain/OEE: awslabs.redshift-mcp-server (via stdio/uvx)
-      - IoT Telemetry: Custom MCP server (streamable HTTP, port 8002)
-      - Quality/Analytics: Custom MCP server (streamable HTTP, port 8004)
-      - Semantic Layer: Custom MCP server (streamable HTTP, port 8005)
+    Default mode (AgentCore Gateway — production):
+      All tool calls route through the deployed Gateway which handles MCP
+      protocol, Cedar policy enforcement, and Lambda target invocation.
+      No local policy logic is needed.
 
-    When USE_PREBUILT_MCP=false (default, for simulated mode):
-      - All servers run locally via streamable HTTP (ports 8001-8005)
+    Simulation mode (SIMULATION_MODE=true — development fallback):
+      When USE_PREBUILT_MCP=true:
+        - Equipment/Maintenance: awslabs.postgres-mcp-server (via stdio/uvx)
+        - Supply Chain/OEE: awslabs.redshift-mcp-server (via stdio/uvx)
+        - IoT Telemetry: Custom MCP server (streamable HTTP, port 8002)
+        - Quality/Analytics: Custom MCP server (streamable HTTP, port 8004)
+        - Semantic Layer: Custom MCP server (streamable HTTP, port 8005)
+
+      When USE_PREBUILT_MCP=false:
+        - All servers run locally via streamable HTTP (ports 8001-8005)
+
+      A local GatewayPolicyHook approximates Cedar policy enforcement.
     """
 
     def __init__(self, config: AppConfig) -> None:
@@ -62,32 +103,41 @@ class ManufacturingInsightsAgent:
         self.memory_manager = MemoryManager()
 
     def _create_mcp_clients(self) -> list[MCPClient]:
-        """Create MCP client connections — pre-built (stdio) or custom (HTTP).
+        """Create MCP client connections based on the current operating mode.
 
-        Pre-built AWS MCP servers (awslabs) use stdio transport via uvx.
-        Custom MCP servers use streamable HTTP on localhost.
-        AgentCore Gateway mode routes through the real Gateway URL.
+        Priority (highest first):
+          1. AgentCore Gateway (default) — routes through deployed Gateway URL
+          2. Pre-built + custom MCP (SIMULATION_MODE=true, USE_PREBUILT_MCP=true)
+          3. All-local HTTP MCP (SIMULATION_MODE=true, USE_PREBUILT_MCP=false)
         """
-        if USE_PREBUILT_MCP:
-            return self._create_prebuilt_clients()
-        elif os.getenv("USE_AGENTCORE_GATEWAY", "false").lower() == "true":
-            return self._create_gateway_client()
-        else:
+        if SIMULATION_MODE:
+            if USE_PREBUILT_MCP:
+                return self._create_prebuilt_clients()
             return self._create_local_clients()
 
+        # Default: AgentCore Gateway
+        return self._create_gateway_client()
+
     def _create_gateway_client(self) -> list[MCPClient]:
-        """Connect to tools via real AgentCore Gateway.
+        """Connect to tools via AgentCore Gateway (DEFAULT production path).
 
         All tool calls route through the Gateway URL which handles:
         - MCP protocol (initialize, tools/list, tools/call)
-        - Lambda target invocation
-        - Policy enforcement (when JWT auth is configured)
+        - REQUEST Interceptor: JWT extraction → user_context injection
+        - Cedar Policy Engine: evaluate forbid/permit rules (ENFORCE mode)
+        - Lambda target invocation (only if Cedar permits)
+        - RESPONSE Interceptor: filter tool list by role
+        - CloudTrail audit logging of every policy decision
+        - Firecracker microVM isolation per session
+
+        No local policy hook is needed — the Gateway enforces policies
+        server-side before the Lambda tool target is ever invoked.
         """
         gateway_url = os.getenv(
             "AGENTCORE_GATEWAY_URL",
             "https://your-test-gateway-id.gateway.bedrock-agentcore.us-east-1.amazonaws.com/mcp/",
         )
-        logger.info("Using AgentCore Gateway: %s", gateway_url)
+        logger.info("Using AgentCore Gateway (default): %s", gateway_url)
 
         gateway_client = MCPClient(
             lambda: streamablehttp_client(gateway_url)
@@ -153,10 +203,10 @@ class ManufacturingInsightsAgent:
         return clients
 
     def _create_local_clients(self) -> list[MCPClient]:
-        """Create clients for all-local development (streamable HTTP).
+        """Create clients for all-local simulation (streamable HTTP).
 
         All 5 MCP servers run locally via python -m src.servers.start_all.
-        Used when USE_PREBUILT_MCP=false (default).
+        Used only in SIMULATION_MODE when USE_PREBUILT_MCP=false.
         """
         server_urls = [
             self.config.mcp_servers.semantic_layer_url,
@@ -208,13 +258,21 @@ class ManufacturingInsightsAgent:
     def query(self, user: UserIdentity, question: str) -> str:
         """Process a natural language query.
 
-        Flow:
+        Flow (Default — AgentCore Gateway):
         1. Build system prompt with identity + memory context
-        2. Connect to MCP servers (pre-built via stdio OR custom via HTTP)
-        3. Collect all tools into one flat list
-        4. Create agent with GatewayPolicyHook for access control
-        5. Agent reasons, calls tools, synthesizes response
-        6. Record in memory
+        2. Connect to AgentCore Gateway (single MCP endpoint)
+        3. Gateway provides tools/list (filtered by RESPONSE Interceptor)
+        4. Create agent WITHOUT policy hooks (Gateway enforces server-side)
+        5. Agent reasons, calls tools via Gateway
+        6. Gateway evaluates Cedar → invokes Lambda target → returns result
+        7. Record in memory
+
+        Flow (Simulation Fallback — SIMULATION_MODE=true):
+        1. Build system prompt with identity + memory context
+        2. Connect to local MCP servers (HTTP or stdio)
+        3. Create agent WITH local GatewayPolicyHook (approximates Gateway)
+        4. Agent reasons, calls tools with local policy check
+        5. Record in memory
 
         Args:
             user: Authenticated user identity with scope attributes.
@@ -225,19 +283,19 @@ class ManufacturingInsightsAgent:
         """
         session_id = str(uuid.uuid4())
         logger.info(
-            "Processing query for user '%s' (role=%s, session=%s, prebuilt=%s)",
+            "Processing query for user '%s' (role=%s, session=%s, mode=%s)",
             user.name,
             user.role.value,
             session_id[:8],
-            USE_PREBUILT_MCP,
+            "simulation" if SIMULATION_MODE else "agentcore_gateway",
         )
 
         system_prompt = self._build_system_prompt(user, session_id)
         mcp_clients = self._create_mcp_clients()
 
-        try:
+        with ExitStack() as stack:
             for client in mcp_clients:
-                client.__enter__()
+                stack.enter_context(client)
 
             all_tools = []
             for client in mcp_clients:
@@ -250,20 +308,8 @@ class ManufacturingInsightsAgent:
                 len(all_tools),
             )
 
-            # Only use local policy hook when NOT routing through real Gateway
-            use_gateway = os.getenv("USE_AGENTCORE_GATEWAY", "false").lower() == "true"
-
-            if use_gateway:
-                # Real Gateway handles policy enforcement server-side
-                # No local hook needed — Cedar evaluates at the Gateway
-                agent = Agent(
-                    system_prompt=system_prompt,
-                    tools=all_tools,
-                    callback_handler=None,
-                )
-                logger.info("Policy enforcement: AgentCore Gateway (server-side Cedar)")
-            else:
-                # Local mode: use the simulated policy hook
+            if SIMULATION_MODE:
+                # Simulation fallback: local policy hook approximates Gateway enforcement
                 gateway_hook = GatewayPolicyHook(
                     user=user,
                     policy_engine=self.policy_engine,
@@ -274,7 +320,16 @@ class ManufacturingInsightsAgent:
                     hooks=[gateway_hook],
                     callback_handler=None,
                 )
-                logger.info("Policy enforcement: Local GatewayPolicyHook (simulated)")
+                logger.info("Policy enforcement: Local GatewayPolicyHook (simulation fallback)")
+            else:
+                # Default: AgentCore Gateway handles policy enforcement server-side
+                # No local hook — Cedar evaluates at the Gateway before Lambda invocation
+                agent = Agent(
+                    system_prompt=system_prompt,
+                    tools=all_tools,
+                    callback_handler=None,
+                )
+                logger.info("Policy enforcement: AgentCore Gateway (server-side Cedar)")
 
             response = agent(question)
             response_text = str(response)
@@ -282,14 +337,7 @@ class ManufacturingInsightsAgent:
             session = self.memory_manager.get_or_create_session(user.user_id, session_id)
             session.add_interaction(
                 query=question,
-                response_summary=response_text[:200],
+                response_summary=response_text[:MEMORY_SUMMARY_MAX_LEN],
             )
 
             return response_text
-
-        finally:
-            for client in mcp_clients:
-                try:
-                    client.__exit__(None, None, None)
-                except Exception:
-                    pass

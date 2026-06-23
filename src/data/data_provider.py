@@ -1,9 +1,9 @@
 # Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 # SPDX-License-Identifier: MIT-0
 
-"""Data provider abstraction — routes between simulated and live data sources.
+"""Data provider abstraction — routes between live and simulated data sources.
 
-Controls which data backend the MCP servers use:
+Controls which data backend the local MCP servers use (SIMULATION_MODE only):
   DATA_MODE=simulated  →  In-memory sample data (default, no AWS infra needed)
   DATA_MODE=live       →  Real AWS services per domain:
                             Equipment/Maintenance → Aurora PostgreSQL (RDS Data API)
@@ -12,28 +12,89 @@ Controls which data backend the MCP servers use:
                             Quality/Unstructured → Amazon OpenSearch Serverless
                             Config/Catalog       → Amazon S3
 
-Set DATA_MODE in your .env file or environment variables.
+Important: This module is only used when SIMULATION_MODE=true (i.e., local MCP
+servers handle data retrieval). In the default production architecture, the
+AgentCore Gateway routes tool calls to Lambda targets that query AWS services
+directly — this data_provider is bypassed entirely.
+
+Set DATA_MODE and SIMULATION_MODE in your .env file or environment variables.
+See .env.example for all configuration options.
 """
 
 import json
 import os
 import logging
+from typing import Optional
 
 logger = logging.getLogger(__name__)
 
 DATA_MODE = os.getenv("DATA_MODE", "simulated")
 
 
+# ---------------------------------------------------------------------------
+# Startup validation
+# ---------------------------------------------------------------------------
+
+def _validate_live_mode_credentials() -> None:
+    """Warn early if DATA_MODE=live but required env vars are missing.
+
+    This prevents confusing errors deep in Aurora/Timestream/Redshift clients
+    when credentials haven't been configured.
+    """
+    required_vars = {
+        "AURORA_CLUSTER_ARN": "Aurora PostgreSQL (Equipment data)",
+        "AURORA_SECRET_ARN": "Aurora credentials (Secrets Manager)",
+        "TIMESTREAM_DATABASE": "Timestream (IoT telemetry)",
+        "REDSHIFT_WORKGROUP": "Redshift Serverless (Supply Chain/OEE)",
+    }
+    missing = [
+        f"  - {var} ({desc})"
+        for var, desc in required_vars.items()
+        if not os.getenv(var) or "<YOUR_" in os.getenv(var, "")
+    ]
+    if missing:
+        logger.warning(
+            "DATA_MODE=live but the following environment variables are missing or "
+            "still contain placeholder values:\n%s\n"
+            "Live data queries will fail. Set these in your .env file or switch to "
+            "DATA_MODE=simulated.\nSee .env.example for reference.",
+            "\n".join(missing),
+        )
+
+
+if DATA_MODE == "live":
+    _validate_live_mode_credentials()
+
+
+# ---------------------------------------------------------------------------
+# Shared helpers
+# ---------------------------------------------------------------------------
+
+def _compute_stock_status(quantity: int, reorder_point: int) -> str:
+    """Determine inventory stock status from quantity vs. reorder point."""
+    if quantity == 0:
+        return "OUT_OF_STOCK"
+    if quantity < reorder_point * 0.5:
+        return "CRITICAL"
+    if quantity < reorder_point:
+        return "LOW"
+    return "ADEQUATE"
+
+
+# ---------------------------------------------------------------------------
+# Equipment
+# ---------------------------------------------------------------------------
+
 def get_equipment_status(
-    line: str | None = None,
-    machine_id: int | None = None,
-    plant: str | None = None,
+    line: Optional[str] = None,
+    machine_id: Optional[int] = None,
+    plant: Optional[str] = None,
 ) -> str:
     """Get equipment status — routes to Aurora (live) or sample_data (simulated)."""
     if DATA_MODE == "live":
         from src.data.aurora_client import query_equipment_status
         results = query_equipment_status(line=line, machine_id=machine_id, plant=plant)
-        return json.dumps(results, indent=2, default=str)
+        return json.dumps(results, default=str)
     else:
         from src.data.sample_data import ASSEMBLY_LINES, EQUIPMENT_REGISTRY
         results = []
@@ -57,8 +118,12 @@ def get_equipment_status(
                     "machine_count": len(line_info["machines"]),
                     "supervisor": line_info["supervisor"],
                 })
-        return json.dumps(results, indent=2, default=str)
+        return json.dumps(results, default=str)
 
+
+# ---------------------------------------------------------------------------
+# Maintenance
+# ---------------------------------------------------------------------------
 
 def get_maintenance_history(machine_id: int) -> str:
     """Get maintenance history — routes to Aurora (live) or sample_data (simulated)."""
@@ -71,7 +136,7 @@ def get_maintenance_history(machine_id: int) -> str:
             "equipment_info": equipment[0] if equipment else {},
             "maintenance_records": history,
             "total_records": len(history),
-        }, indent=2, default=str)
+        }, default=str)
     else:
         from src.data.sample_data import EQUIPMENT_REGISTRY, MAINTENANCE_HISTORY
         machine_name = f"Machine {machine_id}"
@@ -82,8 +147,12 @@ def get_maintenance_history(machine_id: int) -> str:
             "equipment_info": equipment_info,
             "maintenance_records": history,
             "total_records": len(history),
-        }, indent=2, default=str)
+        }, default=str)
 
+
+# ---------------------------------------------------------------------------
+# IoT Telemetry
+# ---------------------------------------------------------------------------
 
 def get_sensor_readings(machine_id: int, metric: str = "temperature", days: int = 7) -> str:
     """Get sensor readings — routes to Timestream (live) or sample_data (simulated)."""
@@ -104,17 +173,21 @@ def get_sensor_readings(machine_id: int, metric: str = "temperature", days: int 
             "avg_value": round(sum(values) / len(values), 2) if values else None,
             "unit": rows[0].get("unit", "") if rows else "",
             "latest_readings": rows[-6:],
-        }, indent=2, default=str)
+        }, default=str)
     else:
         from src.data.sample_data import generate_sensor_readings
         readings = generate_sensor_readings(machine_id, metric, days)
         if not readings:
             return json.dumps({"error": f"No readings found for Machine {machine_id}"})
         values = [r["value"] for r in readings]
-        first_q = sum(values[:len(values)//4]) / max(len(values)//4, 1)
-        last_q = sum(values[-len(values)//4:]) / max(len(values)//4, 1)
+        first_q = sum(values[:len(values) // 4]) / max(len(values) // 4, 1)
+        last_q = sum(values[-len(values) // 4:]) / max(len(values) // 4, 1)
         diff = ((last_q - first_q) / first_q) * 100 if first_q else 0
-        trend = f"increasing (+{diff:.1f}%)" if diff > 5 else (f"decreasing ({diff:.1f}%)" if diff < -5 else "stable")
+        trend = (
+            f"increasing (+{diff:.1f}%)" if diff > 5
+            else f"decreasing ({diff:.1f}%)" if diff < -5
+            else "stable"
+        )
         return json.dumps({
             "machine_id": machine_id,
             "metric": metric,
@@ -127,13 +200,17 @@ def get_sensor_readings(machine_id: int, metric: str = "temperature", days: int 
             "unit": readings[0]["unit"],
             "trend": trend,
             "latest_readings": readings[-6:],
-        }, indent=2, default=str)
+        }, default=str)
 
+
+# ---------------------------------------------------------------------------
+# Anomaly Detection
+# ---------------------------------------------------------------------------
 
 def detect_anomaly(
-    line: str | None = None,
-    plant: str | None = None,
-    metric: str | None = None,
+    line: Optional[str] = None,
+    plant: Optional[str] = None,
+    metric: Optional[str] = None,
 ) -> str:
     """Detect anomalies — routes to Timestream (live) or sample_data (simulated)."""
     if DATA_MODE == "live":
@@ -145,7 +222,7 @@ def detect_anomaly(
             "scan_scope": {"line": line, "plant": plant, "metric": metric},
             "anomalies_found": len(anomalies),
             "anomalies": anomalies,
-        }, indent=2, default=str)
+        }, default=str)
     else:
         from src.data.sample_data import ANOMALY_THRESHOLDS, ASSEMBLY_LINES, generate_sensor_readings
         from datetime import datetime
@@ -186,10 +263,17 @@ def detect_anomaly(
             "scan_scope": {"line": line, "plant": plant, "metric": metric},
             "anomalies_found": len(anomalies),
             "anomalies": anomalies,
-        }, indent=2, default=str)
+        }, default=str)
 
 
-def check_parts_inventory(part_id: str | None = None, machine_id: int | None = None) -> str:
+# ---------------------------------------------------------------------------
+# Supply Chain / Inventory
+# ---------------------------------------------------------------------------
+
+def check_parts_inventory(
+    part_id: Optional[str] = None,
+    machine_id: Optional[int] = None,
+) -> str:
     """Check parts inventory — routes to Redshift (live) or sample_data (simulated)."""
     if DATA_MODE == "live":
         from src.data.lakehouse_client import query_parts_inventory
@@ -198,15 +282,15 @@ def check_parts_inventory(part_id: str | None = None, machine_id: int | None = N
         for r in rows:
             qty = int(r.get("quantity_on_hand", 0))
             reorder = int(r.get("reorder_point", 0))
-            status = ("OUT_OF_STOCK" if qty == 0 else "CRITICAL" if qty < reorder * 0.5
-                      else "LOW" if qty < reorder else "ADEQUATE")
-            r["stock_status"] = status
+            r["stock_status"] = _compute_stock_status(qty, reorder)
             results.append(r)
         return json.dumps({
             "inventory_items": results,
             "total_items": len(results),
-            "items_below_reorder_point": sum(1 for r in results if r["stock_status"] in ("LOW", "CRITICAL")),
-        }, indent=2, default=str)
+            "items_below_reorder_point": sum(
+                1 for r in results if r["stock_status"] in ("LOW", "CRITICAL", "OUT_OF_STOCK")
+            ),
+        }, default=str)
     else:
         from src.data.sample_data import PARTS_INVENTORY
         results = []
@@ -221,17 +305,28 @@ def check_parts_inventory(part_id: str | None = None, machine_id: int | None = N
         for pid, info in items.items():
             qty = info["quantity_on_hand"]
             reorder = info["reorder_point"]
-            status = ("OUT_OF_STOCK" if qty == 0 else "CRITICAL" if qty < reorder * 0.5
-                      else "LOW" if qty < reorder else "ADEQUATE")
-            results.append({"part_id": pid, "stock_status": status, **info})
+            results.append({
+                "part_id": pid,
+                "stock_status": _compute_stock_status(qty, reorder),
+                **info,
+            })
         return json.dumps({
             "inventory_items": results,
             "total_items": len(results),
-            "items_below_reorder_point": sum(1 for r in results if r["stock_status"] in ("LOW", "CRITICAL")),
-        }, indent=2, default=str)
+            "items_below_reorder_point": sum(
+                1 for r in results if r["stock_status"] in ("LOW", "CRITICAL", "OUT_OF_STOCK")
+            ),
+        }, default=str)
 
 
-def get_oee_trends(line: str | None = None, plant: str | None = None) -> str:
+# ---------------------------------------------------------------------------
+# OEE (Overall Equipment Effectiveness)
+# ---------------------------------------------------------------------------
+
+def get_oee_trends(
+    line: Optional[str] = None,
+    plant: Optional[str] = None,
+) -> str:
     """Get OEE trends — routes to Redshift (live) or sample_data (simulated)."""
     if DATA_MODE == "live":
         from src.data.lakehouse_client import query_oee_trends
@@ -254,7 +349,7 @@ def get_oee_trends(line: str | None = None, plant: str | None = None) -> str:
             "period": "Last 4 weeks", "lines_analyzed": len(trends),
             "lines_needing_attention": sum(1 for v in trends.values() if v["needs_attention"]),
             "trends": trends,
-        }, indent=2, default=str)
+        }, default=str)
     else:
         from src.data.sample_data import ASSEMBLY_LINES, OEE_DATA
         results = {}
@@ -278,10 +373,17 @@ def get_oee_trends(line: str | None = None, plant: str | None = None) -> str:
             "period": "Last 4 weeks", "lines_analyzed": len(results),
             "lines_needing_attention": sum(1 for _, v in results.items() if v["needs_attention"]),
             "trends": dict(ranked),
-        }, indent=2, default=str)
+        }, default=str)
 
 
-def get_quality_metrics(line: str | None = None, plant: str | None = None) -> str:
+# ---------------------------------------------------------------------------
+# Quality
+# ---------------------------------------------------------------------------
+
+def get_quality_metrics(
+    line: Optional[str] = None,
+    plant: Optional[str] = None,
+) -> str:
     """Get quality metrics — routes to OpenSearch (live) or sample_data (simulated)."""
     if DATA_MODE == "live":
         from src.data.opensearch_client import query_quality_metrics
@@ -310,7 +412,7 @@ def get_quality_metrics(line: str | None = None, plant: str | None = None) -> st
             "lines_analyzed": len(result),
             "quality_alerts": sum(1 for v in result.values() if v["quality_alert"]),
             "metrics": result,
-        }, indent=2, default=str)
+        }, default=str)
     else:
         from src.data.sample_data import ASSEMBLY_LINES, QUALITY_DATA
         results = {}
@@ -338,4 +440,4 @@ def get_quality_metrics(line: str | None = None, plant: str | None = None) -> st
             "lines_analyzed": len(results),
             "quality_alerts": sum(1 for v in results.values() if v["quality_alert"]),
             "metrics": results,
-        }, indent=2, default=str)
+        }, default=str)

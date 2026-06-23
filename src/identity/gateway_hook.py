@@ -1,20 +1,35 @@
 # Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 # SPDX-License-Identifier: MIT-0
 
-"""AgentCore Gateway Hook — policy enforcement on every tool call.
+"""SIMULATION FALLBACK — Local approximation of Gateway policy enforcement.
 
-In production, the AgentCore Gateway intercepts every agent-to-tool call
-before execution. This hook simulates that behavior using Strands Agents'
-BeforeToolCallEvent hook mechanism.
+⚠️  THIS IS NOT THE DEFAULT ARCHITECTURE. It is only active when SIMULATION_MODE=true.
 
-When a tool call is made:
-1. The hook extracts parameters from the tool input
-2. Evaluates the user's identity against Cedar-style policies
-3. If denied → cancels the tool call with an access-denied message
-4. If allowed → the call proceeds to the MCP server
+Default (Production) Architecture — AgentCore Gateway:
+  Agent → Gateway → REQUEST Interceptor (JWT extraction)
+                  → Cedar Policy Engine (ENFORCE mode)
+                  → Lambda Tool Target (only if PERMIT)
 
-This is the "Gateway enforces policy before MCP server is ever called" pattern
-described in the blog. The MCP server never sees unauthorized requests.
+  The Gateway itself evaluates Cedar policies and blocks unauthorized requests
+  BEFORE the MCP server (Lambda target) is ever invoked. See:
+    - deploy/agentcore/setup_policy.py — deploys Cedar policies to the Gateway
+    - deploy/agentcore/cedar_policies/*.cedar — actual Cedar policy definitions
+    - deploy/agentcore/lambda_functions/request_interceptor.py — JWT → user_context
+
+  When running in default mode (SIMULATION_MODE=false or unset), the agent
+  connects directly to the Gateway and this module is NOT used.
+
+Simulation Fallback (SIMULATION_MODE=true):
+  This module provides a LOCAL SIMULATION of Gateway behavior for development
+  when you don't have a deployed AgentCore Gateway. It uses Strands Agents'
+  BeforeToolCallEvent hook to approximate what the Gateway does server-side.
+
+  Use cases:
+    - Local development without AWS infrastructure
+    - Demonstrating the policy enforcement concept offline
+    - Testing policy logic before deploying Cedar rules
+
+  To activate: set SIMULATION_MODE=true in your environment or .env file.
 """
 
 import logging
@@ -29,15 +44,24 @@ logger = logging.getLogger(__name__)
 
 
 class GatewayPolicyHook(HookProvider):
-    """Strands Agent hook that enforces access policies before every tool call.
+    """SIMULATION FALLBACK — Local approximation of AgentCore Gateway policy enforcement.
 
-    This replicates AgentCore Gateway behavior:
-    - Every tool call flows through the Gateway
-    - Policy is evaluated against the user's identity and the tool parameters
-    - Denied calls are blocked BEFORE reaching the MCP server
-    - Every decision is logged (in production: to AWS CloudTrail)
+    ⚠️  This hook is ONLY active when SIMULATION_MODE=true.
+    In the default mode, the AgentCore Gateway evaluates Cedar policies
+    server-side and this class is never instantiated.
 
-    Usage:
+    What the real Gateway does (server-side, default):
+    - REQUEST Interceptor Lambda extracts JWT claims into user_context
+    - Cedar Policy Engine evaluates forbid/permit rules against user_context
+    - Denied requests return an error without invoking the Lambda target
+    - Every decision is logged to AWS CloudTrail
+
+    What this hook simulates (agent-side, SIMULATION_MODE=true only):
+    - Extracts parameters from tool input
+    - Evaluates against a local PolicyEngine (Python approximation of Cedar)
+    - Cancels denied tool calls via BeforeToolCallEvent.cancel_tool
+
+    Usage (simulation mode only):
         gateway_hook = GatewayPolicyHook(user=current_user, policy_engine=engine)
         agent = Agent(system_prompt=..., tools=..., hooks=[gateway_hook])
     """
@@ -51,11 +75,15 @@ class GatewayPolicyHook(HookProvider):
         registry.add_callback(BeforeToolCallEvent, self._enforce_policy)
 
     def _enforce_policy(self, event: BeforeToolCallEvent) -> None:
-        """Evaluate policy before each tool call. Cancel if denied.
+        """Evaluate policy before each tool call (SIMULATION FALLBACK ONLY).
 
-        This is the Gateway intercepting the call. If the user doesn't have
-        access, the tool call is cancelled with an access-denied message and
-        the MCP server is never contacted.
+        In the default mode, this logic lives in the AgentCore Gateway:
+        - REQUEST Interceptor extracts JWT → user_context
+        - Cedar Policy Engine evaluates context.input.* against forbid rules
+        - Gateway blocks denied requests before Lambda target invocation
+
+        This simulation approximates that flow using Python policy logic.
+        Active only when SIMULATION_MODE=true.
         """
         tool_name = event.tool_use["name"]
         tool_input = event.tool_use.get("input", {})
@@ -71,21 +99,21 @@ class GatewayPolicyHook(HookProvider):
         )
 
         if not decision.allowed:
-            # Block the tool call — MCP server never sees it
+            # Block the tool call locally (simulates Gateway deny)
             logger.warning(
-                "GATEWAY DENY: user='%s' tool='%s' params=%s reason='%s'",
+                "SIMULATION POLICY DENY: user='%s' tool='%s' params=%s reason='%s'",
                 self.user.name,
                 tool_name,
                 parameters,
                 decision.reason,
             )
             event.cancel_tool = (
-                f"[Policy Enforcement] {decision.reason} "
+                f"[Policy Enforcement - Simulation] {decision.reason} "
                 f"Please only query data within your authorized scope."
             )
         else:
             logger.info(
-                "GATEWAY ALLOW: user='%s' tool='%s' params=%s",
+                "SIMULATION POLICY ALLOW: user='%s' tool='%s' params=%s",
                 self.user.name,
                 tool_name,
                 parameters,

@@ -7,8 +7,7 @@
 Creates:
 1. AgentCore Gateway with Cognito OAuth authorizer
 2. Four Lambda tool targets (Equipment, IoT, Supply Chain, Analytics)
-3. Semantic Layer Lambda target
-4. Saves Gateway config for policy and interceptor setup
+3. Saves Gateway config for policy and interceptor setup
 
 Prerequisites:
 - Run setup_identity.py first (creates Cognito)
@@ -19,9 +18,11 @@ Usage:
 """
 
 import argparse
+import io
 import json
 import logging
 import time
+import zipfile
 from pathlib import Path
 
 import boto3
@@ -252,9 +253,6 @@ def lambda_handler(event, context):
         exec_role_arn = iam_client.get_role(RoleName=exec_role_name)["Role"]["Arn"]
 
     # Create Lambda
-    import zipfile
-    import io
-
     zip_buffer = io.BytesIO()
     with zipfile.ZipFile(zip_buffer, "w") as zf:
         zf.writestr("lambda_function.py", lambda_code)
@@ -304,8 +302,8 @@ def main():
     logger.info("\nStep 2: Creating Lambda tool targets...")
     lambda_arns = {}
     for target_name in TOOL_SCHEMAS:
-        function_name = f"MfgInsights-{target_name}-{int(time.time()) % 10000}"
-        arn = create_tool_lambda(lambda_client, iam, function_name, target_name, args.region)
+        function_name = f"MfgInsights-{target_name}"
+        arn = create_tool_lambda(lambda_client, iam, function_name, target_name)
         lambda_arns[target_name] = arn
 
     # Step 3: Create Gateway (using starter toolkit or boto3)

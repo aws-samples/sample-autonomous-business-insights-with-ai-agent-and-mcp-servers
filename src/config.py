@@ -1,7 +1,17 @@
 # Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 # SPDX-License-Identifier: MIT-0
 
-"""Configuration management for the multi-agent business insights system."""
+"""Configuration management for the Manufacturing Insights Agent.
+
+Operating Modes:
+  Default (AgentCore Gateway):
+    The agent routes all tool calls through the deployed AgentCore Gateway.
+    Set AGENTCORE_GATEWAY_URL to your Gateway endpoint.
+
+  Simulation Fallback (SIMULATION_MODE=true):
+    The agent connects to local MCP servers and uses a local policy hook.
+    MCPServerConfig ports are only used in this mode.
+"""
 
 import os
 from dataclasses import dataclass, field
@@ -23,8 +33,24 @@ class BedrockConfig:
 
 
 @dataclass(frozen=True)
+class GatewayConfig:
+    """AgentCore Gateway configuration (default production mode)."""
+
+    url: str = field(
+        default_factory=lambda: os.getenv(
+            "AGENTCORE_GATEWAY_URL",
+            "https://your-test-gateway-id.gateway.bedrock-agentcore.us-east-1.amazonaws.com/mcp/",
+        )
+    )
+
+
+@dataclass(frozen=True)
 class MCPServerConfig:
-    """MCP server endpoint configuration."""
+    """MCP server endpoint configuration (used in SIMULATION_MODE only).
+
+    These local server ports are only relevant when SIMULATION_MODE=true.
+    In the default mode, tool calls route through the AgentCore Gateway.
+    """
 
     semantic_layer_port: int = field(
         default_factory=lambda: int(os.getenv("SEMANTIC_LAYER_SERVER_PORT", "8005"))
@@ -65,9 +91,17 @@ class MCPServerConfig:
 
 @dataclass(frozen=True)
 class AppConfig:
-    """Top-level application configuration."""
+    """Top-level application configuration.
+
+    The agent operates in one of two modes:
+      - Default: AgentCore Gateway (gateway config used)
+      - Fallback: Simulation mode (mcp_servers config used)
+
+    Set SIMULATION_MODE=true to activate the local simulation fallback.
+    """
 
     bedrock: BedrockConfig = field(default_factory=BedrockConfig)
+    gateway: GatewayConfig = field(default_factory=GatewayConfig)
     mcp_servers: MCPServerConfig = field(default_factory=MCPServerConfig)
     log_level: str = field(
         default_factory=lambda: os.getenv("LOG_LEVEL", "INFO")

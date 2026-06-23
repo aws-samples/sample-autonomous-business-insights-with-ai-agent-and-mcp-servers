@@ -99,26 +99,45 @@ This sample implements a **working multi-agent system** that transforms natural 
 
 ## Prerequisites
 
-- Python 3.10 or later
-- An [AWS account](https://aws.amazon.com/free/)
-- [Amazon Bedrock model access](https://docs.aws.amazon.com/bedrock/latest/userguide/model-access.html) enabled for Anthropic Claude Sonnet
-- [AWS CLI](https://aws.amazon.com/cli/) configured with credentials (`aws configure`)
-- (Optional) [uv](https://docs.astral.sh/uv/getting-started/installation/) for pre-built MCP servers (`USE_PREBUILT_MCP=true`)
-- (Optional) Amazon Redshift Serverless workgroup for live data mode
+### All Modes (Required)
+
+| Requirement | Details |
+|-------------|---------|
+| Python | 3.10 or later |
+| AWS account | [Free tier eligible](https://aws.amazon.com/free/) |
+| Amazon Bedrock access | [Enable model access](https://docs.aws.amazon.com/bedrock/latest/userguide/model-access.html) for **Anthropic Claude Sonnet** in your region |
+| AWS CLI | [v2.x](https://aws.amazon.com/cli/), configured with credentials (`aws configure`) |
+| pip | 21.0 or later |
+
+### Additional for Live Data Mode
+
+| Requirement | Details |
+|-------------|---------|
+| CloudFormation deployment | `deploy/cloudformation/template.yaml` provisions Aurora, Timestream, Redshift, OpenSearch, S3 |
+| IAM permissions | Permissions to create RDS clusters, Timestream databases, Redshift workgroups, OpenSearch collections, S3 buckets, Cognito user pools |
+
+### Additional for Pre-built MCP Mode
+
+| Requirement | Details |
+|-------------|---------|
+| uv | [Install uv](https://docs.astral.sh/uv/getting-started/installation/) — the `uvx` command runs pre-built MCP servers |
+| Docker (alternative) | 20.10+ if running pre-built servers via Docker instead of uvx |
 
 ### Supported Regions
 
-This sample works in any AWS region where Amazon Bedrock Claude Sonnet is available. The default region is `us-east-1`. For live mode, all services (Aurora, Timestream, Redshift, OpenSearch Serverless) must be in the same region.
+This sample works in any AWS region where Amazon Bedrock Claude Sonnet is available. The default region is `us-east-1`. For live data mode, all services (Aurora, Timestream, Redshift, OpenSearch Serverless) must be deployed in the same region.
 
-### Software Versions
+### Credential Verification
 
-| Software | Minimum Version |
-|----------|----------------|
-| Python | 3.10 |
-| AWS CLI | 2.x |
-| pip | 21.0 |
-| uv (optional) | 0.1.0 |
-| Docker (optional, for pre-built MCP via Docker) | 20.10 |
+Before starting, confirm your AWS credentials are configured:
+
+```bash
+# Verify CLI access
+aws sts get-caller-identity
+
+# Verify Bedrock model access (should list Claude Sonnet)
+aws bedrock list-foundation-models --query "modelSummaries[?contains(modelId, 'claude')].[modelId]" --output table
+```
 
 ## Deployment
 
@@ -126,7 +145,9 @@ This sample works in any AWS region where Amazon Bedrock Claude Sonnet is availa
 
 ### Option 1: Local Demo with Web UI (Recommended)
 
-No AWS infrastructure required beyond Bedrock model access. Includes a Streamlit chat interface.
+Runs entirely on your machine with simulated data. Only requires Bedrock model access. Includes a Streamlit chat interface.
+
+**What you need:** Python 3.10+, AWS CLI configured, Bedrock Claude Sonnet access.
 
 ```bash
 # 1. Clone the repository
@@ -142,7 +163,10 @@ pip install -r requirements.txt
 
 # 4. Configure environment
 cp .env.example .env
-# Edit .env — set your AWS_REGION (default: us-east-1)
+# Edit .env:
+#   - Set AWS_REGION if not us-east-1
+#   - SIMULATION_MODE=true  (already set in .env.example)
+#   - DATA_MODE=simulated   (already set in .env.example)
 
 # 5. Start MCP servers (keep this terminal running)
 python -m src.servers.start_all
@@ -171,6 +195,8 @@ python -m src.main
 
 Deploy the complete data infrastructure — Aurora, Timestream, Redshift, OpenSearch, S3, IoT Core — and connect MCP servers to real AWS services.
 
+**What you need:** Everything from Option 1, plus IAM permissions to create infrastructure resources.
+
 ```bash
 # 1. Deploy all infrastructure (takes ~15 minutes)
 aws cloudformation deploy \
@@ -187,7 +213,9 @@ aws cloudformation describe-stacks \
 # 3. Copy outputs into your .env file:
 #    AURORA_CLUSTER_ARN, AURORA_SECRET_ARN, TIMESTREAM_DATABASE,
 #    REDSHIFT_WORKGROUP, OPENSEARCH_ENDPOINT, DATA_LAKE_BUCKET
-#    Set DATA_MODE=live
+#    Set:
+#      SIMULATION_MODE=true   (still using local MCP servers)
+#      DATA_MODE=live         (but now querying real AWS services)
 
 # 4. Seed all data sources with sample manufacturing data
 python deploy/seed_data.py
@@ -209,29 +237,70 @@ The CloudFormation stack provisions:
 
 ### Option 3: Amazon Bedrock AgentCore (Production)
 
-Deploy with full isolation, serverless scaling, and governance.
+Deploy with full isolation, serverless scaling, and governance. This is the default architecture (`SIMULATION_MODE=false`) — the agent connects to the AgentCore Gateway, which handles policy enforcement, tool routing, and data retrieval via Lambda targets.
+
+**What you need:** Everything from Option 2, plus an AgentCore-enabled AWS account.
 
 ```bash
 python deploy/agentcore_deploy.py --region us-east-1
 ```
 
+In this mode, local MCP servers and `data_provider.py` are bypassed entirely. The Gateway routes tool calls to Lambda functions that query AWS services directly.
+
 ## Usage
 
-### Switching Between Simulated and Live Mode
+### Understanding Operating Modes
 
-The sample supports three operating modes:
+This sample has **two independent configuration axes** that together determine its behavior:
+
+#### 1. SIMULATION_MODE — Where does the agent run?
+
+| Value | Behavior | When to Use |
+|-------|----------|-------------|
+| `false` (default) | Agent connects to **AgentCore Gateway**. Policy enforcement, tool routing, and data retrieval happen server-side via Lambda targets. Local MCP servers are NOT used. | Production deployment with a deployed Gateway |
+| `true` | Agent connects to **local MCP servers** with a local policy hook (`gateway_hook.py`). This is the development/demo fallback. | Local development, demos, testing without a Gateway |
+
+#### 2. DATA_MODE — Where does data come from? (SIMULATION_MODE=true only)
+
+This setting is **only relevant when `SIMULATION_MODE=true`** (local MCP servers). When using the AgentCore Gateway, data retrieval is handled by Lambda targets regardless of this setting.
+
+| Value | Behavior | AWS Services Required |
+|-------|----------|----------------------|
+| `simulated` (default) | In-memory sample data from `src/data/sample_data.py` | Only Amazon Bedrock |
+| `live` | Real AWS service queries (Aurora, Timestream, Redshift, OpenSearch) | Full infrastructure stack |
+
+#### Decision Matrix
+
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│ How should I configure this sample?                                  │
+├─────────────────────────────────────────────────────────────────────┤
+│                                                                      │
+│  "I want to try it quickly"                                         │
+│   → SIMULATION_MODE=true, DATA_MODE=simulated (the .env.example)    │
+│   → Only need: Python + AWS credentials + Bedrock access            │
+│                                                                      │
+│  "I want real data but no Gateway"                                  │
+│   → SIMULATION_MODE=true, DATA_MODE=live                            │
+│   → Need: CloudFormation stack deployed + credentials in .env       │
+│                                                                      │
+│  "I want the full production architecture"                          │
+│   → SIMULATION_MODE=false (DATA_MODE is ignored)                    │
+│   → Need: Deployed AgentCore Gateway + Lambda targets               │
+│                                                                      │
+└─────────────────────────────────────────────────────────────────────┘
+```
+
+#### USE_PREBUILT_MCP — Pre-built vs Custom MCP Servers
+
+When `SIMULATION_MODE=true`, you can additionally control which MCP server implementations to use:
 
 | Mode | Environment Variables | What Happens |
 |------|----------------------|-------------|
-| **Simulated** (default) | `DATA_MODE=simulated` | In-memory data. Only Bedrock is called. All 5 MCP servers run locally. |
-| **Live + Custom MCP** | `DATA_MODE=live`, `USE_PREBUILT_MCP=false` | Real AWS services (Aurora, Timestream, Redshift, OpenSearch). All MCP servers are custom-built, running locally. |
-| **Live + Pre-built MCP** | `DATA_MODE=live`, `USE_PREBUILT_MCP=true` | Uses **pre-built AWS MCP servers** (`awslabs.postgres-mcp-server`, `awslabs.redshift-mcp-server`) for Aurora and Redshift via stdio/uvx. Custom servers only for Timestream, OpenSearch, and Semantic Layer. |
+| **All Custom** (default) | `USE_PREBUILT_MCP=false` | All 5 MCP servers are custom FastMCP implementations running locally |
+| **Pre-built + Custom** | `USE_PREBUILT_MCP=true` | Uses `awslabs.postgres-mcp-server` and `awslabs.redshift-mcp-server` (via uvx) for Aurora/Redshift. Custom servers only for Timestream, OpenSearch, and Semantic Layer |
 
-The third mode demonstrates the blog's "configuration, not code" principle — you don't build MCP servers for services that already have one. You only write custom servers for domain-specific tools not covered by pre-built options.
-
-In the Streamlit UI, use the **Data Mode** radio button in the sidebar to switch between simulated and live modes without restarting.
-
-### Pre-built vs Custom MCP Servers
+The pre-built mode demonstrates the blog's "configuration, not code" principle — you don't build MCP servers for services that already have one.
 
 | Data Source | Pre-built AWS MCP Server | Custom MCP Server | When to Use Each |
 |-------------|-------------------------|-------------------|-----------------|
@@ -240,6 +309,8 @@ In the Streamlit UI, use the **Data Mode** radio button in the sidebar to switch
 | Amazon Timestream | ❌ Not available | `iot_telemetry_server.py` | Always custom (no pre-built option) |
 | Amazon OpenSearch | ❌ Not available | `analytics_server.py` | Always custom (no pre-built option) |
 | Semantic Layer | N/A (domain-specific) | `semantic_layer_server.py` | Always custom (business logic) |
+
+In the Streamlit UI, use the **Data Mode** radio button in the sidebar to switch between modes without restarting.
 
 ### User Personas
 
@@ -286,7 +357,12 @@ Select a user persona from the interactive menu and ask questions:
 │   └── data/
 │       ├── sample_data.py               # Simulated factory data (default, no AWS needed)
 │       ├── data_provider.py             # Routes between simulated/live based on DATA_MODE
-│       └── lakehouse_client.py          # Redshift Data API client (live mode)
+│       │                                #   (only used in SIMULATION_MODE — see docstring)
+│       ├── aurora_client.py             # Aurora PostgreSQL via RDS Data API (live mode)
+│       ├── timestream_client.py         # Amazon Timestream queries (live mode)
+│       ├── lakehouse_client.py          # Redshift Data API client (live mode)
+│       ├── opensearch_client.py         # OpenSearch Serverless queries (live mode)
+│       └── s3_client.py                 # S3 data lake access (live mode)
 ├── deploy/
 │   ├── agentcore_deploy.py              # AgentCore production deployment script
 │   ├── cloudformation/template.yaml     # Cognito + S3 + IAM + CloudWatch (CFN)
@@ -354,7 +430,7 @@ class GatewayPolicyHook(HookProvider):
 
 ### 3. MCP Server with Dual-Mode Data Provider
 
-Each MCP server delegates to a data provider that routes between simulated data (default) and live Redshift queries. (See `src/data/data_provider.py`)
+Each MCP server delegates to a data provider that routes between simulated data (default) and live AWS queries. The data provider is only active in simulation mode — when using the AgentCore Gateway, Lambda targets handle data retrieval directly. (See `src/data/data_provider.py`)
 
 ```python
 from mcp.server import FastMCP
@@ -362,9 +438,9 @@ mcp = FastMCP("Equipment Status Server", port=8001)
 
 @mcp.tool(description="Get equipment status for a line or machine")
 def get_equipment_status(line: str | None = None, machine_id: int | None = None) -> str:
-    # Validates input, then calls data_provider which routes to:
-    #   DATA_MODE=simulated → sample_data.py (in-memory)
-    #   DATA_MODE=live → lakehouse_client.py → Redshift Data API → SageMaker Lakehouse
+    # data_provider routes based on DATA_MODE env var:
+    #   DATA_MODE=simulated → sample_data.py (in-memory, no AWS needed)
+    #   DATA_MODE=live      → aurora_client.py → RDS Data API → Aurora PostgreSQL
     return data_provider.get_equipment_status(line=line, machine_id=machine_id)
 ```
 
@@ -410,9 +486,11 @@ This sample uses the following AWS services which may incur costs:
 | **Amazon Cognito** | User authentication | Free tier (50K MAU) | Live mode only |
 | **AWS IoT Core** | Sensor data ingestion rule | ~$1/M messages | Live mode only |
 
-**Simulated mode** (`DATA_MODE=simulated`, the default) incurs **only Amazon Bedrock** inference costs. No other infrastructure is needed.
+**Simulated mode** (`SIMULATION_MODE=true`, `DATA_MODE=simulated` — the recommended starting point) incurs **only Amazon Bedrock** inference costs. No other infrastructure is needed.
 
-**Live mode** (`DATA_MODE=live`) provisions real AWS services. The OpenSearch Serverless minimum (2 OCU) is the largest fixed cost. All other services are pay-per-use and scale to zero when idle.
+**Live data mode** (`SIMULATION_MODE=true`, `DATA_MODE=live`) provisions real AWS services. The OpenSearch Serverless minimum (2 OCU) is the largest fixed cost. All other services are pay-per-use and scale to zero when idle.
+
+**AgentCore Gateway mode** (`SIMULATION_MODE=false`) adds AgentCore runtime costs on top of the data infrastructure. See [AgentCore pricing](https://aws.amazon.com/bedrock/agentcore/pricing/) for details.
 
 > **Important:** Remember to clean up resources after testing to avoid ongoing charges.
 
@@ -433,6 +511,17 @@ aws cloudformation wait stack-delete-complete --stack-name manufacturing-insight
 > aws s3 rm s3://amzn-s3-demo-manufacturing-datalake-<ACCOUNT_ID>-dev --recursive
 > aws s3 rm s3://amzn-s3-demo-agentcore-memory-<ACCOUNT_ID>-dev --recursive
 > ```
+
+## Troubleshooting
+
+| Symptom | Cause | Fix |
+|---------|-------|-----|
+| `botocore.exceptions.NoCredentialsError` | AWS CLI not configured | Run `aws configure` or set `AWS_ACCESS_KEY_ID`/`AWS_SECRET_ACCESS_KEY` |
+| `AccessDeniedException` on Bedrock calls | Model access not enabled | Go to Bedrock console → Model access → Enable Claude Sonnet |
+| `WARNING: DATA_MODE=live but environment variables are missing` | Switched to live mode without setting credentials | Set `AURORA_CLUSTER_ARN`, `TIMESTREAM_DATABASE`, etc. in `.env` (see `.env.example`) |
+| MCP servers won't start (port in use) | Previous run didn't shut down cleanly | Kill existing processes: `lsof -ti:8001 | xargs kill` (repeat for 8002-8005) |
+| `ModuleNotFoundError: No module named 'src'` | Running script from wrong directory | Run from project root: `cd sample-autonomous-business-insights-with-ai-agent-and-mcp-servers` |
+| `uvx: command not found` | uv not installed (only needed for `USE_PREBUILT_MCP=true`) | Install uv: `pip install uv` or see [uv docs](https://docs.astral.sh/uv/getting-started/installation/) |
 
 ## Related Resources
 

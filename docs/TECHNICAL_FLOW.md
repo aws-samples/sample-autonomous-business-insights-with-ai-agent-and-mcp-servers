@@ -516,7 +516,7 @@ def query(self, user, question):
         all_tools.extend(client.list_tools_sync())
     
     # 4. Create agent (with or without local policy hook)
-    if USE_AGENTCORE_GATEWAY:
+    if not SIMULATION_MODE:
         agent = Agent(system_prompt, tools=all_tools)  # Gateway handles policy
     else:
         agent = Agent(system_prompt, tools=all_tools, hooks=[gateway_hook])
@@ -533,13 +533,13 @@ def query(self, user, question):
 
 ## Two Operating Modes
 
-### Mode A: Local Simulation
+### Mode A: Local Simulation (SIMULATION_MODE=true)
 
 ```
 User → Agent → GatewayPolicyHook (Python) → Local MCP Server → sample_data.py
 ```
 
-### Mode B: Real AgentCore Gateway (USE_AGENTCORE_GATEWAY=true)
+### Mode B: AgentCore Gateway (Default — SIMULATION_MODE=false or unset)
 
 ```
 User → Agent → Gateway (HTTPS) → Interceptor → Cedar Policy → Lambda → Response

@@ -54,9 +54,9 @@ class StreamlitLogHandler(logging.Handler):
 
     def emit(self, record):
         emoji = "📋"
-        if "GATEWAY ALLOW" in record.getMessage():
+        if "ALLOW" in record.getMessage():
             emoji = "✅"
-        elif "GATEWAY DENY" in record.getMessage():
+        elif "DENY" in record.getMessage():
             emoji = "🚫"
         elif "Connected to" in record.getMessage():
             emoji = "🔌"
@@ -111,7 +111,7 @@ if "current_user_key" not in st.session_state:
 if "last_logs" not in st.session_state:
     st.session_state.last_logs = []
 if "current_mode" not in st.session_state:
-    st.session_state.current_mode = "simulated"
+    st.session_state.current_mode = "agentcore_gateway"
 
 # --------------------------------------------------------------------------
 # Sidebar — User persona selection
@@ -127,26 +127,27 @@ with st.sidebar:
     st.subheader("Data Mode")
     data_mode = st.radio(
         "Choose data backend:",
-        options=["simulated", "live", "agentcore_gateway"],
+        options=["agentcore_gateway", "live", "simulated"],
         format_func=lambda x: {
-            "simulated": "🧪 Simulated (local MCP servers)",
-            "live": "🔴 Live (real AWS data services)",
-            "agentcore_gateway": "🚀 AgentCore Gateway (real Gateway + Lambda)",
+            "agentcore_gateway": "🚀 AgentCore Gateway (default — real Gateway + Lambda)",
+            "live": "🔴 Live (real AWS data services, no Gateway)",
+            "simulated": "🧪 Simulated (local MCP servers, SIMULATION_MODE)",
         }[x],
-        index=0 if os.getenv("USE_AGENTCORE_GATEWAY") != "true" else 2,
-        help="AgentCore Gateway routes tool calls through the real deployed Gateway with Lambda targets.",
+        index=0 if os.getenv("SIMULATION_MODE") != "true" else 2,
+        help="AgentCore Gateway is the default production architecture. Simulation mode uses local MCP servers for development.",
     )
     if data_mode == "agentcore_gateway":
-        os.environ["USE_AGENTCORE_GATEWAY"] = "true"
-        os.environ["DATA_MODE"] = "simulated"
-        st.success("🚀 Using REAL AgentCore Gateway + Lambda targets")
+        os.environ["SIMULATION_MODE"] = "false"
+        os.environ["DATA_MODE"] = "live"
+        st.success("🚀 Using AgentCore Gateway + Lambda targets (default)")
+    elif data_mode == "live":
+        os.environ["SIMULATION_MODE"] = "true"
+        os.environ["DATA_MODE"] = "live"
+        st.success("Connected to real AWS data services (simulation mode, live data)")
     else:
-        os.environ["USE_AGENTCORE_GATEWAY"] = "false"
-        os.environ["DATA_MODE"] = data_mode
-        if data_mode == "live":
-            st.success("Connected to real AWS infrastructure")
-        else:
-            st.info("Using simulated data — local MCP servers")
+        os.environ["SIMULATION_MODE"] = "true"
+        os.environ["DATA_MODE"] = "simulated"
+        st.info("Using simulated data — local MCP servers (simulation fallback)")
 
     # Re-create agent if mode changed
     if data_mode != st.session_state.current_mode:
