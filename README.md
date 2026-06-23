@@ -78,6 +78,16 @@ This sample implements a **working multi-agent system** that transforms natural 
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
 
+### Sequence Diagrams
+
+**Access Control Flow** — How the Gateway enforces Cedar policies before tool invocation:
+
+![Access Control Sequence Diagram](docs/sequence_diagram_access_control.png)
+
+**User Personas** — Same question, different access scopes:
+
+![Personas Sequence Diagram](docs/sequence_diagram_personas.png)
+
 ## What This Sample Implements
 
 | Layer | Implementation | Production Equivalent |
