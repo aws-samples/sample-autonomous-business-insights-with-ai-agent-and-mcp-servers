@@ -362,6 +362,27 @@ Users (Cognito JWT)
     # Section 6: Sequence Diagrams
     add_heading(doc, '6. Sequence Diagrams', level=1)
 
+    # Insert generated sequence diagram images
+    diagrams_dir = Path(__file__).parent / 'docs'
+    access_control_diagram = diagrams_dir / 'sequence_diagram_access_control.png'
+    personas_diagram = diagrams_dir / 'sequence_diagram_personas.png'
+
+    if access_control_diagram.exists():
+        add_para(doc, 'Figure 1: End-to-End Access Control Flow', bold=True, size=12)
+        doc.add_picture(str(access_control_diagram), width=Inches(6.5))
+        last_para = doc.paragraphs[-1]
+        last_para.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        doc.add_paragraph()
+
+    if personas_diagram.exists():
+        add_para(doc, 'Figure 2: Three Personas — Same Agent, Different Data Access', bold=True, size=12)
+        doc.add_picture(str(personas_diagram), width=Inches(6.5))
+        last_para = doc.paragraphs[-1]
+        last_para.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        doc.add_paragraph()
+
+    doc.add_page_break()
+
     add_heading(doc, '6.1 Scenario: ALLOWED — Raj queries Line 7 OEE', level=2)
     add_code_block(doc, """Raj -> Cognito: Authenticate (username + password)
 Cognito -> Raj: JWT {role:"line_supervisor", line_scope:"Line 7"}

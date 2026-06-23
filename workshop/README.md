@@ -41,7 +41,7 @@ workshop/
 │   │   ├── _index.md               # Module 5: Access Control
 │   │   ├── 01-identity-model.md    # User roles and scopes
 │   │   ├── 02-cedar-policy.md      # Cedar-style policy engine
-│   │   ├── 03-gateway-hook.md      # BeforeToolCallEvent hook
+│   │   ├── 03-gateway-hook.md      # Gateway-level Cedar enforcement (+ local simulation)
 │   │   └── 04-test-access.md       # Verify policy enforcement
 │   ├── 06-memory/
 │   │   ├── _index.md               # Module 6: Memory & Context

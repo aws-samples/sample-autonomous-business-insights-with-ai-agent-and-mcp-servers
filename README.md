@@ -85,7 +85,7 @@ This sample implements a **working multi-agent system** that transforms natural 
 | Agent | Single Strands `Agent` with tools from all MCP servers | Same, deployed on AgentCore Runtime |
 | Semantic Layer | MCP server for data source discovery (glossary, lineage) | SageMaker Data Catalog |
 | MCP Servers | 5 FastMCP servers (Semantic + 4 domain) via streamable HTTP | Pre-built AgentCore connectors |
-| Gateway | `BeforeToolCallEvent` hook enforces policy per tool call | AgentCore Gateway with 3-tier cache |
+| Gateway | AgentCore Gateway with Cedar policy enforcement (local simulation fallback for dev) | AgentCore Gateway with 3-tier cache |
 | Identity | Role-based user models with scope attributes | Okta/Cognito via AgentCore Identity |
 | Policy | Cedar-style allow/deny evaluation per tool call | AgentCore Policy (Cedar, formally verified) |
 | Memory | In-memory session + cross-session store | AgentCore Memory (user/team/org namespaces) |
@@ -258,7 +258,7 @@ This sample has **two independent configuration axes** that together determine i
 | Value | Behavior | When to Use |
 |-------|----------|-------------|
 | `false` (default) | Agent connects to **AgentCore Gateway**. Policy enforcement, tool routing, and data retrieval happen server-side via Lambda targets. Local MCP servers are NOT used. | Production deployment with a deployed Gateway |
-| `true` | Agent connects to **local MCP servers** with a local policy hook (`gateway_hook.py`). This is the development/demo fallback. | Local development, demos, testing without a Gateway |
+| `true` | Agent connects to **local MCP servers** with a local policy hook (`gateway_hook.py`). This is a development/demo simulation of what the Gateway does server-side. | Local development, demos, testing without a Gateway |
 
 #### 2. DATA_MODE — Where does data come from? (SIMULATION_MODE=true only)
 
@@ -350,8 +350,8 @@ Select a user persona from the interactive menu and ask questions:
 │   ├── identity/
 │   │   ├── models.py                    # UserIdentity dataclass + 3 demo personas
 │   │   ├── policy.py                    # PolicyEngine — Cedar-style allow/deny evaluation
-│   │   └── gateway_hook.py             # Strands BeforeToolCallEvent hook — blocks unauthorized
-│   │                                    #   tool calls before they reach MCP servers
+│   │   └── gateway_hook.py             # LOCAL SIMULATION ONLY — Strands BeforeToolCallEvent hook
+│   │                                    #   approximates Gateway policy for dev (not used in production)
 │   ├── memory/
 │   │   └── manager.py                   # SessionMemory (short-term) + MemoryManager (long-term)
 │   └── data/
@@ -370,7 +370,7 @@ Select a user persona from the interactive menu and ask questions:
 ├── tests/
 │   ├── test_agent.py                    # Prompt construction & memory tests
 │   ├── test_policy.py                   # Policy allow/deny per role and scope
-│   ├── test_gateway_hook.py             # Hook blocks/allows tool calls correctly
+│   ├── test_gateway_hook.py             # Hook blocks/allows tool calls correctly (simulation mode)
 │   └── test_mcp_servers.py              # MCP tool logic & input validation
 ├── .github/
 │   ├── ISSUE_TEMPLATE.md
@@ -413,19 +413,49 @@ response = agent("Which assembly lines need attention this week?")
 
 ### 2. Gateway Policy Enforcement
 
-Every tool call passes through a `BeforeToolCallEvent` hook that evaluates Cedar-style access policies. If denied, the MCP server is never contacted. (See `src/identity/gateway_hook.py`)
+In production, the **AgentCore Gateway** evaluates Cedar policies server-side before invoking Lambda tool targets. The agent never sees denied requests — the Gateway blocks them before the MCP server is contacted.
+
+The enforcement flow:
+```
+Agent → Gateway → REQUEST Interceptor (JWT → user_context) → Cedar Policy Engine → Lambda Tool Target
+```
+
+Cedar policies are defined in `deploy/agentcore/cedar_policies/*.cedar` and deployed via `deploy/agentcore/setup_policy.py`. They use a deny-by-default model with explicit forbid rules:
+
+```cedar
+// forbid_line_scope.cedar — Line supervisors denied access outside their scope
+forbid(
+    principal is AgentCore::OAuthUser,
+    action in [
+        AgentCore::Action::"EquipmentTarget___get_equipment_status",
+        AgentCore::Action::"IoTTarget___detect_anomaly",
+        AgentCore::Action::"AnalyticsTarget___get_oee_trends"
+    ],
+    resource == AgentCore::Gateway::"${GATEWAY_ARN}"
+) when {
+    context.input has line &&
+    principal.hasTag("cognito:groups") &&
+    principal.getTag("cognito:groups") like "*line_supervisors*" &&
+    !(principal.getTag("custom:line_scope") like ("*" + context.input.line + "*"))
+};
+```
+
+For local development (`SIMULATION_MODE=true`), a `GatewayPolicyHook` in `src/identity/gateway_hook.py` approximates this behavior using a Strands `BeforeToolCallEvent` hook. This is a development-only simulation — not the production architecture.
 
 ```python
+# Local simulation only (SIMULATION_MODE=true)
 from strands.hooks import BeforeToolCallEvent, HookProvider, HookRegistry
 
 class GatewayPolicyHook(HookProvider):
+    """LOCAL SIMULATION of Gateway policy enforcement (dev only)."""
+
     def register_hooks(self, registry: HookRegistry, **kwargs):
         registry.add_callback(BeforeToolCallEvent, self._enforce_policy)
 
     def _enforce_policy(self, event: BeforeToolCallEvent):
         decision = self.policy_engine.evaluate(user, tool_name, params)
         if not decision.allowed:
-            event.cancel_tool = f"[Policy] {decision.reason}"
+            event.cancel_tool = f"[Policy - Local Simulation] {decision.reason}"
 ```
 
 ### 3. MCP Server with Dual-Mode Data Provider

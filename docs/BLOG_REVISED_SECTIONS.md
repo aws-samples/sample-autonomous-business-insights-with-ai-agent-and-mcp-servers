@@ -21,7 +21,7 @@ AgentCore Gateway provides secure, authenticated connectivity between agents and
 
 The Gateway is the single entry point through which every tool call flows. When an MCP server is registered, the Gateway indexes all its tools. The agent calls tools by name; the Gateway routes to the correct server. A three-tier cache (organization-scoped, user-scoped, policy-aware) reduces latency for repeated queries.
 
-In our implementation: We simulate the Gateway using a Strands BeforeToolCallEvent hook that intercepts every tool call for policy evaluation before it reaches the MCP server. See src/identity/gateway_hook.py.
+In our implementation: The default mode (`SIMULATION_MODE=false`) routes all tool calls through the real AgentCore Gateway, which handles MCP protocol, policy enforcement, and Lambda target invocation server-side. For local development (`SIMULATION_MODE=true`), a Strands `BeforeToolCallEvent` hook in `src/identity/gateway_hook.py` approximates Gateway behavior — this is a development-only simulation, not the production architecture. See `deploy/agentcore/setup_gateway.py` for the real Gateway setup.
 
 ---
 
@@ -49,7 +49,7 @@ Policy in AgentCore integrates with Gateway to intercept every tool call in real
 
 Policy enforcement happens at the Gateway level, intercepting every tool call before execution. Rules operate across multiple dimensions: user role, geographic scope, data classification, time of day, and specific tool parameters. A policy might read: "Line supervisors can call get_equipment_status only for lines within their assigned plant." When Raj asks about Line 8, the Gateway evaluates his identity against this rule and returns a deny decision before the MCP server is ever called. Every decision is logged to AWS CloudTrail.
 
-In our implementation: src/identity/policy.py implements Cedar-style rules. src/identity/gateway_hook.py enforces them via BeforeToolCallEvent. When Raj asks about Line 4, the call is denied before the MCP server is ever contacted.
+In our implementation: Cedar policies are defined in `deploy/agentcore/cedar_policies/*.cedar` and deployed to the Gateway via `deploy/agentcore/setup_policy.py`. A REQUEST Interceptor Lambda (`deploy/agentcore/lambda_functions/request_interceptor.py`) extracts JWT claims and injects `user_context` into tool arguments, making them available to Cedar as `context.input.*`. The Gateway evaluates these policies in ENFORCE mode — denied requests never reach the Lambda tool target. For local development (`SIMULATION_MODE=true`), `src/identity/policy.py` implements equivalent Python logic and `src/identity/gateway_hook.py` enforces it via `BeforeToolCallEvent`. When Raj asks about Line 4, the call is denied before the MCP server is ever contacted — whether by the Gateway (production) or the local hook (dev).
 
 ---
 

@@ -389,12 +389,12 @@ The agent (LLM) receives the deny message as a "tool result" and intelligently r
 
 ## Comparison: Simulated vs Real AgentCore
 
-| Aspect | Simulated (current code) | Real AgentCore (production) |
+| Aspect | Simulated (SIMULATION_MODE=true) | Real AgentCore (default, SIMULATION_MODE=false) |
 |--------|--------------------------|----------------------------|
 | Identity | Hardcoded `UserIdentity` dataclass | Cognito JWT with custom claims |
-| Interceptor | Strands `BeforeToolCallEvent` hook | Lambda function on Gateway |
+| Interceptor | N/A (local hook extracts from dataclass) | REQUEST Lambda on Gateway extracts JWT → user_context |
 | Policy | Python if/else in `policy.py` | Cedar language, formally verified |
-| Enforcement point | In-process (same Python) | Server-side (Gateway service) |
+| Enforcement point | In-process `BeforeToolCallEvent` hook (simulation) | Server-side (Gateway evaluates Cedar before Lambda target) |
 | Audit | `logging.warning()` | CloudWatch + CloudTrail |
 | Tool isolation | Same process | Separate Lambda per target |
 | Bypass risk | LLM can't bypass (hook is synchronous) | LLM can't bypass (Gateway is external) |
@@ -466,8 +466,9 @@ src/
 │
 ├── identity/
 │   ├── models.py              ← UserIdentity dataclass + 3 demo personas
-│   ├── policy.py              ← PolicyEngine (local Cedar simulation)
-│   └── gateway_hook.py        ← Strands BeforeToolCallEvent hook (local mode)
+│   ├── policy.py              ← PolicyEngine (local Cedar simulation, dev only)
+│   └── gateway_hook.py        ← LOCAL SIMULATION ONLY — BeforeToolCallEvent hook
+│                                 approximates Gateway policy (not used in production)
 │
 ├── memory/
 │   └── manager.py             ← Session memory + long-term memory store
@@ -517,8 +518,10 @@ def query(self, user, question):
     
     # 4. Create agent (with or without local policy hook)
     if not SIMULATION_MODE:
-        agent = Agent(system_prompt, tools=all_tools)  # Gateway handles policy
+        # PRODUCTION: Gateway handles Cedar policy enforcement server-side
+        agent = Agent(system_prompt, tools=all_tools)
     else:
+        # DEV ONLY: Local hook simulates Gateway policy enforcement
         agent = Agent(system_prompt, tools=all_tools, hooks=[gateway_hook])
     
     # 5. Agent autonomously reasons and calls tools
@@ -536,14 +539,16 @@ def query(self, user, question):
 ### Mode A: Local Simulation (SIMULATION_MODE=true)
 
 ```
-User → Agent → GatewayPolicyHook (Python) → Local MCP Server → sample_data.py
+User → Agent → GatewayPolicyHook (Python, dev-only simulation) → Local MCP Server → sample_data.py
 ```
 
 ### Mode B: AgentCore Gateway (Default — SIMULATION_MODE=false or unset)
 
 ```
-User → Agent → Gateway (HTTPS) → Interceptor → Cedar Policy → Lambda → Response
+User → Agent → Gateway (HTTPS) → REQUEST Interceptor (JWT → user_context) → Cedar Policy Engine → Lambda Target → Response
 ```
+
+In Mode B, the Gateway itself invokes Cedar policy before invoking the Lambda tool target. The agent has no policy logic — it simply sends tool calls to the Gateway URL.
 
 ---
 
