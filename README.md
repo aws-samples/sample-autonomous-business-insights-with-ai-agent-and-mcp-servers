@@ -88,6 +88,10 @@ This sample implements a **working multi-agent system** that transforms natural 
 
 ![Personas Sequence Diagram](docs/sequence_diagram_personas.png)
 
+**Component Interactions** — Full request lifecycle through the AgentCore Gateway:
+
+![Component Interactions](docs/agentcore_component_interactions.png)
+
 ## What This Sample Implements
 
 | Layer | Implementation | Production Equivalent |
