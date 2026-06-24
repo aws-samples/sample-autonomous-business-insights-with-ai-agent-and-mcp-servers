@@ -22,46 +22,46 @@ from matplotlib.patches import FancyBboxPatch
 # Configuration
 # ---------------------------------------------------------------------------
 
-# Color palette (AWS-inspired)
+# Color palette — high contrast on white background (no light/golden/yellow)
 COLORS = {
     "user": "#232F3E",          # AWS dark
-    "cognito": "#DD344C",       # Red (identity)
-    "agent": "#FF9900",         # AWS orange
-    "gateway": "#3B48CC",       # Blue (networking)
-    "interceptor": "#1B660F",   # Green (compute)
-    "cedar": "#8C4FFF",         # Purple (security)
-    "tool": "#067D68",          # Teal (services)
-    "allow": "#1B660F",         # Green
-    "deny": "#D13212",          # Red
-    "note_bg": "#FFFDE7",       # Light yellow
-    "lifeline": "#CCCCCC",      # Gray
+    "cognito": "#B71C1C",       # Dark red (identity)
+    "agent": "#C43E00",         # Dark burnt orange (agent — NOT yellow/golden)
+    "gateway": "#1A237E",       # Dark indigo (networking)
+    "interceptor": "#1B5E20",   # Dark green (compute)
+    "cedar": "#4A148C",         # Dark purple (security)
+    "tool": "#004D40",          # Dark teal (services)
+    "allow": "#1B5E20",         # Dark green
+    "deny": "#B71C1C",          # Dark red
+    "note_bg": "#E3F2FD",       # Light blue (readable on white)
+    "lifeline": "#BBBBBB",      # Gray
     "header_bg": "#F5F5F5",     # Light gray
 }
 
-FONT = {"family": "sans-serif", "size": 11}
+FONT = {"family": "sans-serif", "size": 13}
 
 
-def draw_participant(ax, x, y_top, y_bottom, label, color, width=1.4):
+def draw_participant(ax, x, y_top, y_bottom, label, color, width=1.7):
     """Draw a UML participant box (top header + lifeline)."""
     # Top box
     box = FancyBboxPatch(
-        (x - width / 2, y_top - 0.3), width, 0.6,
+        (x - width / 2, y_top - 0.35), width, 0.7,
         boxstyle="round,pad=0.05",
         facecolor=color, edgecolor=color, alpha=0.9,
     )
     ax.add_patch(box)
     ax.text(x, y_top, label, ha="center", va="center",
-            fontsize=10.5, fontweight="bold", color="white")
+            fontsize=14, fontweight="bold", color="white")
 
     # Bottom box (activation end)
     box_b = FancyBboxPatch(
-        (x - width / 2, y_bottom - 0.2), width, 0.4,
+        (x - width / 2, y_bottom - 0.3), width, 0.6,
         boxstyle="round,pad=0.05",
         facecolor=color, edgecolor=color, alpha=0.9,
     )
     ax.add_patch(box_b)
     ax.text(x, y_bottom, label, ha="center", va="center",
-            fontsize=9, color="white")
+            fontsize=12, fontweight="bold", color="white")
 
     # Lifeline (dashed)
     ax.plot([x, x], [y_top - 0.3, y_bottom + 0.2],
@@ -69,45 +69,46 @@ def draw_participant(ax, x, y_top, y_bottom, label, color, width=1.4):
 
 
 def draw_message(ax, x_from, x_to, y, label, color="black",
-                 dashed=False, fontsize=10, offset=0.12):
+                 dashed=False, fontsize=14, offset=0.16):
     """Draw a message arrow between participants."""
     ls = "--" if dashed else "-"
     ax.annotate(
         "", xy=(x_to, y), xytext=(x_from, y),
         arrowprops=dict(
-            arrowstyle="->",
-            color=color, lw=1.2, linestyle=ls,
+            arrowstyle="-|>",
+            color=color, lw=2.2, linestyle=ls,
         ),
     )
     mid_x = (x_from + x_to) / 2
     ax.text(mid_x, y + offset, label, ha="center", va="bottom",
-            fontsize=fontsize, color=color, style="italic" if dashed else "normal")
+            fontsize=fontsize, fontweight="bold", color=color,
+            style="italic" if dashed else "normal")
 
 
-def draw_self_message(ax, x, y, label, color="black", fontsize=9.5):
+def draw_self_message(ax, x, y, label, color="black", fontsize=13):
     """Draw a self-call (loop back to same participant)."""
     loop_w = 0.6
     ax.annotate(
         "", xy=(x + 0.05, y - 0.25), xytext=(x + 0.05, y),
-        arrowprops=dict(arrowstyle="->", color=color, lw=1.0,
+        arrowprops=dict(arrowstyle="-|>", color=color, lw=1.8,
                         connectionstyle="arc3,rad=-0.4"),
     )
     ax.text(x + loop_w + 0.1, y - 0.12, label, ha="left", va="center",
-            fontsize=fontsize, color=color)
+            fontsize=fontsize, fontweight="bold", color=color)
 
 
-def draw_note(ax, x, y, text, width=2.2, color=COLORS["note_bg"]):
+def draw_note(ax, x, y, text, width=2.4, color=COLORS["note_bg"]):
     """Draw a UML note box."""
     lines = text.split("\n")
-    height = 0.25 * len(lines) + 0.1
+    height = 0.28 * len(lines) + 0.15
     box = FancyBboxPatch(
         (x - width / 2, y - height / 2), width, height,
         boxstyle="round,pad=0.05",
-        facecolor=color, edgecolor="#999999", linewidth=0.8,
+        facecolor=color, edgecolor="#666666", linewidth=1.0,
     )
     ax.add_patch(box)
     ax.text(x, y, text, ha="center", va="center",
-            fontsize=9, family="monospace")
+            fontsize=12, fontweight="bold", family="monospace")
 
 
 def draw_activation(ax, x, y_start, y_end, color, width=0.15):
@@ -124,17 +125,17 @@ def draw_alt_frame(ax, x_left, x_right, y_top, y_mid, y_bottom, label_if, label_
     # Outer frame
     ax.plot([x_left, x_right, x_right, x_left, x_left],
             [y_top, y_top, y_bottom, y_bottom, y_top],
-            color="#666666", linewidth=1.2)
+            color="#444444", linewidth=1.5)
     # "alt" label
-    ax.text(x_left + 0.1, y_top - 0.08, "alt", fontsize=10,
-            fontweight="bold", color="#666666", va="top")
+    ax.text(x_left + 0.1, y_top - 0.08, "alt", fontsize=14,
+            fontweight="bold", color="#444444", va="top")
     # Divider
     ax.plot([x_left, x_right], [y_mid, y_mid],
-            linestyle="--", color="#666666", linewidth=0.8)
+            linestyle="--", color="#444444", linewidth=1.0)
     # Guards
-    ax.text(x_left + 0.3, y_top - 0.25, f"[{label_if}]", fontsize=9.5,
+    ax.text(x_left + 0.3, y_top - 0.25, f"[{label_if}]", fontsize=14,
             color=COLORS["allow"], fontweight="bold")
-    ax.text(x_left + 0.3, y_mid - 0.12, f"[{label_else}]", fontsize=9.5,
+    ax.text(x_left + 0.3, y_mid - 0.12, f"[{label_else}]", fontsize=14,
             color=COLORS["deny"], fontweight="bold")
 
 
@@ -144,172 +145,172 @@ def draw_alt_frame(ax, x_left, x_right, y_top, y_mid, y_bottom, label_if, label_
 
 def create_main_sequence_diagram():
     """Create the primary sequence diagram showing the full access control flow."""
-    fig, ax = plt.subplots(1, 1, figsize=(16, 14))
-    ax.set_xlim(-0.5, 14)
-    ax.set_ylim(-14.5, 1.5)
+    fig, ax = plt.subplots(1, 1, figsize=(28, 26))
+    ax.set_xlim(-0.5, 20.0)
+    ax.set_ylim(-21.5, 2.0)
     ax.axis("off")
 
     # Title
-    ax.text(7, 1.2, "AgentCore Gateway: Fine-Grained Access Control — Sequence Diagram",
-            ha="center", va="center", fontsize=16, fontweight="bold", color=COLORS["user"])
-    ax.text(7, 0.85, "GW Policy + Custom REQUEST/RESPONSE Interceptors + Cedar Authorization",
-            ha="center", va="center", fontsize=12, color="#555555")
+    ax.text(10.0, 1.6, "AgentCore Gateway: Fine-Grained Access Control — Sequence Diagram",
+            ha="center", va="center", fontsize=22, fontweight="bold", color=COLORS["user"])
+    ax.text(10.0, 1.1, "GW Policy + Custom REQUEST/RESPONSE Interceptors + Cedar Authorization",
+            ha="center", va="center", fontsize=15, fontweight="bold", color="#333333")
 
-    # Participants
+    # Participants — spread wider to avoid label collisions
     participants = [
-        (1.0, "User\n(Browser/CLI)", COLORS["user"]),
-        (3.5, "Amazon\nCognito", COLORS["cognito"]),
-        (5.8, "Agent\n(Strands SDK)", COLORS["agent"]),
-        (8.2, "AgentCore\nGateway", COLORS["gateway"]),
-        (10.2, "REQUEST\nInterceptor", COLORS["interceptor"]),
-        (11.8, "Cedar Policy\nEngine", COLORS["cedar"]),
-        (13.5, "MCP Tool\n(Lambda)", COLORS["tool"]),
+        (1.0, "Ravi\n(Line Supervisor)", COLORS["user"]),
+        (4.0, "Amazon\nCognito", COLORS["cognito"]),
+        (7.0, "Agent\n(Strands SDK)", COLORS["agent"]),
+        (10.0, "AgentCore\nGateway", COLORS["gateway"]),
+        (12.8, "REQUEST\nInterceptor", COLORS["interceptor"]),
+        (15.5, "Cedar Policy\nEngine", COLORS["cedar"]),
+        (18.5, "MCP Tool\n(Lambda)", COLORS["tool"]),
     ]
 
-    y_top = 0.4
-    y_bottom = -14.0
+    y_top = 0.6
+    y_bottom = -19.2
 
     for x, label, color in participants:
         draw_participant(ax, x, y_top, y_bottom, label, color)
 
     # --- Authentication Phase ---
-    y = -0.5
-    ax.text(0.0, y, "Authentication", fontsize=11, fontweight="bold",
-            color="#333333", va="center")
+    y = -0.3
+    ax.text(0.0, y, "Authentication", fontsize=15, fontweight="bold",
+            color="#222222", va="center")
     ax.axhline(y=y - 0.15, xmin=0.03, xmax=0.97, color="#EEEEEE", linewidth=0.5)
 
-    y = -0.9
-    draw_message(ax, 1.0, 3.5, y, "1. Login (username + password)", COLORS["user"])
+    y = -0.8
+    draw_message(ax, 1.0, 4.0, y, "1. Login (credentials)", COLORS["user"])
 
-    y = -1.4
-    draw_message(ax, 3.5, 1.0, y, "2. JWT {role, line_scope, plant_scope, equipment_scope}",
+    y = -1.5
+    draw_message(ax, 4.0, 1.0, y, "2. JWT {role, line_scope, plant_scope}",
                  COLORS["cognito"], dashed=True)
-    draw_note(ax, 3.5, y - 0.4,
-              "JWT Claims:\n  custom:role = line_supervisor\n  custom:line_scope = Line 7\n  custom:plant_scope = Plant 2",
-              width=3.0)
+    draw_note(ax, 4.0, y - 0.5,
+              "JWT Claims:\n  role = line_supervisor\n  line_scope = Line 7\n  plant_scope = Plant 2",
+              width=2.8)
 
     # --- Query Phase ---
-    y = -2.5
-    ax.text(0.0, y, "Tool Invocation", fontsize=11, fontweight="bold",
-            color="#333333", va="center")
+    y = -2.8
+    ax.text(0.0, y, "Tool Invocation", fontsize=15, fontweight="bold",
+            color="#222222", va="center")
     ax.axhline(y=y - 0.15, xmin=0.03, xmax=0.97, color="#EEEEEE", linewidth=0.5)
 
-    y = -2.9
-    draw_message(ax, 1.0, 5.8, y, '3. "What\'s the OEE for Line 7?"', COLORS["user"])
+    y = -3.3
+    draw_message(ax, 1.0, 7.0, y, '3. "What\'s the OEE for Line 7?"', COLORS["user"])
 
-    y = -3.4
-    draw_self_message(ax, 5.8, y, "4. LLM reasons:\n     need get_oee_trends(line='Line 7')",
+    y = -3.9
+    draw_self_message(ax, 7.0, y, "4. LLM reasons: need get_oee_trends(line='Line 7')",
                       COLORS["agent"])
 
-    y = -4.0
-    draw_message(ax, 5.8, 8.2, y, '5. MCP call: get_oee_trends(line="Line 7")\n    + Authorization: Bearer <JWT>',
-                 COLORS["agent"])
+    y = -5.1
+    draw_message(ax, 7.0, 10.0, y, '5. MCP call: get_oee_trends(line="Line 7")  +  Authorization: Bearer <JWT>',
+                 COLORS["agent"], fontsize=12)
 
     # Activation on gateway
-    draw_activation(ax, 8.2, -4.0, -7.0, COLORS["gateway"])
+    draw_activation(ax, 10.0, -5.1, -7.8, COLORS["gateway"])
 
     # --- Interceptor Phase ---
-    y = -4.7
-    ax.text(0.0, y, "Enrichment", fontsize=11, fontweight="bold",
-            color="#333333", va="center")
+    y = -5.4
+    ax.text(0.0, y, "Enrichment", fontsize=15, fontweight="bold",
+            color="#222222", va="center")
     ax.axhline(y=y - 0.15, xmin=0.03, xmax=0.97, color="#EEEEEE", linewidth=0.5)
 
-    y = -5.1
-    draw_message(ax, 8.2, 10.2, y, "6. Invoke REQUEST Interceptor", COLORS["gateway"])
-    draw_activation(ax, 10.2, -5.1, -6.0, COLORS["interceptor"])
+    y = -5.9
+    draw_message(ax, 10.0, 12.8, y, "6. Invoke REQUEST Interceptor", COLORS["gateway"])
+    draw_activation(ax, 12.8, -5.9, -6.9, COLORS["interceptor"])
 
-    y = -5.5
-    draw_self_message(ax, 10.2, y,
-                      "7. Decode JWT payload\n     Extract: role, line_scope\n     Inject user_context into args",
+    y = -6.4
+    draw_self_message(ax, 12.8, y,
+                      "7. Decode JWT payload\n     Extract: role, line_scope\n     Inject user_context",
                       COLORS["interceptor"])
 
-    y = -6.2
-    draw_message(ax, 10.2, 8.2, y, '8. Enriched request:\n    args.user_context = {role, scope}',
-                 COLORS["interceptor"], dashed=True)
+    y = -7.2
+    draw_message(ax, 12.8, 10.0, y, '8. Enriched request:\n    user_context = {role, scope}',
+                 COLORS["interceptor"], dashed=True, fontsize=13)
 
     # --- Policy Phase ---
-    y = -6.7
-    ax.text(0.0, y, "Authorization", fontsize=11, fontweight="bold",
-            color="#333333", va="center")
+    y = -7.8
+    ax.text(0.0, y, "Authorization", fontsize=15, fontweight="bold",
+            color="#222222", va="center")
     ax.axhline(y=y - 0.15, xmin=0.03, xmax=0.97, color="#EEEEEE", linewidth=0.5)
 
-    y = -7.1
-    draw_message(ax, 8.2, 11.8, y,
-                 '9. Evaluate: principal=Raj, action=get_oee_trends,\n    context.input.line="Line 7"',
-                 COLORS["gateway"])
-    draw_activation(ax, 11.8, -7.1, -8.2, COLORS["cedar"])
+    y = -8.3
+    draw_message(ax, 10.0, 15.5, y,
+                 '9. Evaluate: role=line_supervisor,\n    action=get_oee_trends, line="Line 7"',
+                 COLORS["gateway"], fontsize=13)
+    draw_activation(ax, 15.5, -8.3, -9.5, COLORS["cedar"])
 
-    y = -7.7
-    draw_note(ax, 11.8, y,
+    y = -9.0
+    draw_note(ax, 15.5, y,
               "Cedar Evaluation:\n  permit_all → PERMIT\n  forbid_line_scope:\n    'Line 7' in ['Line 7']? YES\n    → No forbid match\n  Result: ALLOW",
               width=3.0, color="#E8F5E9")
 
     # --- ALT Frame ---
-    alt_top = -8.5
-    alt_mid = -10.5
-    alt_bottom = -13.0
-    draw_alt_frame(ax, 0.5, 14.0, alt_top, alt_mid, alt_bottom,
+    alt_top = -9.8
+    alt_mid = -12.2
+    alt_bottom = -15.8
+    draw_alt_frame(ax, 0.5, 19.5, alt_top, alt_mid, alt_bottom,
                    "ALLOW — parameter in user scope", "DENY — parameter outside scope")
 
     # ALLOW path
-    y = -8.9
-    draw_message(ax, 11.8, 8.2, y, "10a. Decision: ALLOW", COLORS["allow"], dashed=True)
+    y = -10.2
+    draw_message(ax, 15.5, 10.0, y, "10a. Decision: ALLOW", COLORS["allow"], dashed=True)
 
-    y = -9.3
-    draw_message(ax, 8.2, 13.5, y, "11a. Execute Lambda tool target", COLORS["gateway"])
-    draw_activation(ax, 13.5, -9.3, -9.8, COLORS["tool"])
+    y = -10.7
+    draw_message(ax, 10.0, 18.5, y, "11a. Execute Lambda tool target", COLORS["gateway"])
+    draw_activation(ax, 18.5, -10.7, -11.2, COLORS["tool"])
 
-    y = -9.9
-    draw_message(ax, 13.5, 8.2, y, "12a. OEE data (Line 7, 4 weeks)", COLORS["tool"], dashed=True)
+    y = -11.3
+    draw_message(ax, 18.5, 10.0, y, "12a. OEE data (Line 7, 4 weeks)", COLORS["tool"], dashed=True)
 
-    y = -10.3
-    draw_message(ax, 8.2, 5.8, y, "13a. Tool result → Agent", COLORS["gateway"], dashed=True)
+    y = -11.8
+    draw_message(ax, 10.0, 7.0, y, "13a. Tool result → Agent", COLORS["gateway"], dashed=True)
 
     # DENY path
-    y = -10.9
-    draw_message(ax, 11.8, 8.2, y, '10b. Decision: DENY\n    "Line 4 not in scope [Line 7]"',
-                 COLORS["deny"], dashed=True)
+    y = -12.8
+    draw_message(ax, 15.5, 10.0, y, '10b. Decision: DENY\n    "Line 4 not in scope"',
+                 COLORS["deny"], dashed=True, fontsize=13)
 
-    y = -11.5
-    draw_note(ax, 13.5, y, "MCP Server\nNEVER\nINVOKED", width=1.6, color="#FFEBEE")
+    y = -13.7
+    draw_note(ax, 18.5, y, "MCP Server\nNEVER\nINVOKED", width=1.6, color="#FFEBEE")
 
-    y = -11.9
-    draw_message(ax, 8.2, 5.8, y,
-                 '11b. Error: "[Policy] Access denied. Scope: Line 7 only"',
-                 COLORS["deny"], dashed=True)
+    y = -14.5
+    draw_message(ax, 10.0, 7.0, y,
+                 '11b. Error: "[Policy] Access denied.\n       Scope: Line 7 only"',
+                 COLORS["deny"], dashed=True, fontsize=13)
 
     # --- Response Phase ---
-    y = -12.5
-    draw_self_message(ax, 5.8, y,
-                      "LLM synthesizes:\n  ALLOW → data summary\n  DENY → explains scope + suggests alternative",
+    y = -16.2
+    draw_self_message(ax, 7.0, y,
+                      "LLM synthesizes:\n  ALLOW → data summary\n  DENY → explains scope",
                       COLORS["agent"])
 
-    y = -13.3
-    draw_message(ax, 5.8, 1.0, y, "14. Natural language response to user",
+    y = -17.1
+    draw_message(ax, 7.0, 1.0, y, "14. Natural language response to user",
                  COLORS["agent"], dashed=True)
 
-    # Legend
-    legend_y = -14.3
+    # Legend — placed well below the bottom participant boxes (y_bottom = -19.2)
+    legend_y = -20.5
     legend_items = [
         (1.0, "Solid arrow = synchronous call", "-"),
-        (5.0, "Dashed arrow = response/return", "--"),
-        (9.5, "Green box = ALLOW path", None),
-        (12.0, "Red box = DENY path", None),
+        (5.5, "Dashed arrow = response/return", "--"),
+        (10.0, "Green box = ALLOW path", None),
+        (13.0, "Red box = DENY path", None),
     ]
     for lx, ltxt, ls in legend_items:
         if ls:
             ax.annotate("", xy=(lx + 0.8, legend_y), xytext=(lx, legend_y),
-                        arrowprops=dict(arrowstyle="->", color="black", lw=1,
+                        arrowprops=dict(arrowstyle="->", color="black", lw=1.5,
                                         linestyle=ls))
-            ax.text(lx + 1.0, legend_y, ltxt, fontsize=9, va="center")
+            ax.text(lx + 1.0, legend_y, ltxt, fontsize=13, fontweight="bold", va="center")
         elif "Green" in ltxt:
             ax.add_patch(plt.Rectangle((lx, legend_y - 0.08), 0.3, 0.16,
                                        facecolor=COLORS["allow"], alpha=0.3))
-            ax.text(lx + 0.4, legend_y, ltxt, fontsize=9, va="center")
+            ax.text(lx + 0.4, legend_y, ltxt, fontsize=13, fontweight="bold", va="center")
         else:
             ax.add_patch(plt.Rectangle((lx, legend_y - 0.08), 0.3, 0.16,
                                        facecolor=COLORS["deny"], alpha=0.3))
-            ax.text(lx + 0.4, legend_y, ltxt, fontsize=9, va="center")
+            ax.text(lx + 0.4, legend_y, ltxt, fontsize=13, fontweight="bold", va="center")
 
     plt.tight_layout()
     return fig
@@ -325,28 +326,28 @@ def create_personas_diagram():
     Layout: Three rows (one per persona), each with a horizontal left-to-right flow.
     AgentCore Gateway components are highlighted with a distinct background region.
     """
-    fig, axes = plt.subplots(3, 1, figsize=(18, 12))
+    fig, axes = plt.subplots(3, 1, figsize=(20, 15))
 
     personas = [
         {
-            "name": "Sarah Chen",
-            "role": "Plant Manager",
+            "name": "Priya\n(Plant Manager)",
+            "role": "plant_manager",
             "query": "Anomalies across all lines?",
             "scope": "Full Access\n(all plants/lines)",
             "result": "ALLOW",
             "detail": "Sees all 12 lines,\nprioritized by severity",
         },
         {
-            "name": "Raj Patel",
-            "role": "Line Supervisor",
+            "name": "Ravi\n(Line Supervisor)",
+            "role": "line_supervisor",
             "query": "Show Line 4 equipment",
             "scope": "Line 7,\nPlant 2 only",
             "result": "DENY",
             "detail": "Line 4 outside scope.\nSuggests Line 7 instead.",
         },
         {
-            "name": "Priya Nair",
-            "role": "Maintenance Tech",
+            "name": "Ankit\n(Maintenance Tech)",
+            "role": "maintenance_tech",
             "query": "Machine 72 vibration?",
             "scope": "Machines 41-45\nonly",
             "result": "DENY",
@@ -373,8 +374,8 @@ def create_personas_diagram():
     y_center = 0.0  # vertical center of each row's flow
 
     for idx, (ax, persona) in enumerate(zip(axes, personas)):
-        ax.set_xlim(-0.5, 19.5)
-        ax.set_ylim(-2.0, 2.5)
+        ax.set_xlim(-0.5, 20.5)
+        ax.set_ylim(-2.2, 3.2)
         ax.axis("off")
 
         # --- AgentCore Gateway highlight region (behind Gateway + Cedar) ---
@@ -394,21 +395,21 @@ def create_personas_diagram():
             (x_positions["gateway"] + x_positions["cedar"]) / 2,
             y_center + box_h / 2 + 0.65,
             "Amazon Bedrock AgentCore",
-            ha="center", va="bottom", fontsize=12, fontweight="bold",
+            ha="center", va="bottom", fontsize=13, fontweight="bold",
             color=COLORS["gateway"], alpha=0.9,
         )
 
-        # --- Persona label (left side) ---
-        ax.text(-0.2, y_center + 0.3, persona["name"], ha="left", va="center",
-                fontsize=13, fontweight="bold", color=COLORS["user"])
-        ax.text(-0.2, y_center - 0.2, persona["role"], ha="left", va="center",
-                fontsize=11, color="#555555")
+        # --- Persona label (above the row, left-aligned) ---
+        ax.text(x_positions["user"] - box_w / 2, y_center + box_h / 2 + 0.45,
+                persona["name"].replace("\n", "  "),
+                ha="left", va="bottom",
+                fontsize=14, fontweight="bold", color=COLORS["user"])
 
         # --- Step captions (only on first row to avoid repetition) ---
         if idx == 0:
             for cap, cx in zip(captions, caption_xs):
-                ax.text(cx, y_center + box_h / 2 + 1.2, cap, ha="center", va="bottom",
-                        fontsize=11, fontweight="bold", color="#333333")
+                ax.text(cx, y_center + box_h / 2 + 1.6, cap, ha="center", va="bottom",
+                        fontsize=12.5, fontweight="bold", color="#333333")
 
         # --- Step boxes (horizontal flow) ---
         # 1. User Query
@@ -473,7 +474,7 @@ def create_personas_diagram():
         badge_x = (x_positions["cedar"] + x_positions["tool"]) / 2
         badge_color = COLORS["allow"] if persona["result"] == "ALLOW" else COLORS["deny"]
         ax.text(badge_x, y_center + 0.35, persona["result"], ha="center", va="bottom",
-                fontsize=12, fontweight="bold", color="white",
+                fontsize=13, fontweight="bold", color="white",
                 bbox=dict(boxstyle="round,pad=0.2", facecolor=badge_color, alpha=0.9))
 
         # Separator line between rows (except last)
@@ -483,7 +484,7 @@ def create_personas_diagram():
     fig.suptitle(
         "Same Agent, Same Interface — Different Data Access\n"
         "AgentCore Gateway enforces Cedar policies at the parameter level",
-        fontsize=16, fontweight="bold", y=0.99,
+        fontsize=17, fontweight="bold", y=0.99,
     )
     plt.tight_layout(rect=[0, 0, 1, 0.94])
     return fig
@@ -499,7 +500,7 @@ def _draw_hbox(ax, x_center, y_center, width, height, text,
     )
     ax.add_patch(box)
     ax.text(x_center, y_center, text, ha="center", va="center",
-            fontsize=10.5, color="#222222", linespacing=1.3)
+            fontsize=11.5, color="#222222", linespacing=1.3)
 
 
 # ---------------------------------------------------------------------------
