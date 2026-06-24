@@ -56,6 +56,26 @@ The foundation layer unifies data from operational and analytical systems:
 - **Amazon OpenSearch** — semantic search on quality documents
 - **Amazon S3** — data lake (raw data, configuration, catalogs)
 
+## Sequence Diagrams
+
+### Access Control Flow
+
+This diagram shows the end-to-end lifecycle of a request through the AgentCore Gateway — from authentication (Cognito JWT) through the REQUEST Interceptor, Cedar Policy Engine evaluation, and finally tool execution or denial:
+
+![Access Control Sequence Diagram](../../../docs/sequence_diagram_access_control.png)
+
+### User Personas — Same Interface, Different Access
+
+Three users ask similar questions but receive different results based on their Cedar policy scope. The Gateway blocks unauthorized requests before the MCP server (Lambda target) is ever invoked:
+
+![Personas Sequence Diagram](../../../docs/sequence_diagram_personas.png)
+
+### Component Interactions
+
+The full request lifecycle showing how user identity flows through Gateway components:
+
+![Component Interactions](../../../docs/agentcore_component_interactions.png)
+
 ## Key Design Principles
 
 1. **Configuration, not code** — add a data source by registering an MCP server

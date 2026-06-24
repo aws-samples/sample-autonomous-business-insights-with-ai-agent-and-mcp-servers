@@ -69,8 +69,16 @@ Open `src/identity/gateway_hook.py`:
 ```python
 from strands.hooks import BeforeToolCallEvent, HookProvider, HookRegistry
 
+from src.identity.models import UserIdentity
+from src.identity.policy import PolicyDecision, PolicyEngine
+
 class GatewayPolicyHook(HookProvider):
-    """LOCAL SIMULATION of Gateway policy enforcement (dev only)."""
+    """SIMULATION FALLBACK — Local approximation of AgentCore Gateway policy enforcement.
+
+    ⚠️  This hook is ONLY active when SIMULATION_MODE=true.
+    In the default mode, the AgentCore Gateway evaluates Cedar policies
+    server-side and this class is never instantiated.
+    """
 
     def __init__(self, user: UserIdentity, policy_engine: PolicyEngine):
         self.user = user
@@ -83,15 +91,35 @@ class GatewayPolicyHook(HookProvider):
         tool_name = event.tool_use["name"]
         tool_input = event.tool_use.get("input", {})
 
-        # Extract policy-relevant parameters
-        params = self._extract_policy_params(tool_input)
+        # Extract policy-relevant parameters (line, machine_id, plant)
+        parameters = self._extract_policy_params(tool_input)
 
         # Evaluate against local Cedar-style policies (simulates Gateway)
-        decision = self.policy_engine.evaluate(self.user, tool_name, params)
+        decision: PolicyDecision = self.policy_engine.evaluate(
+            user=self.user,
+            tool_name=tool_name,
+            parameters=parameters,
+        )
 
         if not decision.allowed:
             # BLOCK the call — MCP server never sees it
-            event.cancel_tool = f"[Policy - Local Simulation] {decision.reason}"
+            event.cancel_tool = (
+                f"[Policy Enforcement - Simulation] {decision.reason} "
+                f"Please only query data within your authorized scope."
+            )
+
+    def _extract_policy_params(self, tool_input):
+        """Extract policy-relevant parameters from tool input."""
+        if not isinstance(tool_input, dict):
+            return {}
+        params = {}
+        if "line" in tool_input and tool_input["line"]:
+            params["line"] = tool_input["line"]
+        if "machine_id" in tool_input and tool_input["machine_id"] is not None:
+            params["machine_id"] = tool_input["machine_id"]
+        if "plant" in tool_input and tool_input["plant"]:
+            params["plant"] = tool_input["plant"]
+        return params
 ```
 
 ## How It's Wired In

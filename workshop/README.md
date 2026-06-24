@@ -15,52 +15,35 @@ workshop/
 ├── content/
 │   ├── _index.md                    # Workshop landing page
 │   ├── 01-introduction/
-│   │   ├── _index.md               # Module 1: The Problem
-│   │   ├── 01-scenario.md          # Manufacturing scenario
-│   │   ├── 02-architecture.md      # Architecture overview
-│   │   └── 03-what-you-will-build.md
+│   │   ├── _index.md               # Module 1: The Problem & Architecture
+│   │   └── 01-architecture.md      # Architecture overview + sequence diagrams
 │   ├── 02-setup/
 │   │   ├── _index.md               # Module 2: Environment Setup
 │   │   ├── 01-prerequisites.md     # AWS account, CLI, Python
-│   │   ├── 02-clone-and-install.md # Clone repo, create venv
-│   │   └── 03-verify.md            # Verify Bedrock access
+│   │   └── 02-clone-and-install.md # Clone repo, create venv, verify
 │   ├── 03-mcp-servers/
 │   │   ├── _index.md               # Module 3: Build MCP Servers
 │   │   ├── 01-what-is-mcp.md       # MCP protocol overview
-│   │   ├── 02-equipment-server.md  # Build equipment MCP server
+│   │   ├── 02-equipment-server.md  # Build equipment MCP server (step-by-step)
 │   │   ├── 03-iot-server.md        # Build IoT telemetry server
-│   │   ├── 04-test-servers.md      # Test MCP servers locally
-│   │   └── 05-semantic-layer.md    # Data catalog as MCP server
+│   │   ├── 04-semantic-layer.md    # Data catalog as MCP server
+│   │   └── 05-test-servers.md      # Start & test all 5 servers
 │   ├── 04-agent/
 │   │   ├── _index.md               # Module 4: Build the Agent
-│   │   ├── 01-strands-agent.md     # Strands SDK basics
-│   │   ├── 02-connect-mcp.md       # Connect agent to MCP servers
-│   │   ├── 03-system-prompt.md     # Identity-aware prompts
-│   │   └── 04-first-query.md       # Run your first query
+│   │   └── 01-connect-and-query.md # Connect to MCP servers + first query
 │   ├── 05-policy/
 │   │   ├── _index.md               # Module 5: Access Control
-│   │   ├── 01-identity-model.md    # User roles and scopes
-│   │   ├── 02-cedar-policy.md      # Cedar-style policy engine
-│   │   ├── 03-gateway-hook.md      # Gateway-level Cedar enforcement (+ local simulation)
-│   │   └── 04-test-access.md       # Verify policy enforcement
+│   │   └── 01-gateway-hook.md      # Gateway Cedar enforcement + local simulation
 │   ├── 06-memory/
 │   │   ├── _index.md               # Module 6: Memory & Context
-│   │   ├── 01-session-memory.md    # Short-term context
-│   │   ├── 02-long-term-memory.md  # Cross-session persistence
-│   │   └── 03-test-memory.md       # Week-over-week comparison
+│   │   └── 01-memory-demo.md       # Session + long-term memory demo
 │   ├── 07-live-infrastructure/
-│   │   ├── _index.md               # Module 7: Real AWS Services
-│   │   ├── 01-deploy-stack.md      # Deploy CloudFormation
-│   │   ├── 02-seed-data.md         # Populate all services
-│   │   ├── 03-switch-live.md       # Toggle to live mode
-│   │   └── 04-query-live.md        # Query against real infra
+│   │   ├── _index.md               # Module 7: Real AWS Services (optional)
+│   │   └── 01-deploy-stack.md      # Deploy CloudFormation + seed data
 │   ├── 08-web-ui/
-│   │   ├── _index.md               # Module 8: Streamlit Demo UI
-│   │   ├── 01-launch-ui.md         # Start Streamlit
-│   │   └── 02-demo-scenarios.md    # Walk through all 3 personas
+│   │   └── _index.md               # Module 8: Streamlit Demo UI + scenarios
 │   └── 09-cleanup/
-│       ├── _index.md               # Module 9: Cleanup
-│       └── 01-delete-resources.md  # Delete stack, clean up
+│       └── _index.md               # Module 9: Cleanup resources
 └── static/
     └── images/                      # Architecture diagrams, screenshots
 ```
