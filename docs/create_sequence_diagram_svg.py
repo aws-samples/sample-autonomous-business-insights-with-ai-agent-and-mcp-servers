@@ -1,12 +1,15 @@
 #!/usr/bin/env python3
 """Generate SVG sequence diagrams for AgentCore Gateway access control flow.
 
-Produces two SVG files with large readable fonts (all >= 18px):
+Produces two SVG files optimized for GitLab README rendering:
   1. sequence_diagram_access_control.svg — full UML sequence diagram
   2. sequence_diagram_personas.svg — three personas comparison
 
+Design for GitLab: viewBox kept narrow (1400-1600px wide) so when GitLab scales
+to page width (~800px), text remains large and readable. All fonts >= 28px
+in source so they render ~14px+ on screen.
+
 Pure SVG with inline styles only — no <style>, no <defs>, no url() references.
-Compatible with GitLab's SVG sanitizer.
 """
 
 import os
@@ -38,32 +41,25 @@ def txt(x, y, content, size, color, bold=False, italic=False, anchor="middle", m
     return f'<text x="{x}" y="{y}" font-size="{size}" font-family="{family}"{weight}{style} fill="{color}" text-anchor="{anchor}" dominant-baseline="middle">{content}</text>'
 
 
-def arrow(x1, y1, x2, y2, color="#333333", width=2.5, dashed=False):
+def arrow(x1, y1, x2, y2, color="#333333", width=3, dashed=False):
     """Draw a line with an arrowhead polygon at the end."""
-    dash = ' stroke-dasharray="8,5"' if dashed else ''
-    # Calculate arrowhead
+    dash = ' stroke-dasharray="10,6"' if dashed else ''
     dx = x2 - x1
     dy = y2 - y1
     length = math.sqrt(dx*dx + dy*dy)
     if length == 0:
         return ''
-    # Unit vector
     ux = dx / length
     uy = dy / length
-    # Arrowhead size
-    arrow_len = 12
-    arrow_width = 6
-    # Arrowhead base point (pull back from tip)
+    arrow_len = 14
+    arrow_width = 7
     bx = x2 - ux * arrow_len
     by = y2 - uy * arrow_len
-    # Perpendicular
     px = -uy * arrow_width
     py = ux * arrow_width
-    # Three points of arrowhead
     p1 = f"{x2},{y2}"
     p2 = f"{bx + px},{by + py}"
     p3 = f"{bx - px},{by - py}"
-    # Line ends slightly before arrowhead base
     lx2 = x2 - ux * arrow_len * 0.5
     ly2 = y2 - uy * arrow_len * 0.5
 
@@ -72,22 +68,22 @@ def arrow(x1, y1, x2, y2, color="#333333", width=2.5, dashed=False):
             f'<polygon points="{p1} {p2} {p3}" fill="{color}"/>')
 
 
-def hline(x1, y1, x2, y2, color="#BBBBBB", width=1.5):
-    """Dashed lifeline."""
-    return f'<line x1="{x1}" y1="{y1}" x2="{x2}" y2="{y2}" stroke="{color}" stroke-width="{width}" stroke-dasharray="6,4"/>'
+def lifeline(x, y1, y2, color="#CCCCCC"):
+    return f'<line x1="{x}" y1="{y1}" x2="{x}" y2="{y2}" stroke="{color}" stroke-width="2" stroke-dasharray="8,5"/>'
 
 
-def separator(y, x1=80, x2=2350):
-    return f'<line x1="{x1}" y1="{y}" x2="{x2}" y2="{y}" stroke="#EEEEEE" stroke-width="1"/>'
+def sep_line(y, x1=50, x2=1350):
+    return f'<line x1="{x1}" y1="{y}" x2="{x2}" y2="{y}" stroke="#EEEEEE" stroke-width="1.5"/>'
 
 
 # =============================================================================
 # DIAGRAM 1: SEQUENCE DIAGRAM — ACCESS CONTROL
+# Narrower layout (1400 wide) with bigger fonts for GitLab readability
 # =============================================================================
 
 def create_sequence_diagram_svg():
-    W = 2400
-    H = 3200
+    W = 1400
+    H = 4200
     elements = [svg_header(W, H)]
 
     # Colors
@@ -101,193 +97,190 @@ def create_sequence_diagram_svg():
     C_ALLOW = "#1B5E20"
     C_DENY = "#B71C1C"
 
-    # Title
-    elements.append(txt(W//2, 50, "AgentCore Gateway: Fine-Grained Access Control", 42, C_USER, bold=True))
-    elements.append(txt(W//2, 95, "GW Policy + Custom REQUEST/RESPONSE Interceptors + Cedar Authorization", 24, "#444444"))
+    # Font sizes — large for GitLab scaling
+    F_TITLE = 52
+    F_SUBTITLE = 30
+    F_PHASE = 32
+    F_MSG = 28
+    F_NOTE = 26
+    F_PARTICIPANT = 28
+    F_PARTICIPANT_SUB = 24
 
-    # Participants
+    # Title
+    elements.append(txt(W//2, 60, "AgentCore Gateway: Access Control", F_TITLE, C_USER, bold=True))
+    elements.append(txt(W//2, 110, "REQUEST/RESPONSE Interceptors + Cedar Authorization", F_SUBTITLE, "#444444"))
+
+    # Participants — 5 columns (merged Interceptor into Gateway conceptually for narrower layout)
     participants = [
-        (180, "Ravi", "(Line Supervisor)", C_USER),
-        (530, "Amazon", "Cognito", C_COGNITO),
-        (880, "Agent", "(Strands SDK)", C_AGENT),
-        (1280, "AgentCore", "Gateway", C_GATEWAY),
-        (1630, "REQUEST", "Interceptor", C_INTERCEPTOR),
-        (1960, "Cedar Policy", "Engine", C_CEDAR),
-        (2280, "MCP Tool", "(Lambda)", C_TOOL),
+        (120, "User", "(Ravi)", C_USER),
+        (360, "Cognito", "(IdP)", C_COGNITO),
+        (600, "Agent", "(Strands)", C_AGENT),
+        (880, "Gateway", "(AgentCore)", C_GATEWAY),
+        (1150, "Cedar", "(Policy)", C_CEDAR),
     ]
 
-    header_y = 140
-    header_h = 70
-    lifeline_bottom = 3050
+    header_y = 160
+    header_h = 85
+    lifeline_bottom = 3980
 
     for px, label1, label2, color in participants:
-        # Header box
-        elements.append(rrect(px - 100, header_y, 200, header_h, color, color, rx=8))
-        elements.append(txt(px, header_y + 25, label1, 20, "white", bold=True))
-        elements.append(txt(px, header_y + 50, label2, 18, "white"))
-        # Lifeline
-        elements.append(hline(px, header_y + header_h, px, lifeline_bottom))
-        # Bottom box
-        elements.append(rrect(px - 100, lifeline_bottom, 200, header_h, color, color, rx=8))
-        elements.append(txt(px, lifeline_bottom + 25, label1, 20, "white", bold=True))
-        elements.append(txt(px, lifeline_bottom + 50, label2, 18, "white"))
+        elements.append(rrect(px - 80, header_y, 160, header_h, color, color, rx=8))
+        elements.append(txt(px, header_y + 30, label1, F_PARTICIPANT, "white", bold=True))
+        elements.append(txt(px, header_y + 60, label2, F_PARTICIPANT_SUB, "white"))
+        elements.append(lifeline(px, header_y + header_h, lifeline_bottom))
+        elements.append(rrect(px - 80, lifeline_bottom, 160, header_h, color, color, rx=8))
+        elements.append(txt(px, lifeline_bottom + 30, label1, F_PARTICIPANT, "white", bold=True))
+        elements.append(txt(px, lifeline_bottom + 60, label2, F_PARTICIPANT_SUB, "white"))
 
-    # ---- AUTHENTICATION PHASE ----
-    y = 270
-    elements.append(txt(80, y, "Authentication", 22, "#222222", bold=True, anchor="start"))
-    elements.append(separator(y + 12))
+    # ---- AUTHENTICATION ----
+    y = 310
+    elements.append(txt(60, y, "Authentication", F_PHASE, "#222222", bold=True, anchor="start"))
+    elements.append(sep_line(y + 15))
 
-    y = 320
-    elements.append(arrow(180, y, 530, y, C_USER))
-    elements.append(txt(355, y - 18, "1. Login (credentials)", 20, C_USER, italic=True))
+    y = 380
+    elements.append(arrow(120, y, 360, y, C_USER))
+    elements.append(txt(240, y - 25, "1. Login", F_MSG, C_USER))
 
-    y = 400
-    elements.append(arrow(530, y, 180, y, C_COGNITO, dashed=True))
-    elements.append(txt(355, y - 18, "2. JWT {role, line_scope, plant_scope}", 20, C_COGNITO, italic=True))
+    y = 470
+    elements.append(arrow(360, y, 120, y, C_COGNITO, dashed=True))
+    elements.append(txt(240, y - 25, "2. JWT token", F_MSG, C_COGNITO, italic=True))
 
-    # JWT Claims note
+    # JWT note
     ny = y + 40
-    elements.append(rrect(380, ny, 300, 110, "#E3F2FD", C_COGNITO, stroke_width=1.5, rx=8))
-    elements.append(txt(530, ny + 25, "JWT Claims:", 20, C_COGNITO, bold=True))
-    elements.append(txt(530, ny + 52, "role = line_supervisor", 18, C_COGNITO, mono=True))
-    elements.append(txt(530, ny + 77, "line_scope = Line 7", 18, C_COGNITO, mono=True))
-    elements.append(txt(530, ny + 100, "plant_scope = Plant 2", 18, C_COGNITO, mono=True))
+    elements.append(rrect(220, ny, 280, 130, "#E3F2FD", C_COGNITO, stroke_width=2, rx=8))
+    elements.append(txt(360, ny + 30, "JWT Claims:", F_NOTE, C_COGNITO, bold=True))
+    elements.append(txt(360, ny + 62, "role: line_supervisor", 24, C_COGNITO, mono=True))
+    elements.append(txt(360, ny + 92, "line_scope: Line 7", 24, C_COGNITO, mono=True))
+    elements.append(txt(360, ny + 118, "plant_scope: Plant 2", 24, C_COGNITO, mono=True))
 
-    # ---- TOOL INVOCATION PHASE ----
-    y = 590
-    elements.append(txt(80, y, "Tool Invocation", 22, "#222222", bold=True, anchor="start"))
-    elements.append(separator(y + 12))
+    # ---- TOOL INVOCATION ----
+    y = 700
+    elements.append(txt(60, y, "Tool Invocation", F_PHASE, "#222222", bold=True, anchor="start"))
+    elements.append(sep_line(y + 15))
 
-    y = 650
-    elements.append(arrow(180, y, 880, y, C_USER))
-    elements.append(txt(530, y - 18, '3. "What\'s the OEE for Line 7?"', 20, C_USER))
+    y = 780
+    elements.append(arrow(120, y, 600, y, C_USER))
+    elements.append(txt(360, y - 25, '3. "OEE for Line 7?"', F_MSG, C_USER))
 
-    y = 730
-    elements.append(rrect(900, y - 25, 520, 55, "#FFF3E0", C_AGENT, stroke_width=1.5, rx=8))
-    elements.append(txt(1160, y + 2, "4. LLM reasons: need get_oee_trends(line='Line 7')", 20, C_AGENT))
+    y = 870
+    elements.append(rrect(430, y - 30, 340, 65, "#FFF3E0", C_AGENT, stroke_width=2, rx=8))
+    elements.append(txt(600, y, "4. LLM: get_oee_trends", F_NOTE, C_AGENT))
 
-    y = 820
-    elements.append(arrow(880, y, 1280, y, C_AGENT))
-    elements.append(txt(1080, y - 18, "5. MCP call: get_oee_trends(line=\"Line 7\") + Bearer JWT", 20, C_AGENT))
+    y = 980
+    elements.append(arrow(600, y, 880, y, C_AGENT))
+    elements.append(txt(740, y - 25, "5. MCP call + JWT", F_MSG, C_AGENT))
 
-    # Activation bar on gateway
-    elements.append(rrect(1270, y + 5, 20, 400, "#1A237E", "#1A237E", stroke_width=0, rx=3))
+    # Activation on gateway
+    elements.append(rrect(870, y + 5, 20, 600, C_GATEWAY, C_GATEWAY, stroke_width=0, rx=3))
 
-    # ---- ENRICHMENT PHASE ----
-    y = 890
-    elements.append(txt(80, y, "Enrichment", 22, "#222222", bold=True, anchor="start"))
-    elements.append(separator(y + 12))
+    # ---- ENRICHMENT ----
+    y = 1080
+    elements.append(txt(60, y, "Enrichment", F_PHASE, "#222222", bold=True, anchor="start"))
+    elements.append(sep_line(y + 15))
 
-    y = 950
-    elements.append(arrow(1280, y, 1630, y, C_GATEWAY))
-    elements.append(txt(1455, y - 18, "6. Invoke REQUEST Interceptor", 20, C_GATEWAY))
+    y = 1160
+    elements.append(rrect(680, y - 30, 400, 110, "#E8F5E9", C_INTERCEPTOR, stroke_width=2, rx=8))
+    elements.append(txt(880, y, "6-7. REQUEST Interceptor:", F_NOTE, C_INTERCEPTOR, bold=True))
+    elements.append(txt(880, y + 35, "Decode JWT, extract scope", 24, C_INTERCEPTOR))
+    elements.append(txt(880, y + 65, "Inject user_context into args", 24, C_INTERCEPTOR))
 
-    # Activation bar on interceptor
-    elements.append(rrect(1620, y + 5, 20, 180, C_INTERCEPTOR, C_INTERCEPTOR, stroke_width=0, rx=3))
+    # ---- AUTHORIZATION ----
+    y = 1350
+    elements.append(txt(60, y, "Authorization", F_PHASE, "#222222", bold=True, anchor="start"))
+    elements.append(sep_line(y + 15))
 
-    y = 1020
-    elements.append(rrect(1650, y - 30, 400, 80, "#E8F5E9", C_INTERCEPTOR, stroke_width=1.5, rx=8))
-    elements.append(txt(1850, y - 5, "7. Decode JWT payload", 20, C_INTERCEPTOR, bold=True))
-    elements.append(txt(1850, y + 25, "Extract role, line_scope -> inject user_context", 18, C_INTERCEPTOR))
+    y = 1430
+    elements.append(arrow(880, y, 1150, y, C_GATEWAY))
+    elements.append(txt(1015, y - 25, "8. Evaluate", F_MSG, C_GATEWAY))
 
-    y = 1130
-    elements.append(arrow(1630, y, 1280, y, C_INTERCEPTOR, dashed=True))
-    elements.append(txt(1455, y - 18, "8. Enriched request: user_context = {role, scope}", 19, C_INTERCEPTOR, italic=True))
+    # Activation on cedar
+    elements.append(rrect(1140, y + 5, 20, 250, C_CEDAR, C_CEDAR, stroke_width=0, rx=3))
 
-    # ---- AUTHORIZATION PHASE ----
-    y = 1200
-    elements.append(txt(80, y, "Authorization", 22, "#222222", bold=True, anchor="start"))
-    elements.append(separator(y + 12))
-
-    y = 1260
-    elements.append(arrow(1280, y, 1960, y, C_GATEWAY))
-    elements.append(txt(1620, y - 18, "9. Evaluate: role=line_supervisor, action=get_oee_trends, line=\"Line 7\"", 19, C_GATEWAY))
-
-    # Activation bar on cedar
-    elements.append(rrect(1950, y + 5, 20, 180, C_CEDAR, C_CEDAR, stroke_width=0, rx=3))
-
-    # Cedar evaluation note
+    # Cedar note
     ny = y + 50
-    elements.append(rrect(1780, ny, 380, 140, "#E8F5E9", C_CEDAR, stroke_width=1.5, rx=8))
-    elements.append(txt(1970, ny + 22, "Cedar Evaluation:", 20, C_CEDAR, bold=True))
-    elements.append(txt(1970, ny + 50, "permit_all -> PERMIT", 18, C_CEDAR, mono=True))
-    elements.append(txt(1970, ny + 75, "forbid_line_scope:", 18, C_CEDAR, mono=True))
-    elements.append(txt(1970, ny + 100, "  'Line 7' in ['Line 7']? YES", 18, C_CEDAR, mono=True))
-    elements.append(txt(1970, ny + 125, "Result: ALLOW", 20, C_ALLOW, bold=True))
+    elements.append(rrect(950, ny, 400, 180, "#F3E5F5", C_CEDAR, stroke_width=2, rx=8))
+    elements.append(txt(1150, ny + 30, "Cedar Evaluation:", F_NOTE, C_CEDAR, bold=True))
+    elements.append(txt(1150, ny + 65, "permit_all -> PERMIT", 24, C_CEDAR, mono=True))
+    elements.append(txt(1150, ny + 95, "forbid_line_scope:", 24, C_CEDAR, mono=True))
+    elements.append(txt(1150, ny + 125, "'Line 7' in scope? YES", 24, C_CEDAR, mono=True))
+    elements.append(txt(1150, ny + 155, "Result: ALLOW", F_NOTE, C_ALLOW, bold=True))
 
     # ---- ALT FRAME ----
-    alt_top = 1510
-    alt_mid = 1990
-    alt_bottom = 2530
+    alt_top = 1780
+    alt_mid = 2650
+    alt_bottom = 3350
 
-    # Outer frame
-    elements.append(f'<rect x="100" y="{alt_top}" width="2250" height="{alt_bottom - alt_top}" fill="none" stroke="#555555" stroke-width="2" rx="6"/>')
-    elements.append(txt(140, alt_top + 28, "alt", 22, "#444444", bold=True, anchor="start"))
-    # Divider
-    elements.append(f'<line x1="100" y1="{alt_mid}" x2="2350" y2="{alt_mid}" stroke="#555555" stroke-width="1.5" stroke-dasharray="8,4"/>')
-    # Guards
-    elements.append(txt(200, alt_top + 60, "[ALLOW -- parameter in user scope]", 21, C_ALLOW, bold=True, anchor="start"))
-    elements.append(txt(200, alt_mid + 35, "[DENY -- parameter outside scope]", 21, C_DENY, bold=True, anchor="start"))
+    elements.append(f'<rect x="50" y="{alt_top}" width="1300" height="{alt_bottom - alt_top}" fill="none" stroke="#555555" stroke-width="3" rx="8"/>')
+    elements.append(txt(90, alt_top + 40, "alt", 34, "#444444", bold=True, anchor="start"))
+    elements.append(f'<line x1="50" y1="{alt_mid}" x2="1350" y2="{alt_mid}" stroke="#555555" stroke-width="2" stroke-dasharray="10,5"/>')
+    elements.append(txt(150, alt_top + 85, "[ALLOW - in scope]", F_MSG, C_ALLOW, bold=True, anchor="start"))
+    elements.append(txt(150, alt_mid + 45, "[DENY - out of scope]", F_MSG, C_DENY, bold=True, anchor="start"))
 
     # --- ALLOW PATH ---
-    y = 1600
-    elements.append(arrow(1960, y, 1280, y, C_ALLOW, dashed=True))
-    elements.append(txt(1620, y - 18, "10a. Decision: ALLOW", 21, C_ALLOW, bold=True))
+    y = 1900
+    elements.append(arrow(1150, y, 880, y, C_ALLOW, dashed=True))
+    elements.append(txt(1015, y - 25, "9a. ALLOW", F_MSG, C_ALLOW, bold=True))
 
-    y = 1680
-    elements.append(arrow(1280, y, 2280, y, C_GATEWAY))
-    elements.append(txt(1780, y - 18, "11a. Execute Lambda tool target", 20, C_GATEWAY))
+    y = 2000
+    elements.append(rrect(680, y - 30, 400, 70, "#E8F5E9", C_ALLOW, stroke_width=2, rx=8))
+    elements.append(txt(880, y + 5, "10a. Execute Lambda tool", F_NOTE, C_ALLOW))
 
-    # Activation bar on tool
-    elements.append(rrect(2270, y + 5, 20, 80, C_TOOL, C_TOOL, stroke_width=0, rx=3))
+    y = 2130
+    elements.append(rrect(680, y - 30, 400, 70, "#E8F5E9", C_TOOL, stroke_width=2, rx=8))
+    elements.append(txt(880, y + 5, "11a. Return OEE data", F_NOTE, C_TOOL))
 
-    y = 1760
-    elements.append(arrow(2280, y, 1280, y, C_TOOL, dashed=True))
-    elements.append(txt(1780, y - 18, "12a. OEE data (Line 7, 4 weeks)", 20, C_TOOL, italic=True))
+    y = 2260
+    elements.append(arrow(880, y, 600, y, C_GATEWAY, dashed=True))
+    elements.append(txt(740, y - 25, "12a. Tool result", F_MSG, C_GATEWAY, italic=True))
 
-    y = 1850
-    elements.append(arrow(1280, y, 880, y, C_GATEWAY, dashed=True))
-    elements.append(txt(1080, y - 18, "13a. Tool result -> Agent", 20, C_GATEWAY, italic=True))
+    y = 2380
+    elements.append(arrow(600, y, 120, y, C_AGENT, dashed=True))
+    elements.append(txt(360, y - 25, "13a. Data summary", F_MSG, C_AGENT, italic=True))
 
     # --- DENY PATH ---
-    y = 2060
-    elements.append(arrow(1960, y, 1280, y, C_DENY, dashed=True))
-    elements.append(txt(1620, y - 18, "10b. Decision: DENY -- \"Line 4 not in scope\"", 20, C_DENY, bold=True))
+    y = 2750
+    elements.append(arrow(1150, y, 880, y, C_DENY, dashed=True))
+    elements.append(txt(1015, y - 25, "9b. DENY", F_MSG, C_DENY, bold=True))
 
-    # MCP NEVER INVOKED note
-    elements.append(rrect(2150, y + 30, 250, 70, "#FFEBEE", C_DENY, stroke_width=2, rx=8))
-    elements.append(txt(2275, y + 55, "MCP Server", 20, C_DENY, bold=True))
-    elements.append(txt(2275, y + 80, "NEVER INVOKED", 20, C_DENY, bold=True))
+    y = 2860
+    elements.append(rrect(680, y - 30, 400, 80, "#FFEBEE", C_DENY, stroke_width=2, rx=8))
+    elements.append(txt(880, y, "MCP Server NEVER", F_NOTE, C_DENY, bold=True))
+    elements.append(txt(880, y + 32, "INVOKED", F_NOTE, C_DENY, bold=True))
 
-    y = 2200
-    elements.append(arrow(1280, y, 880, y, C_DENY, dashed=True))
-    elements.append(txt(1080, y - 18, '11b. Error: "[Policy] Access denied. Scope: Line 7 only"', 19, C_DENY, italic=True))
+    y = 3010
+    elements.append(arrow(880, y, 600, y, C_DENY, dashed=True))
+    elements.append(txt(740, y - 25, "10b. Access denied", F_MSG, C_DENY, italic=True))
+
+    y = 3130
+    elements.append(arrow(600, y, 120, y, C_DENY, dashed=True))
+    elements.append(txt(360, y - 25, "11b. Scope limit explained", F_MSG, C_DENY, italic=True))
 
     # --- RESPONSE PHASE ---
-    y = 2620
-    elements.append(txt(80, y, "Response", 22, "#222222", bold=True, anchor="start"))
-    elements.append(separator(y + 12))
+    y = 3460
+    elements.append(txt(60, y, "Response", F_PHASE, "#222222", bold=True, anchor="start"))
+    elements.append(sep_line(y + 15))
 
-    y = 2680
-    elements.append(rrect(700, y - 25, 450, 75, "#FFF3E0", C_AGENT, stroke_width=1.5, rx=8))
-    elements.append(txt(925, y, "LLM synthesizes:", 20, C_AGENT, bold=True))
-    elements.append(txt(925, y + 28, "ALLOW -> data summary | DENY -> explains scope", 19, C_AGENT))
+    y = 3550
+    elements.append(rrect(430, y - 35, 340, 100, "#FFF3E0", C_AGENT, stroke_width=2, rx=8))
+    elements.append(txt(600, y - 5, "LLM synthesizes:", F_NOTE, C_AGENT, bold=True))
+    elements.append(txt(600, y + 30, "ALLOW -> data summary", 24, C_AGENT))
+    elements.append(txt(600, y + 58, "DENY -> scope guidance", 24, C_AGENT))
 
-    y = 2800
-    elements.append(arrow(880, y, 180, y, C_AGENT, dashed=True))
-    elements.append(txt(530, y - 18, "14. Natural language response to user", 20, C_AGENT, italic=True))
+    y = 3720
+    elements.append(arrow(600, y, 120, y, C_AGENT, dashed=True))
+    elements.append(txt(360, y - 25, "14. Response to user", F_MSG, C_AGENT, italic=True))
 
     # --- Legend ---
-    y = 2920
-    elements.append(txt(200, y, "Legend:", 22, "#333333", bold=True, anchor="start"))
-    elements.append(arrow(330, y, 430, y, "#333333"))
-    elements.append(txt(450, y, "Synchronous call", 20, "#333333", anchor="start"))
-    elements.append(arrow(750, y, 850, y, "#333333", dashed=True))
-    elements.append(txt(870, y, "Response / return", 20, "#333333", anchor="start"))
-    elements.append(rrect(1200, y - 12, 24, 24, C_ALLOW, C_ALLOW, rx=4))
-    elements.append(txt(1240, y, "ALLOW path", 20, C_ALLOW, anchor="start"))
-    elements.append(rrect(1500, y - 12, 24, 24, C_DENY, C_DENY, rx=4))
-    elements.append(txt(1540, y, "DENY path", 20, C_DENY, anchor="start"))
+    y = 3850
+    elements.append(txt(100, y, "Legend:", F_MSG, "#333333", bold=True, anchor="start"))
+    elements.append(arrow(250, y, 360, y, "#333333"))
+    elements.append(txt(380, y, "Call", F_NOTE, "#333333", anchor="start"))
+    elements.append(arrow(500, y, 610, y, "#333333", dashed=True))
+    elements.append(txt(630, y, "Return", F_NOTE, "#333333", anchor="start"))
+    elements.append(rrect(780, y - 14, 28, 28, C_ALLOW, C_ALLOW, rx=4))
+    elements.append(txt(820, y, "ALLOW", F_NOTE, C_ALLOW, anchor="start"))
+    elements.append(rrect(960, y - 14, 28, 28, C_DENY, C_DENY, rx=4))
+    elements.append(txt(1000, y, "DENY", F_NOTE, C_DENY, anchor="start"))
 
     elements.append('</svg>')
     return '\n'.join(elements)
@@ -295,11 +288,12 @@ def create_sequence_diagram_svg():
 
 # =============================================================================
 # DIAGRAM 2: THREE PERSONAS COMPARISON
+# Narrower (1400 wide) with large fonts
 # =============================================================================
 
 def create_personas_diagram_svg():
-    W = 2200
-    H = 1400
+    W = 1400
+    H = 1800
     elements = [svg_header(W, H)]
 
     # Colors
@@ -310,67 +304,69 @@ def create_personas_diagram_svg():
     C_ALLOW = "#1B5E20"
     C_DENY = "#B71C1C"
 
+    # Font sizes
+    F_TITLE = 44
+    F_SUBTITLE = 28
+    F_HEADER = 28
+    F_NAME = 32
+    F_BOX = 24
+    F_BADGE = 26
+
     # Title
-    elements.append(txt(W//2, 45, "Same Agent, Same Interface -- Different Data Access", 38, C_USER, bold=True))
-    elements.append(txt(W//2, 85, "AgentCore Gateway enforces Cedar policies at the parameter level", 22, "#555555"))
+    elements.append(txt(W//2, 55, "Same Agent, Same Interface", F_TITLE, C_USER, bold=True))
+    elements.append(txt(W//2, 100, "Different Data Access", F_TITLE, C_USER, bold=True))
+    elements.append(txt(W//2, 145, "AgentCore Gateway enforces Cedar policies at parameter level", F_SUBTITLE, "#555555"))
 
     # Column headers
     cols = [
-        (200, "User Query"),
-        (520, "Strands Agent"),
-        (870, "AgentCore Gateway"),
-        (1230, "Cedar Policy Engine"),
-        (1580, "MCP Tool (Lambda)"),
-        (1950, "Agent Response"),
+        (160, "Query"),
+        (400, "Agent"),
+        (640, "Gateway"),
+        (880, "Cedar"),
+        (1120, "Result"),
     ]
 
     for cx, label in cols:
-        elements.append(txt(cx, 130, label, 20, "#333333", bold=True))
+        elements.append(txt(cx, 210, label, F_HEADER, "#333333", bold=True))
 
-    # Personas data
+    # Personas
     personas = [
         {
             "name": "Priya (Plant Manager)",
-            "query_l1": '"Anomalies across',
-            "query_l2": 'all lines?"',
+            "query_l1": "Anomalies across",
+            "query_l2": "all lines?",
             "cedar_l1": "Full Access",
             "cedar_l2": "(all plants/lines)",
             "result": "ALLOW",
-            "tool_l1": "Lambda executes",
-            "tool_l2": "Returns data",
-            "resp_l1": "Sees all 12 lines,",
-            "resp_l2": "prioritized by severity",
+            "resp_l1": "All 12 lines shown,",
+            "resp_l2": "by severity",
         },
         {
             "name": "Ravi (Line Supervisor)",
-            "query_l1": '"Show Line 4',
-            "query_l2": 'equipment"',
+            "query_l1": "Show Line 4",
+            "query_l2": "equipment",
             "cedar_l1": "Line 7,",
             "cedar_l2": "Plant 2 only",
             "result": "DENY",
-            "tool_l1": "Lambda NOT",
-            "tool_l2": "invoked",
-            "resp_l1": "Line 4 outside scope.",
-            "resp_l2": "Suggests Line 7 instead.",
+            "resp_l1": "Line 4 blocked.",
+            "resp_l2": "Suggests Line 7.",
         },
         {
             "name": "Ankit (Maintenance Tech)",
-            "query_l1": '"Machine 72',
-            "query_l2": 'vibration?"',
+            "query_l1": "Machine 72",
+            "query_l2": "vibration?",
             "cedar_l1": "Machines 41-45",
             "cedar_l2": "only",
             "result": "DENY",
-            "tool_l1": "Lambda NOT",
-            "tool_l2": "invoked",
-            "resp_l1": "Machine 72 not assigned.",
+            "resp_l1": "Machine 72 blocked.",
             "resp_l2": "Suggests Machine 42.",
         },
     ]
 
-    box_w = 260
-    box_h = 90
-    row_height = 380
-    start_y = 180
+    box_w = 200
+    box_h = 110
+    row_height = 480
+    start_y = 270
 
     for idx, persona in enumerate(personas):
         row_y = start_y + idx * row_height
@@ -378,48 +374,46 @@ def create_personas_diagram_svg():
         result_color = C_ALLOW if is_allow else C_DENY
         result_bg = "#E8F5E9" if is_allow else "#FFEBEE"
 
-        # Persona name label
-        elements.append(txt(200, row_y, persona["name"], 24, C_USER, bold=True))
+        # Persona name
+        elements.append(txt(W//2, row_y, persona["name"], F_NAME, C_USER, bold=True))
 
         # AgentCore region highlight
-        elements.append(rrect(720, row_y + 20, 660, box_h + 30, "#EDE7F6", C_GATEWAY, stroke_width=1.5, rx=10))
-        elements.append(txt(1050, row_y + 37, "Amazon Bedrock AgentCore", 16, C_GATEWAY, italic=True))
+        elements.append(rrect(510, row_y + 30, 500, box_h + 20, "#EDE7F6", C_GATEWAY, stroke_width=1.5, rx=10))
+        elements.append(txt(760, row_y + 45, "AgentCore", 20, C_GATEWAY, italic=True))
 
-        # Box Y center
-        by = row_y + 55
+        by = row_y + 85  # box center y
 
-        # Step boxes
+        # Boxes
         steps = [
-            (200, persona["query_l1"], persona["query_l2"], "#E3F2FD", "#1565C0"),
-            (520, "LLM reasons ->", "selects MCP tool", "#FFF3E0", C_AGENT),
-            (870, "REQUEST Interceptor", "+ JWT extraction", "#E8EAF6", C_GATEWAY),
-            (1230, persona["cedar_l1"], persona["cedar_l2"], "#F3E5F5", C_CEDAR),
-            (1580, persona["tool_l1"], persona["tool_l2"], result_bg, result_color),
-            (1950, persona["resp_l1"], persona["resp_l2"], result_bg, result_color),
+            (160, persona["query_l1"], persona["query_l2"], "#E3F2FD", "#1565C0"),
+            (400, "LLM selects", "MCP tool", "#FFF3E0", C_AGENT),
+            (640, "Interceptor", "+ JWT check", "#E8EAF6", C_GATEWAY),
+            (880, persona["cedar_l1"], persona["cedar_l2"], "#F3E5F5", C_CEDAR),
+            (1120, persona["resp_l1"], persona["resp_l2"], result_bg, result_color),
         ]
 
-        for sx, line1, line2, sfill, sstroke in steps:
-            elements.append(rrect(sx - box_w//2, by - box_h//2, box_w, box_h, sfill, sstroke, stroke_width=2, rx=8))
-            elements.append(txt(sx, by - 12, line1, 18, "#222222"))
-            elements.append(txt(sx, by + 14, line2, 18, "#222222"))
+        for sx, l1, l2, sfill, sstroke in steps:
+            elements.append(rrect(sx - box_w//2, by - box_h//2, box_w, box_h, sfill, sstroke, stroke_width=2.5, rx=8))
+            elements.append(txt(sx, by - 16, l1, F_BOX, "#222222"))
+            elements.append(txt(sx, by + 16, l2, F_BOX, "#222222"))
 
-        # Arrows between boxes
-        arrow_xs = [200, 520, 870, 1230, 1580, 1950]
+        # Arrows
+        arrow_xs = [160, 400, 640, 880, 1120]
         for i in range(len(arrow_xs) - 1):
             x1 = arrow_xs[i] + box_w // 2 + 5
             x2 = arrow_xs[i + 1] - box_w // 2 - 5
             color = result_color if i >= 3 else "#333333"
-            elements.append(arrow(x1, by, x2, by, color, width=2))
+            elements.append(arrow(x1, by, x2, by, color, width=2.5))
 
-        # Decision badge between cedar and tool
-        badge_x = (1230 + 1580) // 2
-        elements.append(rrect(badge_x - 45, by - 35, 90, 28, result_color, result_color, rx=12))
-        elements.append(txt(badge_x, by - 20, persona["result"], 18, "white", bold=True))
+        # Decision badge
+        badge_x = (880 + 1120) // 2
+        elements.append(rrect(badge_x - 55, by - 50, 110, 36, result_color, result_color, rx=14))
+        elements.append(txt(badge_x, by - 31, persona["result"], F_BADGE, "white", bold=True))
 
-        # Separator line (except last)
+        # Separator
         if idx < len(personas) - 1:
-            sep_y = row_y + row_height - 50
-            elements.append(f'<line x1="80" y1="{sep_y}" x2="2120" y2="{sep_y}" stroke="#DDDDDD" stroke-width="1.5"/>')
+            sep_y = row_y + row_height - 60
+            elements.append(f'<line x1="80" y1="{sep_y}" x2="1320" y2="{sep_y}" stroke="#DDDDDD" stroke-width="2"/>')
 
     elements.append('</svg>')
     return '\n'.join(elements)
@@ -430,18 +424,16 @@ def create_personas_diagram_svg():
 # =============================================================================
 
 if __name__ == "__main__":
-    # Diagram 1
     svg1 = create_sequence_diagram_svg()
     path1 = os.path.join(OUTPUT_DIR, "sequence_diagram_access_control.svg")
     with open(path1, 'w', encoding='utf-8') as f:
         f.write(svg1)
     print(f"Saved: {path1}")
 
-    # Diagram 2
     svg2 = create_personas_diagram_svg()
     path2 = os.path.join(OUTPUT_DIR, "sequence_diagram_personas.svg")
     with open(path2, 'w', encoding='utf-8') as f:
         f.write(svg2)
     print(f"Saved: {path2}")
 
-    print("\nDone! Two SVG diagrams generated — no <style>, no <defs>, no url() refs.")
+    print("\nDone! Optimized for GitLab README display — narrower viewBox, larger fonts.")
