@@ -74,7 +74,7 @@ Three users ask similar questions but receive different results based on their C
 
 The full request lifecycle showing how user identity flows through Gateway components:
 
-![Component Interactions](../../../docs/agentcore_component_interactions.png)
+![Component Interactions](../../../docs/agentcore_component_interactions.svg)
 
 ## Key Design Principles
 

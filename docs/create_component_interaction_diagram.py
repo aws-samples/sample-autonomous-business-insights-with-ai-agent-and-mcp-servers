@@ -1,182 +1,254 @@
 #!/usr/bin/env python3
-"""Generate a high-readability PNG diagram: AgentCore Component Interactions.
+"""Generate AgentCore Component Interactions diagram as SVG with large readable fonts.
 
-Shows the full request lifecycle through:
-  USER → AGENT → GATEWAY (Interceptor → Cedar → Lambda/Deny) → AGENT → Response
-
-Optimised for clear readability at screen and print resolution.
+Outputs a pure SVG file — no rasterization, infinitely scalable, crisp text at any zoom.
+All font sizes >= 20px. Titles 44-48px. Component labels 28-32px. Body text 22-24px.
 """
 
-import matplotlib.pyplot as plt
-from matplotlib.patches import FancyBboxPatch, FancyArrowPatch
+import os
 
-# --- Larger canvas for readability ---
-fig, ax = plt.subplots(1, 1, figsize=(22, 28))
-ax.set_xlim(0, 22)
-ax.set_ylim(0, 34)
-ax.axis("off")
-fig.patch.set_facecolor("white")
+OUTPUT_DIR = os.path.dirname(os.path.abspath(__file__))
+OUTPUT_PATH = os.path.join(OUTPUT_DIR, "agentcore_component_interactions.svg")
 
-# --- Colors ---
-C_HEADER = "#232F3E"
-C_USER = "#2E73B8"
-C_AGENT = "#527FFF"
-C_GATEWAY = "#FF9900"
-C_INTERCEPT = "#E07D00"
-C_CEDAR = "#8C4FFF"
-C_LAMBDA = "#1B8A4B"
-C_DENY = "#D13212"
-C_RESPONSE = "#00796B"
-C_BG_GW = "#FFF8F0"
+# ViewBox dimensions - large enough for generous spacing
+W = 1800
+H = 2200
 
+# Colors
+C_USER = "#1565C0"
+C_USER_BG = "#E3F2FD"
+C_AGENT = "#4527A0"
+C_AGENT_BG = "#EDE7F6"
+C_GATEWAY = "#E65100"
+C_GATEWAY_BG = "#FFF8E1"
+C_INTERCEPT = "#BF360C"
+C_INTERCEPT_BG = "#FBE9E7"
+C_CEDAR = "#6A1B9A"
+C_CEDAR_BG = "#F3E5F5"
+C_ALLOW = "#2E7D32"
+C_ALLOW_BG = "#E8F5E9"
+C_DENY = "#C62828"
+C_DENY_BG = "#FFEBEE"
+C_RESPONSE = "#00695C"
+C_RESPONSE_BG = "#E0F2F1"
+C_TITLE = "#1a1a2e"
+C_ARROW = "#444444"
 
-def draw_box(x, y, w, h, label, color, fontsize=14, sublabel=None, sublabel_size=11):
-    """Draw a rounded box with label."""
-    box = FancyBboxPatch((x, y), w, h, boxstyle="round,pad=0.15",
-                         facecolor=color, edgecolor=color, alpha=0.12)
-    ax.add_patch(box)
-    border = FancyBboxPatch((x, y), w, h, boxstyle="round,pad=0.15",
-                            facecolor="none", edgecolor=color, linewidth=2.0)
-    ax.add_patch(border)
-    text_y = y + h / 2 + (0.25 if sublabel else 0)
-    ax.text(x + w / 2, text_y, label, ha="center", va="center",
-            fontsize=fontsize, fontweight="bold", color=color)
-    if sublabel:
-        ax.text(x + w / 2, y + h / 2 - 0.45, sublabel, ha="center", va="center",
-                fontsize=sublabel_size, color=color, alpha=0.85)
-
-
-def draw_arrow(x1, y1, x2, y2, label="", color="black", fontsize=11, curved=False, offset_y=0.35):
-    """Draw arrow with optional label."""
-    if curved:
-        arrow = FancyArrowPatch((x1, y1), (x2, y2),
-                                arrowstyle="-|>", mutation_scale=15,
-                                color=color, linewidth=1.8,
-                                connectionstyle="arc3,rad=0.2")
-    else:
-        arrow = FancyArrowPatch((x1, y1), (x2, y2),
-                                arrowstyle="-|>", mutation_scale=15,
-                                color=color, linewidth=1.8)
-    ax.add_patch(arrow)
-    if label:
-        mid_x = (x1 + x2) / 2
-        mid_y = (y1 + y2) / 2
-        ax.text(mid_x, mid_y + offset_y, label, ha="center", va="bottom",
-                fontsize=fontsize, color=color, style="italic")
+# Font sizes
+F_TITLE = 46
+F_SUBTITLE = 24
+F_BOX_TITLE = 30
+F_BOX_BODY = 22
+F_LABEL = 21
+F_MONO = 20
+F_PRINCIPLE = 22
 
 
-# === Title ===
-ax.text(11, 33, "AgentCore Component Interactions", ha="center", va="center",
-        fontsize=22, fontweight="bold", color=C_HEADER)
-ax.text(11, 32.2, "Full Request Lifecycle: Authentication → Enrichment → Authorization → Execution → Response",
-        ha="center", va="center", fontsize=13, color="#555555")
+def rounded_rect(x, y, w, h, fill, stroke, stroke_width=3, rx=12):
+    return f'<rect x="{x}" y="{y}" width="{w}" height="{h}" rx="{rx}" ry="{rx}" fill="{fill}" stroke="{stroke}" stroke-width="{stroke_width}"/>'
 
-# === Step 1: USER → Identity ===
-draw_box(1, 29.8, 4.5, 1.6, "USER", C_USER, fontsize=16, sublabel="Authenticates via IdP")
-draw_box(8, 29.8, 5.5, 1.6, "Cognito / IdP", C_USER, fontsize=16, sublabel="Issues JWT with scope claims")
-draw_arrow(5.5, 30.6, 8.0, 30.6, "Login", C_USER, fontsize=12)
 
-# JWT annotation
-ax.text(15.5, 30.6, "JWT: { role, line_scope,\n         equipment_scope, plant_scope }",
-        ha="left", va="center", fontsize=11, color=C_USER,
-        family="monospace",
-        bbox=dict(boxstyle="round,pad=0.4", facecolor="#EBF5FB", edgecolor=C_USER, linewidth=1.0))
+def text_elem(x, y, content, size, color, bold=False, italic=False, anchor="middle", mono=False):
+    weight = ' font-weight="bold"' if bold else ''
+    style = ' font-style="italic"' if italic else ''
+    family = ' font-family="Courier New, monospace"' if mono else ' font-family="Segoe UI, Helvetica, Arial, sans-serif"'
+    return f'<text x="{x}" y="{y}" font-size="{size}"{family}{weight}{style} fill="{color}" text-anchor="{anchor}">{content}</text>'
 
-# === Step 2: AGENT ===
-draw_box(2.5, 26.5, 17.0, 2.0, "AGENT (Strands + Amazon Bedrock Claude)", C_AGENT, fontsize=16,
-         sublabel="System prompt includes: identity + scope + memory context. LLM decides which tools to call.",
-         sublabel_size=12)
-draw_arrow(11.0, 29.8, 11.0, 28.5, "JWT passed to agent session", C_USER, fontsize=11)
 
-# === Step 3: GATEWAY (big container) ===
-gw_y = 5.5
-gw_h = 19.5
-gw_box = FancyBboxPatch((1.5, gw_y), 19.0, gw_h, boxstyle="round,pad=0.3",
-                         facecolor=C_BG_GW, edgecolor=C_GATEWAY, linewidth=2.5)
-ax.add_patch(gw_box)
-ax.text(11.0, gw_y + gw_h - 0.7, "AgentCore GATEWAY", ha="center", va="center",
-        fontsize=18, fontweight="bold", color=C_GATEWAY)
-ax.text(11.0, gw_y + gw_h - 1.5, "Single entry point — every tool call flows through here",
-        ha="center", va="center", fontsize=12, color=C_GATEWAY, alpha=0.7)
+def arrow_down(x, y1, y2, color=C_ARROW):
+    mid = x
+    return f'''<line x1="{mid}" y1="{y1}" x2="{mid}" y2="{y2}" stroke="{color}" stroke-width="3" marker-end="url(#arrowhead-{color.replace('#','')})"/>'''
 
-# Arrow: Agent → Gateway
-draw_arrow(11.0, 26.5, 11.0, gw_y + gw_h, "tools/call (MCP JSON-RPC)", C_AGENT, fontsize=12)
 
-# --- Inside Gateway ---
+def arrow_right(x1, y, x2, color=C_ARROW):
+    return f'''<line x1="{x1}" y1="{y}" x2="{x2}" y2="{y}" stroke="{color}" stroke-width="3" marker-end="url(#arrowhead-{color.replace('#','')})"/>'''
 
-# Step 3a: JWT Validation
-draw_box(3.0, 22.0, 7.0, 1.4, "1. Validate JWT Signature", C_GATEWAY, fontsize=13,
-         sublabel="Cognito JWKS verification", sublabel_size=11)
 
-# Step 3b: REQUEST Interceptor
-draw_box(3.0, 19.5, 7.0, 1.8, "2. REQUEST Interceptor (Lambda)", C_INTERCEPT, fontsize=13,
-         sublabel="Decode JWT claims → inject user_context\ninto tool arguments + set x-user-role header",
-         sublabel_size=10)
+def arrow_diag(x1, y1, x2, y2, color=C_ARROW):
+    return f'''<line x1="{x1}" y1="{y1}" x2="{x2}" y2="{y2}" stroke="{color}" stroke-width="3" marker-end="url(#arrowhead-{color.replace('#','')})"/>'''
 
-# Step 3c: Cedar Policy Engine
-draw_box(3.0, 15.0, 16.0, 3.5, "3. CEDAR Policy Engine", C_CEDAR, fontsize=16)
-# Cedar details
-cedar_text = (
-    "permit_all → PERMIT (baseline)\n"
-    "forbid_line_scope → check line param vs user scope\n"
-    "forbid_equipment_scope → check machine_id vs user scope\n"
-    "forbid_plant_scope → check plant param vs user scope\n\n"
-    "Rule: forbid > permit > deny-by-default"
-)
-ax.text(11.0, 16.4, cedar_text, ha="center", va="center", fontsize=10,
-        color=C_CEDAR, family="monospace", linespacing=1.5)
 
-# Arrows within gateway
-draw_arrow(6.5, 22.0, 6.5, 21.4, "", C_GATEWAY)
-draw_arrow(6.5, 19.5, 6.5, 18.7, "", C_INTERCEPT)
+def build_svg():
+    elements = []
 
-# Step 3d: Decision fork
-# ALLOW path (left)
-draw_box(2.5, 10.5, 7.5, 2.0, "ALLOW", C_LAMBDA, fontsize=16,
-         sublabel="Invoke Lambda Tool Target\nExecute tool logic, return data", sublabel_size=11)
-draw_arrow(7.0, 15.0, 6.25, 12.5, "PERMIT", C_LAMBDA, fontsize=12)
+    # Collect all arrow colors for marker definitions
+    arrow_colors = {C_ARROW, C_USER, C_AGENT, C_INTERCEPT, C_ALLOW, C_DENY, C_RESPONSE, C_GATEWAY, C_CEDAR, C_TITLE}
 
-# DENY path (right)
-draw_box(12.0, 10.5, 7.5, 2.0, "DENY", C_DENY, fontsize=16,
-         sublabel='"[Policy] Access denied.\nNot authorized for Line 4"', sublabel_size=11)
-draw_arrow(14.0, 15.0, 15.75, 12.5, "FORBID", C_DENY, fontsize=12)
+    # SVG header
+    elements.append(f'''<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {W} {H}" width="{W}" height="{H}">
+<style>
+  text {{ dominant-baseline: middle; }}
+</style>
+<defs>''')
 
-# Step 3e: RESPONSE Interceptor
-draw_box(3.0, 7.0, 16.0, 1.6, "4. RESPONSE Interceptor (Lambda)", C_RESPONSE, fontsize=14,
-         sublabel="tools/list → filter by role  |  tool results → pass through", sublabel_size=11)
-draw_arrow(6.25, 10.5, 8.0, 8.6, "", C_LAMBDA)
-draw_arrow(15.75, 10.5, 14.0, 8.6, "", C_DENY)
+    # Arrow markers for each color
+    for color in arrow_colors:
+        cid = color.replace('#', '')
+        elements.append(f'''  <marker id="arrowhead-{cid}" markerWidth="12" markerHeight="8" refX="10" refY="4" orient="auto">
+    <polygon points="0 0, 12 4, 0 8" fill="{color}"/>
+  </marker>''')
 
-# === Step 4: Back to AGENT ===
-draw_box(3.0, 2.5, 16.0, 2.5, "AGENT Receives Result", C_AGENT, fontsize=16)
-allow_text = 'ALLOW → synthesizes data into human-readable response'
-deny_text = 'DENY  → explains scope limit, suggests alternative within scope'
-ax.text(11.0, 4.0, allow_text, ha="center", va="center", fontsize=12, color=C_LAMBDA)
-ax.text(11.0, 3.2, deny_text, ha="center", va="center", fontsize=12, color=C_DENY)
+    elements.append('</defs>')
 
-draw_arrow(11.0, 7.0, 11.0, 5.0, "", C_HEADER)
+    # Background
+    elements.append(f'<rect width="{W}" height="{H}" fill="white"/>')
 
-# === Step 5: Key Principles Footer ===
-ax.text(11.0, 1.8, "Design Principles", ha="center", va="center",
-        fontsize=14, fontweight="bold", color=C_HEADER)
+    # ===== TITLE =====
+    elements.append(text_elem(W//2, 55, "AgentCore Component Interactions", F_TITLE, C_TITLE, bold=True))
+    elements.append(text_elem(W//2, 92, "Authentication → Enrichment → Authorization → Execution → Response", F_SUBTITLE, "#555555"))
 
-principles = [
-    ("LLM decides WHAT", "Cedar decides IF"),
-    ("Fail-secure", "No permit = DENY"),
-    ("Parameter-level access", "Same tool, different params\n= different decision"),
-    ("MCP servers auth-unaware", "Zero access control\nin Lambdas"),
-]
+    # ===== ROW 1: User → Cognito =====
+    # User box
+    uy = 125
+    elements.append(rounded_rect(60, uy, 320, 80, C_USER_BG, C_USER))
+    elements.append(text_elem(220, uy + 43, "User / Client", F_BOX_TITLE, C_USER, bold=True))
 
-for i, (principle, detail) in enumerate(principles):
-    x_pos = 2.0 + (i * 5.2)
-    ax.text(x_pos, 1.0, f"▸ {principle}", ha="left", va="center",
-            fontsize=11, fontweight="bold", color=C_HEADER)
-    ax.text(x_pos, 0.3, f"  {detail}", ha="left", va="center",
-            fontsize=9.5, color="#555555")
+    # Arrow User → Cognito
+    elements.append(arrow_right(380, uy + 40, 520, C_USER))
+    elements.append(text_elem(450, uy + 22, "Login", F_LABEL, C_USER, italic=True))
 
-# === Save at high DPI ===
-output_path = "/Users/hisuds/Suds/Official/Kiro/sample-autonomous-business-insights-with-ai-agent-and-mcp-servers/docs/agentcore_component_interactions.png"
-plt.tight_layout(pad=1.0)
-plt.savefig(output_path, dpi=150, bbox_inches="tight", facecolor="white")
-plt.close()
-print(f"✅ Saved: {output_path}")
+    # Cognito box
+    elements.append(rounded_rect(520, uy, 400, 80, C_USER_BG, C_USER))
+    elements.append(text_elem(720, uy + 43, "Amazon Cognito / IdP", F_BOX_TITLE, C_USER, bold=True))
+
+    # JWT Claims annotation
+    jx = 1050
+    elements.append(rounded_rect(jx, uy - 10, 380, 100, C_USER_BG, C_USER, stroke_width=2))
+    elements.append(text_elem(jx + 190, uy + 15, "JWT Claims:", F_BOX_BODY, C_USER, bold=True))
+    elements.append(text_elem(jx + 190, uy + 42, "role, line_scope,", F_MONO, C_USER, mono=True))
+    elements.append(text_elem(jx + 190, uy + 67, "equipment_scope", F_MONO, C_USER, mono=True))
+
+    # Arrow Cognito → JWT (return)
+    elements.append(arrow_right(920, uy + 40, 1050, C_USER))
+    elements.append(text_elem(985, uy + 22, "JWT", F_LABEL, C_USER, italic=True))
+
+    # ===== Arrow down to Agent =====
+    elements.append(arrow_down(720, 205, 250, C_USER))
+
+    # ===== ROW 2: AGENT =====
+    ay = 260
+    elements.append(rounded_rect(160, ay, 1120, 100, C_AGENT_BG, C_AGENT))
+    elements.append(text_elem(720, ay + 38, "AI AGENT (Strands SDK + Amazon Bedrock Claude)", F_BOX_TITLE, C_AGENT, bold=True))
+    elements.append(text_elem(720, ay + 72, "System prompt: identity + scope + memory. LLM decides which tools to call.", F_BOX_BODY, C_AGENT))
+
+    # Arrow Agent → Gateway
+    elements.append(arrow_down(720, 360, 400, C_AGENT))
+    elements.append(text_elem(740, 382, "tools/call (MCP JSON-RPC)", F_LABEL, C_AGENT, italic=True, anchor="start"))
+
+    # ===== GATEWAY CONTAINER =====
+    gw_y = 410
+    gw_h = 1350
+    elements.append(rounded_rect(80, gw_y, 1640, gw_h, C_GATEWAY_BG, C_GATEWAY, stroke_width=4, rx=16))
+    elements.append(text_elem(W//2, gw_y + 45, "AgentCore GATEWAY", 38, C_GATEWAY, bold=True))
+    elements.append(text_elem(W//2, gw_y + 80, "Single entry point — every tool call flows through here", F_BOX_BODY, C_GATEWAY))
+
+    # --- Step 1: JWT Validation ---
+    jv_y = gw_y + 110
+    elements.append(rounded_rect(180, jv_y, 1440, 90, "#FFF8E1", C_GATEWAY))
+    elements.append(text_elem(W//2, jv_y + 35, "1. Validate JWT Signature", F_BOX_TITLE, C_GATEWAY, bold=True))
+    elements.append(text_elem(W//2, jv_y + 66, "Cognito JWKS verification — reject expired/invalid tokens", F_BOX_BODY, C_GATEWAY))
+
+    # Arrow down
+    elements.append(arrow_down(W//2, jv_y + 90, jv_y + 120, C_GATEWAY))
+
+    # --- Step 2: Request Interceptor ---
+    ri_y = jv_y + 130
+    elements.append(rounded_rect(180, ri_y, 1440, 90, C_INTERCEPT_BG, C_INTERCEPT))
+    elements.append(text_elem(W//2, ri_y + 35, "2. REQUEST Interceptor (Lambda)", F_BOX_TITLE, C_INTERCEPT, bold=True))
+    elements.append(text_elem(W//2, ri_y + 66, "Decode JWT → inject user_context into tool args + set x-user-role header", F_BOX_BODY, C_INTERCEPT))
+
+    # Arrow down
+    elements.append(arrow_down(W//2, ri_y + 90, ri_y + 120, C_INTERCEPT))
+
+    # --- Step 3: Cedar Policy Engine ---
+    ce_y = ri_y + 130
+    ce_h = 310
+    elements.append(rounded_rect(180, ce_y, 1440, ce_h, C_CEDAR_BG, C_CEDAR))
+    elements.append(text_elem(W//2, ce_y + 38, "3. CEDAR Policy Engine", F_BOX_TITLE, C_CEDAR, bold=True))
+
+    cedar_lines = [
+        "permit_all → PERMIT (baseline access)",
+        "forbid_line_scope → check line param vs user scope",
+        "forbid_equipment_scope → check machine_id vs user scope",
+        "forbid_plant_scope → check plant param vs user scope",
+        "",
+        "Priority: forbid > permit > deny-by-default",
+    ]
+    cy = ce_y + 80
+    for line in cedar_lines:
+        if line:
+            elements.append(text_elem(W//2, cy, line, F_MONO, C_CEDAR, mono=True))
+        cy += 38
+
+    # --- Step 4: ALLOW / DENY fork ---
+    fork_y = ce_y + ce_h + 10
+
+    # ALLOW arrow (left)
+    elements.append(arrow_diag(580, ce_y + ce_h, 420, fork_y + 40, C_ALLOW))
+    elements.append(text_elem(480, fork_y + 15, "PERMIT", F_LABEL, C_ALLOW, bold=True))
+
+    # DENY arrow (right)
+    elements.append(arrow_diag(1220, ce_y + ce_h, 1380, fork_y + 40, C_DENY))
+    elements.append(text_elem(1320, fork_y + 15, "FORBID", F_LABEL, C_DENY, bold=True))
+
+    # ALLOW box
+    allow_y = fork_y + 50
+    elements.append(rounded_rect(140, allow_y, 620, 150, C_ALLOW_BG, C_ALLOW))
+    elements.append(text_elem(450, allow_y + 38, "ALLOW", F_BOX_TITLE, C_ALLOW, bold=True))
+    elements.append(text_elem(450, allow_y + 75, "Invoke Lambda Tool Target", F_BOX_BODY, C_ALLOW))
+    elements.append(text_elem(450, allow_y + 105, "Execute tool logic, return data", F_BOX_BODY, C_ALLOW))
+
+    # DENY box
+    elements.append(rounded_rect(1040, allow_y, 620, 150, C_DENY_BG, C_DENY))
+    elements.append(text_elem(1350, allow_y + 38, "DENY", F_BOX_TITLE, C_DENY, bold=True))
+    elements.append(text_elem(1350, allow_y + 75, '"[Policy] Access denied."', F_BOX_BODY, C_DENY))
+    elements.append(text_elem(1350, allow_y + 105, '"Not authorized for Line 4"', F_BOX_BODY, C_DENY))
+
+    # Arrows from ALLOW/DENY down to Response Interceptor
+    resp_y = allow_y + 210
+    elements.append(arrow_diag(450, allow_y + 150, 720, resp_y, C_ALLOW))
+    elements.append(arrow_diag(1350, allow_y + 150, 1080, resp_y, C_DENY))
+
+    # --- Step 5: Response Interceptor ---
+    elements.append(rounded_rect(180, resp_y, 1440, 90, C_RESPONSE_BG, C_RESPONSE))
+    elements.append(text_elem(W//2, resp_y + 35, "4. RESPONSE Interceptor (Lambda)", F_BOX_TITLE, C_RESPONSE, bold=True))
+    elements.append(text_elem(W//2, resp_y + 66, "tools/list → filter by role  |  tool results → pass through", F_BOX_BODY, C_RESPONSE))
+
+    # Arrow out of gateway
+    elements.append(arrow_down(W//2, resp_y + 90, gw_y + gw_h + 30, C_RESPONSE))
+
+    # ===== ROW: Agent Receives Result =====
+    ar_y = gw_y + gw_h + 40
+    elements.append(rounded_rect(160, ar_y, 1480, 130, C_AGENT_BG, C_AGENT))
+    elements.append(text_elem(W//2, ar_y + 38, "AGENT Receives Result", F_BOX_TITLE, C_AGENT, bold=True))
+    elements.append(text_elem(W//2, ar_y + 75, "ALLOW → synthesizes data into human-readable response", F_BOX_BODY, C_ALLOW))
+    elements.append(text_elem(W//2, ar_y + 105, "DENY → explains scope limit, suggests alternative within user's scope", F_BOX_BODY, C_DENY))
+
+    # ===== DESIGN PRINCIPLES =====
+    dp_y = ar_y + 160
+    elements.append(text_elem(W//2, dp_y, "Design Principles", 32, C_TITLE, bold=True))
+
+    principles = [
+        "▸  LLM decides WHAT to do, Cedar decides IF it's allowed",
+        "▸  Fail-secure: No explicit permit = DENY",
+        "▸  Parameter-level access control: Same tool, different data scope",
+        "▸  MCP servers are auth-unaware: Zero access control logic in Lambdas",
+    ]
+    py = dp_y + 42
+    for p in principles:
+        elements.append(text_elem(200, py, p, F_PRINCIPLE, C_TITLE, anchor="start"))
+        py += 38
+
+    # Close SVG
+    elements.append('</svg>')
+
+    return '\n'.join(elements)
+
+
+if __name__ == "__main__":
+    svg_content = build_svg()
+    with open(OUTPUT_PATH, 'w', encoding='utf-8') as f:
+        f.write(svg_content)
+    print(f"SVG saved: {OUTPUT_PATH}")
+    print(f"ViewBox: {W}x{H}, all fonts >= {F_MONO}px")
