@@ -1,134 +1,146 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1400 4200" width="1400" height="4200">
-<rect width="1400" height="4200" fill="white"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2400 5400" width="2400" height="5400">
+<rect width="2400" height="5400" fill="white"/>
 
-<text x="700" y="60" font-size="52" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-weight="bold" fill="#232F3E" text-anchor="middle" dominant-baseline="middle">AgentCore Gateway: Access Control</text>
-<text x="700" y="110" font-size="30" font-family="Segoe UI, Helvetica, Arial, sans-serif" fill="#444444" text-anchor="middle" dominant-baseline="middle">REQUEST/RESPONSE Interceptors + Cedar Authorization</text>
-<rect x="40" y="160" width="160" height="85" rx="8" fill="#232F3E" stroke="#232F3E" stroke-width="2"/>
-<text x="120" y="190" font-size="28" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-weight="bold" fill="white" text-anchor="middle" dominant-baseline="middle">User</text>
-<text x="120" y="220" font-size="24" font-family="Segoe UI, Helvetica, Arial, sans-serif" fill="white" text-anchor="middle" dominant-baseline="middle">(Ravi)</text>
-<line x1="120" y1="245" x2="120" y2="3980" stroke="#CCCCCC" stroke-width="2" stroke-dasharray="8,5"/>
-<rect x="40" y="3980" width="160" height="85" rx="8" fill="#232F3E" stroke="#232F3E" stroke-width="2"/>
-<text x="120" y="4010" font-size="28" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-weight="bold" fill="white" text-anchor="middle" dominant-baseline="middle">User</text>
-<text x="120" y="4040" font-size="24" font-family="Segoe UI, Helvetica, Arial, sans-serif" fill="white" text-anchor="middle" dominant-baseline="middle">(Ravi)</text>
-<rect x="280" y="160" width="160" height="85" rx="8" fill="#B71C1C" stroke="#B71C1C" stroke-width="2"/>
-<text x="360" y="190" font-size="28" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-weight="bold" fill="white" text-anchor="middle" dominant-baseline="middle">Cognito</text>
-<text x="360" y="220" font-size="24" font-family="Segoe UI, Helvetica, Arial, sans-serif" fill="white" text-anchor="middle" dominant-baseline="middle">(IdP)</text>
-<line x1="360" y1="245" x2="360" y2="3980" stroke="#CCCCCC" stroke-width="2" stroke-dasharray="8,5"/>
-<rect x="280" y="3980" width="160" height="85" rx="8" fill="#B71C1C" stroke="#B71C1C" stroke-width="2"/>
-<text x="360" y="4010" font-size="28" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-weight="bold" fill="white" text-anchor="middle" dominant-baseline="middle">Cognito</text>
-<text x="360" y="4040" font-size="24" font-family="Segoe UI, Helvetica, Arial, sans-serif" fill="white" text-anchor="middle" dominant-baseline="middle">(IdP)</text>
-<rect x="520" y="160" width="160" height="85" rx="8" fill="#C43E00" stroke="#C43E00" stroke-width="2"/>
-<text x="600" y="190" font-size="28" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-weight="bold" fill="white" text-anchor="middle" dominant-baseline="middle">Agent</text>
-<text x="600" y="220" font-size="24" font-family="Segoe UI, Helvetica, Arial, sans-serif" fill="white" text-anchor="middle" dominant-baseline="middle">(Strands)</text>
-<line x1="600" y1="245" x2="600" y2="3980" stroke="#CCCCCC" stroke-width="2" stroke-dasharray="8,5"/>
-<rect x="520" y="3980" width="160" height="85" rx="8" fill="#C43E00" stroke="#C43E00" stroke-width="2"/>
-<text x="600" y="4010" font-size="28" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-weight="bold" fill="white" text-anchor="middle" dominant-baseline="middle">Agent</text>
-<text x="600" y="4040" font-size="24" font-family="Segoe UI, Helvetica, Arial, sans-serif" fill="white" text-anchor="middle" dominant-baseline="middle">(Strands)</text>
-<rect x="800" y="160" width="160" height="85" rx="8" fill="#1A237E" stroke="#1A237E" stroke-width="2"/>
-<text x="880" y="190" font-size="28" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-weight="bold" fill="white" text-anchor="middle" dominant-baseline="middle">Gateway</text>
-<text x="880" y="220" font-size="24" font-family="Segoe UI, Helvetica, Arial, sans-serif" fill="white" text-anchor="middle" dominant-baseline="middle">(AgentCore)</text>
-<line x1="880" y1="245" x2="880" y2="3980" stroke="#CCCCCC" stroke-width="2" stroke-dasharray="8,5"/>
-<rect x="800" y="3980" width="160" height="85" rx="8" fill="#1A237E" stroke="#1A237E" stroke-width="2"/>
-<text x="880" y="4010" font-size="28" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-weight="bold" fill="white" text-anchor="middle" dominant-baseline="middle">Gateway</text>
-<text x="880" y="4040" font-size="24" font-family="Segoe UI, Helvetica, Arial, sans-serif" fill="white" text-anchor="middle" dominant-baseline="middle">(AgentCore)</text>
-<rect x="1070" y="160" width="160" height="85" rx="8" fill="#4A148C" stroke="#4A148C" stroke-width="2"/>
-<text x="1150" y="190" font-size="28" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-weight="bold" fill="white" text-anchor="middle" dominant-baseline="middle">Cedar</text>
-<text x="1150" y="220" font-size="24" font-family="Segoe UI, Helvetica, Arial, sans-serif" fill="white" text-anchor="middle" dominant-baseline="middle">(Policy)</text>
-<line x1="1150" y1="245" x2="1150" y2="3980" stroke="#CCCCCC" stroke-width="2" stroke-dasharray="8,5"/>
-<rect x="1070" y="3980" width="160" height="85" rx="8" fill="#4A148C" stroke="#4A148C" stroke-width="2"/>
-<text x="1150" y="4010" font-size="28" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-weight="bold" fill="white" text-anchor="middle" dominant-baseline="middle">Cedar</text>
-<text x="1150" y="4040" font-size="24" font-family="Segoe UI, Helvetica, Arial, sans-serif" fill="white" text-anchor="middle" dominant-baseline="middle">(Policy)</text>
-<text x="60" y="310" font-size="32" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-weight="bold" fill="#222222" text-anchor="start" dominant-baseline="middle">Authentication</text>
-<line x1="50" y1="325" x2="1350" y2="325" stroke="#EEEEEE" stroke-width="1.5"/>
-<line x1="120" y1="380" x2="353.0" y2="380.0" stroke="#232F3E" stroke-width="3"/>
-<polygon points="360,380 346.0,387.0 346.0,373.0" fill="#232F3E"/>
-<text x="240" y="355" font-size="28" font-family="Segoe UI, Helvetica, Arial, sans-serif" fill="#232F3E" text-anchor="middle" dominant-baseline="middle">1. Login</text>
-<line x1="360" y1="470" x2="127.0" y2="470.0" stroke="#B71C1C" stroke-width="3" stroke-dasharray="10,6"/>
-<polygon points="120,470 134.0,463.0 134.0,477.0" fill="#B71C1C"/>
-<text x="240" y="445" font-size="28" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-style="italic" fill="#B71C1C" text-anchor="middle" dominant-baseline="middle">2. JWT token</text>
-<rect x="220" y="510" width="280" height="130" rx="8" fill="#E3F2FD" stroke="#B71C1C" stroke-width="2"/>
-<text x="360" y="540" font-size="26" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-weight="bold" fill="#B71C1C" text-anchor="middle" dominant-baseline="middle">JWT Claims:</text>
-<text x="360" y="572" font-size="24" font-family="Courier New, monospace" fill="#B71C1C" text-anchor="middle" dominant-baseline="middle">role: line_supervisor</text>
-<text x="360" y="602" font-size="24" font-family="Courier New, monospace" fill="#B71C1C" text-anchor="middle" dominant-baseline="middle">line_scope: Line 7</text>
-<text x="360" y="628" font-size="24" font-family="Courier New, monospace" fill="#B71C1C" text-anchor="middle" dominant-baseline="middle">plant_scope: Plant 2</text>
-<text x="60" y="700" font-size="32" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-weight="bold" fill="#222222" text-anchor="start" dominant-baseline="middle">Tool Invocation</text>
-<line x1="50" y1="715" x2="1350" y2="715" stroke="#EEEEEE" stroke-width="1.5"/>
-<line x1="120" y1="780" x2="593.0" y2="780.0" stroke="#232F3E" stroke-width="3"/>
-<polygon points="600,780 586.0,787.0 586.0,773.0" fill="#232F3E"/>
-<text x="360" y="755" font-size="28" font-family="Segoe UI, Helvetica, Arial, sans-serif" fill="#232F3E" text-anchor="middle" dominant-baseline="middle">3. &quot;OEE for Line 7?&quot;</text>
-<rect x="430" y="840" width="340" height="65" rx="8" fill="#FFF3E0" stroke="#C43E00" stroke-width="2"/>
-<text x="600" y="870" font-size="26" font-family="Segoe UI, Helvetica, Arial, sans-serif" fill="#C43E00" text-anchor="middle" dominant-baseline="middle">4. LLM: get_oee_trends</text>
-<line x1="600" y1="980" x2="873.0" y2="980.0" stroke="#C43E00" stroke-width="3"/>
-<polygon points="880,980 866.0,987.0 866.0,973.0" fill="#C43E00"/>
-<text x="740" y="955" font-size="28" font-family="Segoe UI, Helvetica, Arial, sans-serif" fill="#C43E00" text-anchor="middle" dominant-baseline="middle">5. MCP call + JWT</text>
-<rect x="870" y="985" width="20" height="600" rx="3" fill="#1A237E" stroke="#1A237E" stroke-width="0"/>
-<text x="60" y="1080" font-size="32" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-weight="bold" fill="#222222" text-anchor="start" dominant-baseline="middle">Enrichment</text>
-<line x1="50" y1="1095" x2="1350" y2="1095" stroke="#EEEEEE" stroke-width="1.5"/>
-<rect x="680" y="1130" width="400" height="110" rx="8" fill="#E8F5E9" stroke="#1B5E20" stroke-width="2"/>
-<text x="880" y="1160" font-size="26" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-weight="bold" fill="#1B5E20" text-anchor="middle" dominant-baseline="middle">6-7. REQUEST Interceptor:</text>
-<text x="880" y="1195" font-size="24" font-family="Segoe UI, Helvetica, Arial, sans-serif" fill="#1B5E20" text-anchor="middle" dominant-baseline="middle">Decode JWT, extract scope</text>
-<text x="880" y="1225" font-size="24" font-family="Segoe UI, Helvetica, Arial, sans-serif" fill="#1B5E20" text-anchor="middle" dominant-baseline="middle">Inject user_context into args</text>
-<text x="60" y="1350" font-size="32" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-weight="bold" fill="#222222" text-anchor="start" dominant-baseline="middle">Authorization</text>
-<line x1="50" y1="1365" x2="1350" y2="1365" stroke="#EEEEEE" stroke-width="1.5"/>
-<line x1="880" y1="1430" x2="1143.0" y2="1430.0" stroke="#1A237E" stroke-width="3"/>
-<polygon points="1150,1430 1136.0,1437.0 1136.0,1423.0" fill="#1A237E"/>
-<text x="1015" y="1405" font-size="28" font-family="Segoe UI, Helvetica, Arial, sans-serif" fill="#1A237E" text-anchor="middle" dominant-baseline="middle">8. Evaluate</text>
-<rect x="1140" y="1435" width="20" height="250" rx="3" fill="#4A148C" stroke="#4A148C" stroke-width="0"/>
-<rect x="950" y="1480" width="400" height="180" rx="8" fill="#F3E5F5" stroke="#4A148C" stroke-width="2"/>
-<text x="1150" y="1510" font-size="26" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-weight="bold" fill="#4A148C" text-anchor="middle" dominant-baseline="middle">Cedar Evaluation:</text>
-<text x="1150" y="1545" font-size="24" font-family="Courier New, monospace" fill="#4A148C" text-anchor="middle" dominant-baseline="middle">permit_all -&gt; PERMIT</text>
-<text x="1150" y="1575" font-size="24" font-family="Courier New, monospace" fill="#4A148C" text-anchor="middle" dominant-baseline="middle">forbid_line_scope:</text>
-<text x="1150" y="1605" font-size="24" font-family="Courier New, monospace" fill="#4A148C" text-anchor="middle" dominant-baseline="middle">'Line 7' in scope? YES</text>
-<text x="1150" y="1635" font-size="26" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-weight="bold" fill="#1B5E20" text-anchor="middle" dominant-baseline="middle">Result: ALLOW</text>
-<rect x="50" y="1780" width="1300" height="1570" fill="none" stroke="#555555" stroke-width="3" rx="8"/>
-<text x="90" y="1820" font-size="34" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-weight="bold" fill="#444444" text-anchor="start" dominant-baseline="middle">alt</text>
-<line x1="50" y1="2650" x2="1350" y2="2650" stroke="#555555" stroke-width="2" stroke-dasharray="10,5"/>
-<text x="150" y="1865" font-size="28" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-weight="bold" fill="#1B5E20" text-anchor="start" dominant-baseline="middle">[ALLOW - in scope]</text>
-<text x="150" y="2695" font-size="28" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-weight="bold" fill="#B71C1C" text-anchor="start" dominant-baseline="middle">[DENY - out of scope]</text>
-<line x1="1150" y1="1900" x2="887.0" y2="1900.0" stroke="#1B5E20" stroke-width="3" stroke-dasharray="10,6"/>
-<polygon points="880,1900 894.0,1893.0 894.0,1907.0" fill="#1B5E20"/>
-<text x="1015" y="1875" font-size="28" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-weight="bold" fill="#1B5E20" text-anchor="middle" dominant-baseline="middle">9a. ALLOW</text>
-<rect x="680" y="1970" width="400" height="70" rx="8" fill="#E8F5E9" stroke="#1B5E20" stroke-width="2"/>
-<text x="880" y="2005" font-size="26" font-family="Segoe UI, Helvetica, Arial, sans-serif" fill="#1B5E20" text-anchor="middle" dominant-baseline="middle">10a. Execute Lambda tool</text>
-<rect x="680" y="2100" width="400" height="70" rx="8" fill="#E8F5E9" stroke="#004D40" stroke-width="2"/>
-<text x="880" y="2135" font-size="26" font-family="Segoe UI, Helvetica, Arial, sans-serif" fill="#004D40" text-anchor="middle" dominant-baseline="middle">11a. Return OEE data</text>
-<line x1="880" y1="2260" x2="607.0" y2="2260.0" stroke="#1A237E" stroke-width="3" stroke-dasharray="10,6"/>
-<polygon points="600,2260 614.0,2253.0 614.0,2267.0" fill="#1A237E"/>
-<text x="740" y="2235" font-size="28" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-style="italic" fill="#1A237E" text-anchor="middle" dominant-baseline="middle">12a. Tool result</text>
-<line x1="600" y1="2380" x2="127.0" y2="2380.0" stroke="#C43E00" stroke-width="3" stroke-dasharray="10,6"/>
-<polygon points="120,2380 134.0,2373.0 134.0,2387.0" fill="#C43E00"/>
-<text x="360" y="2355" font-size="28" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-style="italic" fill="#C43E00" text-anchor="middle" dominant-baseline="middle">13a. Data summary</text>
-<line x1="1150" y1="2750" x2="887.0" y2="2750.0" stroke="#B71C1C" stroke-width="3" stroke-dasharray="10,6"/>
-<polygon points="880,2750 894.0,2743.0 894.0,2757.0" fill="#B71C1C"/>
-<text x="1015" y="2725" font-size="28" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-weight="bold" fill="#B71C1C" text-anchor="middle" dominant-baseline="middle">9b. DENY</text>
-<rect x="680" y="2830" width="400" height="80" rx="8" fill="#FFEBEE" stroke="#B71C1C" stroke-width="2"/>
-<text x="880" y="2860" font-size="26" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-weight="bold" fill="#B71C1C" text-anchor="middle" dominant-baseline="middle">MCP Server NEVER</text>
-<text x="880" y="2892" font-size="26" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-weight="bold" fill="#B71C1C" text-anchor="middle" dominant-baseline="middle">INVOKED</text>
-<line x1="880" y1="3010" x2="607.0" y2="3010.0" stroke="#B71C1C" stroke-width="3" stroke-dasharray="10,6"/>
-<polygon points="600,3010 614.0,3003.0 614.0,3017.0" fill="#B71C1C"/>
-<text x="740" y="2985" font-size="28" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-style="italic" fill="#B71C1C" text-anchor="middle" dominant-baseline="middle">10b. Access denied</text>
-<line x1="600" y1="3130" x2="127.0" y2="3130.0" stroke="#B71C1C" stroke-width="3" stroke-dasharray="10,6"/>
-<polygon points="120,3130 134.0,3123.0 134.0,3137.0" fill="#B71C1C"/>
-<text x="360" y="3105" font-size="28" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-style="italic" fill="#B71C1C" text-anchor="middle" dominant-baseline="middle">11b. Scope limit explained</text>
-<text x="60" y="3460" font-size="32" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-weight="bold" fill="#222222" text-anchor="start" dominant-baseline="middle">Response</text>
-<line x1="50" y1="3475" x2="1350" y2="3475" stroke="#EEEEEE" stroke-width="1.5"/>
-<rect x="430" y="3515" width="340" height="100" rx="8" fill="#FFF3E0" stroke="#C43E00" stroke-width="2"/>
-<text x="600" y="3545" font-size="26" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-weight="bold" fill="#C43E00" text-anchor="middle" dominant-baseline="middle">LLM synthesizes:</text>
-<text x="600" y="3580" font-size="24" font-family="Segoe UI, Helvetica, Arial, sans-serif" fill="#C43E00" text-anchor="middle" dominant-baseline="middle">ALLOW -&gt; data summary</text>
-<text x="600" y="3608" font-size="24" font-family="Segoe UI, Helvetica, Arial, sans-serif" fill="#C43E00" text-anchor="middle" dominant-baseline="middle">DENY -&gt; scope guidance</text>
-<line x1="600" y1="3720" x2="127.0" y2="3720.0" stroke="#C43E00" stroke-width="3" stroke-dasharray="10,6"/>
-<polygon points="120,3720 134.0,3713.0 134.0,3727.0" fill="#C43E00"/>
-<text x="360" y="3695" font-size="28" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-style="italic" fill="#C43E00" text-anchor="middle" dominant-baseline="middle">14. Response to user</text>
-<text x="100" y="3850" font-size="28" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-weight="bold" fill="#333333" text-anchor="start" dominant-baseline="middle">Legend:</text>
-<line x1="250" y1="3850" x2="353.0" y2="3850.0" stroke="#333333" stroke-width="3"/>
-<polygon points="360,3850 346.0,3857.0 346.0,3843.0" fill="#333333"/>
-<text x="380" y="3850" font-size="26" font-family="Segoe UI, Helvetica, Arial, sans-serif" fill="#333333" text-anchor="start" dominant-baseline="middle">Call</text>
-<line x1="500" y1="3850" x2="603.0" y2="3850.0" stroke="#333333" stroke-width="3" stroke-dasharray="10,6"/>
-<polygon points="610,3850 596.0,3857.0 596.0,3843.0" fill="#333333"/>
-<text x="630" y="3850" font-size="26" font-family="Segoe UI, Helvetica, Arial, sans-serif" fill="#333333" text-anchor="start" dominant-baseline="middle">Return</text>
-<rect x="780" y="3836" width="28" height="28" rx="4" fill="#1B5E20" stroke="#1B5E20" stroke-width="2"/>
-<text x="820" y="3850" font-size="26" font-family="Segoe UI, Helvetica, Arial, sans-serif" fill="#1B5E20" text-anchor="start" dominant-baseline="middle">ALLOW</text>
-<rect x="960" y="3836" width="28" height="28" rx="4" fill="#B71C1C" stroke="#B71C1C" stroke-width="2"/>
-<text x="1000" y="3850" font-size="26" font-family="Segoe UI, Helvetica, Arial, sans-serif" fill="#B71C1C" text-anchor="start" dominant-baseline="middle">DENY</text>
+<text x="1200" y="70" font-size="64" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-weight="bold" fill="#232F3E" text-anchor="middle" dominant-baseline="middle">AgentCore Gateway: Fine-Grained Access Control</text>
+<text x="1200" y="130" font-size="40" font-family="Segoe UI, Helvetica, Arial, sans-serif" fill="#444444" text-anchor="middle" dominant-baseline="middle">REQUEST/RESPONSE Interceptors + Cedar Authorization</text>
+<rect x="80" y="190" width="240" height="100" rx="10" fill="#232F3E" stroke="#232F3E" stroke-width="3"/>
+<text x="200" y="228" font-size="36" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-weight="bold" fill="white" text-anchor="middle" dominant-baseline="middle">Ravi</text>
+<text x="200" y="262" font-size="30" font-family="Segoe UI, Helvetica, Arial, sans-serif" fill="white" text-anchor="middle" dominant-baseline="middle">(Line Supervisor)</text>
+<line x1="200" y1="290" x2="200" y2="5150" stroke="#CCCCCC" stroke-width="2" stroke-dasharray="8,5"/>
+<rect x="80" y="5150" width="240" height="100" rx="10" fill="#232F3E" stroke="#232F3E" stroke-width="3"/>
+<text x="200" y="5188" font-size="36" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-weight="bold" fill="white" text-anchor="middle" dominant-baseline="middle">Ravi</text>
+<text x="200" y="5222" font-size="30" font-family="Segoe UI, Helvetica, Arial, sans-serif" fill="white" text-anchor="middle" dominant-baseline="middle">(Line Supervisor)</text>
+<rect x="440" y="190" width="240" height="100" rx="10" fill="#B71C1C" stroke="#B71C1C" stroke-width="3"/>
+<text x="560" y="228" font-size="36" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-weight="bold" fill="white" text-anchor="middle" dominant-baseline="middle">Amazon Cognito</text>
+<text x="560" y="262" font-size="30" font-family="Segoe UI, Helvetica, Arial, sans-serif" fill="white" text-anchor="middle" dominant-baseline="middle">(IdP)</text>
+<line x1="560" y1="290" x2="560" y2="5150" stroke="#CCCCCC" stroke-width="2" stroke-dasharray="8,5"/>
+<rect x="440" y="5150" width="240" height="100" rx="10" fill="#B71C1C" stroke="#B71C1C" stroke-width="3"/>
+<text x="560" y="5188" font-size="36" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-weight="bold" fill="white" text-anchor="middle" dominant-baseline="middle">Amazon Cognito</text>
+<text x="560" y="5222" font-size="30" font-family="Segoe UI, Helvetica, Arial, sans-serif" fill="white" text-anchor="middle" dominant-baseline="middle">(IdP)</text>
+<rect x="830" y="190" width="240" height="100" rx="10" fill="#C43E00" stroke="#C43E00" stroke-width="3"/>
+<text x="950" y="228" font-size="36" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-weight="bold" fill="white" text-anchor="middle" dominant-baseline="middle">Agent</text>
+<text x="950" y="262" font-size="30" font-family="Segoe UI, Helvetica, Arial, sans-serif" fill="white" text-anchor="middle" dominant-baseline="middle">(Strands SDK)</text>
+<line x1="950" y1="290" x2="950" y2="5150" stroke="#CCCCCC" stroke-width="2" stroke-dasharray="8,5"/>
+<rect x="830" y="5150" width="240" height="100" rx="10" fill="#C43E00" stroke="#C43E00" stroke-width="3"/>
+<text x="950" y="5188" font-size="36" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-weight="bold" fill="white" text-anchor="middle" dominant-baseline="middle">Agent</text>
+<text x="950" y="5222" font-size="30" font-family="Segoe UI, Helvetica, Arial, sans-serif" fill="white" text-anchor="middle" dominant-baseline="middle">(Strands SDK)</text>
+<rect x="1280" y="190" width="240" height="100" rx="10" fill="#1A237E" stroke="#1A237E" stroke-width="3"/>
+<text x="1400" y="228" font-size="36" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-weight="bold" fill="white" text-anchor="middle" dominant-baseline="middle">AgentCore</text>
+<text x="1400" y="262" font-size="30" font-family="Segoe UI, Helvetica, Arial, sans-serif" fill="white" text-anchor="middle" dominant-baseline="middle">Gateway</text>
+<line x1="1400" y1="290" x2="1400" y2="5150" stroke="#CCCCCC" stroke-width="2" stroke-dasharray="8,5"/>
+<rect x="1280" y="5150" width="240" height="100" rx="10" fill="#1A237E" stroke="#1A237E" stroke-width="3"/>
+<text x="1400" y="5188" font-size="36" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-weight="bold" fill="white" text-anchor="middle" dominant-baseline="middle">AgentCore</text>
+<text x="1400" y="5222" font-size="30" font-family="Segoe UI, Helvetica, Arial, sans-serif" fill="white" text-anchor="middle" dominant-baseline="middle">Gateway</text>
+<rect x="1680" y="190" width="240" height="100" rx="10" fill="#4A148C" stroke="#4A148C" stroke-width="3"/>
+<text x="1800" y="228" font-size="36" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-weight="bold" fill="white" text-anchor="middle" dominant-baseline="middle">Cedar Policy</text>
+<text x="1800" y="262" font-size="30" font-family="Segoe UI, Helvetica, Arial, sans-serif" fill="white" text-anchor="middle" dominant-baseline="middle">Engine</text>
+<line x1="1800" y1="290" x2="1800" y2="5150" stroke="#CCCCCC" stroke-width="2" stroke-dasharray="8,5"/>
+<rect x="1680" y="5150" width="240" height="100" rx="10" fill="#4A148C" stroke="#4A148C" stroke-width="3"/>
+<text x="1800" y="5188" font-size="36" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-weight="bold" fill="white" text-anchor="middle" dominant-baseline="middle">Cedar Policy</text>
+<text x="1800" y="5222" font-size="30" font-family="Segoe UI, Helvetica, Arial, sans-serif" fill="white" text-anchor="middle" dominant-baseline="middle">Engine</text>
+<rect x="2060" y="190" width="240" height="100" rx="10" fill="#004D40" stroke="#004D40" stroke-width="3"/>
+<text x="2180" y="228" font-size="36" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-weight="bold" fill="white" text-anchor="middle" dominant-baseline="middle">MCP Tool</text>
+<text x="2180" y="262" font-size="30" font-family="Segoe UI, Helvetica, Arial, sans-serif" fill="white" text-anchor="middle" dominant-baseline="middle">(Lambda)</text>
+<line x1="2180" y1="290" x2="2180" y2="5150" stroke="#CCCCCC" stroke-width="2" stroke-dasharray="8,5"/>
+<rect x="2060" y="5150" width="240" height="100" rx="10" fill="#004D40" stroke="#004D40" stroke-width="3"/>
+<text x="2180" y="5188" font-size="36" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-weight="bold" fill="white" text-anchor="middle" dominant-baseline="middle">MCP Tool</text>
+<text x="2180" y="5222" font-size="30" font-family="Segoe UI, Helvetica, Arial, sans-serif" fill="white" text-anchor="middle" dominant-baseline="middle">(Lambda)</text>
+<text x="80" y="380" font-size="44" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-weight="bold" fill="#222222" text-anchor="start" dominant-baseline="middle">Authentication</text>
+<line x1="80" y1="400" x2="2350" y2="400" stroke="#EEEEEE" stroke-width="2"/>
+<line x1="200" y1="460" x2="552.0" y2="460.0" stroke="#232F3E" stroke-width="3.5"/>
+<polygon points="560,460 544.0,469.0 544.0,451.0" fill="#232F3E"/>
+<text x="380" y="430" font-size="38" font-family="Segoe UI, Helvetica, Arial, sans-serif" fill="#232F3E" text-anchor="middle" dominant-baseline="middle">1. Login (credentials)</text>
+<line x1="560" y1="580" x2="208.0" y2="580.0" stroke="#B71C1C" stroke-width="3.5" stroke-dasharray="12,7"/>
+<polygon points="200,580 216.0,571.0 216.0,589.0" fill="#B71C1C"/>
+<text x="380" y="550" font-size="38" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-style="italic" fill="#B71C1C" text-anchor="middle" dominant-baseline="middle">2. JWT token returned</text>
+<rect x="360" y="630" width="400" height="170" rx="10" fill="#E3F2FD" stroke="#B71C1C" stroke-width="2"/>
+<text x="560" y="665" font-size="36" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-weight="bold" fill="#B71C1C" text-anchor="middle" dominant-baseline="middle">JWT Claims:</text>
+<text x="560" y="705" font-size="32" font-family="Courier New, monospace" fill="#B71C1C" text-anchor="middle" dominant-baseline="middle">role = line_supervisor</text>
+<text x="560" y="740" font-size="32" font-family="Courier New, monospace" fill="#B71C1C" text-anchor="middle" dominant-baseline="middle">line_scope = Line 7</text>
+<text x="560" y="775" font-size="32" font-family="Courier New, monospace" fill="#B71C1C" text-anchor="middle" dominant-baseline="middle">plant_scope = Plant 2</text>
+<text x="80" y="890" font-size="44" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-weight="bold" fill="#222222" text-anchor="start" dominant-baseline="middle">Tool Invocation</text>
+<line x1="80" y1="910" x2="2350" y2="910" stroke="#EEEEEE" stroke-width="2"/>
+<line x1="200" y1="980" x2="942.0" y2="980.0" stroke="#232F3E" stroke-width="3.5"/>
+<polygon points="950,980 934.0,989.0 934.0,971.0" fill="#232F3E"/>
+<text x="575" y="950" font-size="38" font-family="Segoe UI, Helvetica, Arial, sans-serif" fill="#232F3E" text-anchor="middle" dominant-baseline="middle">3. &quot;What is the OEE for Line 7?&quot;</text>
+<rect x="720" y="1065" width="460" height="80" rx="10" fill="#FFF3E0" stroke="#C43E00" stroke-width="2"/>
+<text x="950" y="1105" font-size="36" font-family="Segoe UI, Helvetica, Arial, sans-serif" fill="#C43E00" text-anchor="middle" dominant-baseline="middle">4. LLM: get_oee_trends(Line 7)</text>
+<line x1="950" y1="1240" x2="1392.0" y2="1240.0" stroke="#C43E00" stroke-width="3.5"/>
+<polygon points="1400,1240 1384.0,1249.0 1384.0,1231.0" fill="#C43E00"/>
+<text x="1175" y="1210" font-size="38" font-family="Segoe UI, Helvetica, Arial, sans-serif" fill="#C43E00" text-anchor="middle" dominant-baseline="middle">5. MCP call + Bearer JWT</text>
+<rect x="1388" y="1250" width="24" height="700" rx="4" fill="#1A237E" stroke="#1A237E" stroke-width="0"/>
+<text x="80" y="1370" font-size="44" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-weight="bold" fill="#222222" text-anchor="start" dominant-baseline="middle">Enrichment (REQUEST Interceptor)</text>
+<line x1="80" y1="1390" x2="2350" y2="1390" stroke="#EEEEEE" stroke-width="2"/>
+<rect x="1150" y="1435" width="500" height="140" rx="10" fill="#E8F5E9" stroke="#1B5E20" stroke-width="2"/>
+<text x="1400" y="1470" font-size="36" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-weight="bold" fill="#1B5E20" text-anchor="middle" dominant-baseline="middle">6. Decode JWT payload</text>
+<text x="1400" y="1510" font-size="36" font-family="Segoe UI, Helvetica, Arial, sans-serif" fill="#1B5E20" text-anchor="middle" dominant-baseline="middle">7. Extract role + line_scope</text>
+<text x="1400" y="1548" font-size="36" font-family="Segoe UI, Helvetica, Arial, sans-serif" fill="#1B5E20" text-anchor="middle" dominant-baseline="middle">8. Inject user_context into args</text>
+<text x="80" y="1710" font-size="44" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-weight="bold" fill="#222222" text-anchor="start" dominant-baseline="middle">Authorization (Cedar)</text>
+<line x1="80" y1="1730" x2="2350" y2="1730" stroke="#EEEEEE" stroke-width="2"/>
+<line x1="1400" y1="1810" x2="1792.0" y2="1810.0" stroke="#1A237E" stroke-width="3.5"/>
+<polygon points="1800,1810 1784.0,1819.0 1784.0,1801.0" fill="#1A237E"/>
+<text x="1600" y="1780" font-size="38" font-family="Segoe UI, Helvetica, Arial, sans-serif" fill="#1A237E" text-anchor="middle" dominant-baseline="middle">9. Evaluate policy</text>
+<rect x="1788" y="1820" width="24" height="300" rx="4" fill="#4A148C" stroke="#4A148C" stroke-width="0"/>
+<rect x="1560" y="1870" width="480" height="220" rx="10" fill="#F3E5F5" stroke="#4A148C" stroke-width="2"/>
+<text x="1800" y="1905" font-size="36" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-weight="bold" fill="#4A148C" text-anchor="middle" dominant-baseline="middle">Cedar Evaluation:</text>
+<text x="1800" y="1948" font-size="32" font-family="Courier New, monospace" fill="#4A148C" text-anchor="middle" dominant-baseline="middle">permit_all -&gt; PERMIT</text>
+<text x="1800" y="1988" font-size="32" font-family="Courier New, monospace" fill="#4A148C" text-anchor="middle" dominant-baseline="middle">forbid_line_scope:</text>
+<text x="1800" y="2025" font-size="32" font-family="Courier New, monospace" fill="#4A148C" text-anchor="middle" dominant-baseline="middle">'Line 7' in ['Line 7']? YES</text>
+<text x="1800" y="2065" font-size="36" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-weight="bold" fill="#1B5E20" text-anchor="middle" dominant-baseline="middle">Result: ALLOW</text>
+<rect x="80" y="2250" width="2260" height="2150" fill="none" stroke="#555555" stroke-width="3" rx="10"/>
+<text x="130" y="2295" font-size="44" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-weight="bold" fill="#444444" text-anchor="start" dominant-baseline="middle">alt</text>
+<line x1="80" y1="3400" x2="2340" y2="3400" stroke="#555555" stroke-width="2.5" stroke-dasharray="12,6"/>
+<text x="200" y="2350" font-size="38" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-weight="bold" fill="#1B5E20" text-anchor="start" dominant-baseline="middle">[ALLOW - parameter in user scope]</text>
+<text x="200" y="3455" font-size="38" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-weight="bold" fill="#B71C1C" text-anchor="start" dominant-baseline="middle">[DENY - parameter outside scope]</text>
+<line x1="1800" y1="2430" x2="1408.0" y2="2430.0" stroke="#1B5E20" stroke-width="3.5" stroke-dasharray="12,7"/>
+<polygon points="1400,2430 1416.0,2421.0 1416.0,2439.0" fill="#1B5E20"/>
+<text x="1600" y="2400" font-size="38" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-weight="bold" fill="#1B5E20" text-anchor="middle" dominant-baseline="middle">10a. Decision: ALLOW</text>
+<line x1="1400" y1="2580" x2="2172.0" y2="2580.0" stroke="#1A237E" stroke-width="3.5"/>
+<polygon points="2180,2580 2164.0,2589.0 2164.0,2571.0" fill="#1A237E"/>
+<text x="1790" y="2550" font-size="38" font-family="Segoe UI, Helvetica, Arial, sans-serif" fill="#1A237E" text-anchor="middle" dominant-baseline="middle">11a. Execute Lambda</text>
+<rect x="2168" y="2590" width="24" height="120" rx="4" fill="#004D40" stroke="#004D40" stroke-width="0"/>
+<line x1="2180" y1="2730" x2="1408.0" y2="2730.0" stroke="#004D40" stroke-width="3.5" stroke-dasharray="12,7"/>
+<polygon points="1400,2730 1416.0,2721.0 1416.0,2739.0" fill="#004D40"/>
+<text x="1790" y="2700" font-size="38" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-style="italic" fill="#004D40" text-anchor="middle" dominant-baseline="middle">12a. OEE data (Line 7)</text>
+<line x1="1400" y1="2890" x2="958.0" y2="2890.0" stroke="#1A237E" stroke-width="3.5" stroke-dasharray="12,7"/>
+<polygon points="950,2890 966.0,2881.0 966.0,2899.0" fill="#1A237E"/>
+<text x="1175" y="2860" font-size="38" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-style="italic" fill="#1A237E" text-anchor="middle" dominant-baseline="middle">13a. Tool result</text>
+<line x1="950" y1="3050" x2="208.0" y2="3050.0" stroke="#C43E00" stroke-width="3.5" stroke-dasharray="12,7"/>
+<polygon points="200,3050 216.0,3041.0 216.0,3059.0" fill="#C43E00"/>
+<text x="575" y="3020" font-size="38" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-style="italic" fill="#C43E00" text-anchor="middle" dominant-baseline="middle">14a. Data summary to user</text>
+<line x1="1800" y1="3530" x2="1408.0" y2="3530.0" stroke="#B71C1C" stroke-width="3.5" stroke-dasharray="12,7"/>
+<polygon points="1400,3530 1416.0,3521.0 1416.0,3539.0" fill="#B71C1C"/>
+<text x="1600" y="3500" font-size="38" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-weight="bold" fill="#B71C1C" text-anchor="middle" dominant-baseline="middle">10b. Decision: DENY</text>
+<rect x="2020" y="3560" width="320" height="100" rx="10" fill="#FFEBEE" stroke="#B71C1C" stroke-width="3"/>
+<text x="2180" y="3590" font-size="36" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-weight="bold" fill="#B71C1C" text-anchor="middle" dominant-baseline="middle">MCP Server</text>
+<text x="2180" y="3628" font-size="36" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-weight="bold" fill="#B71C1C" text-anchor="middle" dominant-baseline="middle">NEVER INVOKED</text>
+<line x1="1400" y1="3720" x2="958.0" y2="3720.0" stroke="#B71C1C" stroke-width="3.5" stroke-dasharray="12,7"/>
+<polygon points="950,3720 966.0,3711.0 966.0,3729.0" fill="#B71C1C"/>
+<text x="1175" y="3690" font-size="38" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-style="italic" fill="#B71C1C" text-anchor="middle" dominant-baseline="middle">11b. Access denied</text>
+<rect x="720" y="3845" width="460" height="80" rx="10" fill="#FFEBEE" stroke="#B71C1C" stroke-width="2"/>
+<text x="950" y="3885" font-size="36" font-family="Segoe UI, Helvetica, Arial, sans-serif" fill="#B71C1C" text-anchor="middle" dominant-baseline="middle">&quot;Line 4 not in scope: Line 7 only&quot;</text>
+<line x1="950" y1="4050" x2="208.0" y2="4050.0" stroke="#B71C1C" stroke-width="3.5" stroke-dasharray="12,7"/>
+<polygon points="200,4050 216.0,4041.0 216.0,4059.0" fill="#B71C1C"/>
+<text x="575" y="4020" font-size="38" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-style="italic" fill="#B71C1C" text-anchor="middle" dominant-baseline="middle">12b. Scope limit explained</text>
+<text x="80" y="4520" font-size="44" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-weight="bold" fill="#222222" text-anchor="start" dominant-baseline="middle">Response</text>
+<line x1="80" y1="4540" x2="2350" y2="4540" stroke="#EEEEEE" stroke-width="2"/>
+<rect x="700" y="4580" width="500" height="140" rx="10" fill="#FFF3E0" stroke="#C43E00" stroke-width="2"/>
+<text x="950" y="4620" font-size="36" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-weight="bold" fill="#C43E00" text-anchor="middle" dominant-baseline="middle">LLM synthesizes:</text>
+<text x="950" y="4662" font-size="36" font-family="Segoe UI, Helvetica, Arial, sans-serif" fill="#1B5E20" text-anchor="middle" dominant-baseline="middle">ALLOW -&gt; data summary</text>
+<text x="950" y="4702" font-size="36" font-family="Segoe UI, Helvetica, Arial, sans-serif" fill="#B71C1C" text-anchor="middle" dominant-baseline="middle">DENY -&gt; scope guidance</text>
+<line x1="950" y1="4850" x2="208.0" y2="4850.0" stroke="#C43E00" stroke-width="3.5" stroke-dasharray="12,7"/>
+<polygon points="200,4850 216.0,4841.0 216.0,4859.0" fill="#C43E00"/>
+<text x="575" y="4820" font-size="38" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-style="italic" fill="#C43E00" text-anchor="middle" dominant-baseline="middle">Natural language response to user</text>
+<text x="150" y="5020" font-size="38" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-weight="bold" fill="#333333" text-anchor="start" dominant-baseline="middle">Legend:</text>
+<line x1="350" y1="5020" x2="472.0" y2="5020.0" stroke="#333333" stroke-width="3.5"/>
+<polygon points="480,5020 464.0,5029.0 464.0,5011.0" fill="#333333"/>
+<text x="510" y="5020" font-size="36" font-family="Segoe UI, Helvetica, Arial, sans-serif" fill="#333333" text-anchor="start" dominant-baseline="middle">Call</text>
+<line x1="660" y1="5020" x2="782.0" y2="5020.0" stroke="#333333" stroke-width="3.5" stroke-dasharray="12,7"/>
+<polygon points="790,5020 774.0,5029.0 774.0,5011.0" fill="#333333"/>
+<text x="820" y="5020" font-size="36" font-family="Segoe UI, Helvetica, Arial, sans-serif" fill="#333333" text-anchor="start" dominant-baseline="middle">Return</text>
+<rect x="1020" y="5004" width="32" height="32" rx="5" fill="#1B5E20" stroke="#1B5E20" stroke-width="3"/>
+<text x="1070" y="5020" font-size="36" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-weight="bold" fill="#1B5E20" text-anchor="start" dominant-baseline="middle">ALLOW</text>
+<rect x="1280" y="5004" width="32" height="32" rx="5" fill="#B71C1C" stroke="#B71C1C" stroke-width="3"/>
+<text x="1330" y="5020" font-size="36" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-weight="bold" fill="#B71C1C" text-anchor="start" dominant-baseline="middle">DENY</text>
 </svg>
