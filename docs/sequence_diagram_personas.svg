@@ -1,40 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2200 1400" width="2200" height="1400">
-<defs>
-  <marker id="arrow-black" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
-    <polygon points="0 0, 10 3.5, 0 7" fill="#333333"/>
-  </marker>
-  <marker id="arrow-user" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
-    <polygon points="0 0, 10 3.5, 0 7" fill="#232F3E"/>
-  </marker>
-  <marker id="arrow-cognito" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
-    <polygon points="0 0, 10 3.5, 0 7" fill="#B71C1C"/>
-  </marker>
-  <marker id="arrow-agent" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
-    <polygon points="0 0, 10 3.5, 0 7" fill="#C43E00"/>
-  </marker>
-  <marker id="arrow-gateway" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
-    <polygon points="0 0, 10 3.5, 0 7" fill="#1A237E"/>
-  </marker>
-  <marker id="arrow-interceptor" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
-    <polygon points="0 0, 10 3.5, 0 7" fill="#1B5E20"/>
-  </marker>
-  <marker id="arrow-cedar" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
-    <polygon points="0 0, 10 3.5, 0 7" fill="#4A148C"/>
-  </marker>
-  <marker id="arrow-tool" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
-    <polygon points="0 0, 10 3.5, 0 7" fill="#004D40"/>
-  </marker>
-  <marker id="arrow-allow" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
-    <polygon points="0 0, 10 3.5, 0 7" fill="#1B5E20"/>
-  </marker>
-  <marker id="arrow-deny" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
-    <polygon points="0 0, 10 3.5, 0 7" fill="#B71C1C"/>
-  </marker>
-</defs>
 <rect width="2200" height="1400" fill="white"/>
 
-<text x="1100" y="45" font-size="38" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-weight="bold" fill="#232F3E" text-anchor="middle" dominant-baseline="middle">Same Agent, Same Interface — Different Data Access</text>
+<text x="1100" y="45" font-size="38" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-weight="bold" fill="#232F3E" text-anchor="middle" dominant-baseline="middle">Same Agent, Same Interface -- Different Data Access</text>
 <text x="1100" y="85" font-size="22" font-family="Segoe UI, Helvetica, Arial, sans-serif" fill="#555555" text-anchor="middle" dominant-baseline="middle">AgentCore Gateway enforces Cedar policies at the parameter level</text>
 <text x="200" y="130" font-size="20" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-weight="bold" fill="#333333" text-anchor="middle" dominant-baseline="middle">User Query</text>
 <text x="520" y="130" font-size="20" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-weight="bold" fill="#333333" text-anchor="middle" dominant-baseline="middle">Strands Agent</text>
@@ -49,7 +17,7 @@
 <text x="200" y="223" font-size="18" font-family="Segoe UI, Helvetica, Arial, sans-serif" fill="#222222" text-anchor="middle" dominant-baseline="middle">&quot;Anomalies across</text>
 <text x="200" y="249" font-size="18" font-family="Segoe UI, Helvetica, Arial, sans-serif" fill="#222222" text-anchor="middle" dominant-baseline="middle">all lines?&quot;</text>
 <rect x="390" y="190" width="260" height="90" rx="8" fill="#FFF3E0" stroke="#C43E00" stroke-width="2"/>
-<text x="520" y="223" font-size="18" font-family="Segoe UI, Helvetica, Arial, sans-serif" fill="#222222" text-anchor="middle" dominant-baseline="middle">LLM reasons →</text>
+<text x="520" y="223" font-size="18" font-family="Segoe UI, Helvetica, Arial, sans-serif" fill="#222222" text-anchor="middle" dominant-baseline="middle">LLM reasons -&gt;</text>
 <text x="520" y="249" font-size="18" font-family="Segoe UI, Helvetica, Arial, sans-serif" fill="#222222" text-anchor="middle" dominant-baseline="middle">selects MCP tool</text>
 <rect x="740" y="190" width="260" height="90" rx="8" fill="#E8EAF6" stroke="#1A237E" stroke-width="2"/>
 <text x="870" y="223" font-size="18" font-family="Segoe UI, Helvetica, Arial, sans-serif" fill="#222222" text-anchor="middle" dominant-baseline="middle">REQUEST Interceptor</text>
@@ -59,15 +27,20 @@
 <text x="1230" y="249" font-size="18" font-family="Segoe UI, Helvetica, Arial, sans-serif" fill="#222222" text-anchor="middle" dominant-baseline="middle">(all plants/lines)</text>
 <rect x="1450" y="190" width="260" height="90" rx="8" fill="#E8F5E9" stroke="#1B5E20" stroke-width="2"/>
 <text x="1580" y="223" font-size="18" font-family="Segoe UI, Helvetica, Arial, sans-serif" fill="#222222" text-anchor="middle" dominant-baseline="middle">Lambda executes</text>
-<text x="1580" y="249" font-size="18" font-family="Segoe UI, Helvetica, Arial, sans-serif" fill="#222222" text-anchor="middle" dominant-baseline="middle">✓ Returns data</text>
+<text x="1580" y="249" font-size="18" font-family="Segoe UI, Helvetica, Arial, sans-serif" fill="#222222" text-anchor="middle" dominant-baseline="middle">Returns data</text>
 <rect x="1820" y="190" width="260" height="90" rx="8" fill="#E8F5E9" stroke="#1B5E20" stroke-width="2"/>
 <text x="1950" y="223" font-size="18" font-family="Segoe UI, Helvetica, Arial, sans-serif" fill="#222222" text-anchor="middle" dominant-baseline="middle">Sees all 12 lines,</text>
 <text x="1950" y="249" font-size="18" font-family="Segoe UI, Helvetica, Arial, sans-serif" fill="#222222" text-anchor="middle" dominant-baseline="middle">prioritized by severity</text>
-<line x1="335" y1="235" x2="385" y2="235" stroke="#333333" stroke-width="2" marker-end="url(#arrow-black)"/>
-<line x1="655" y1="235" x2="735" y2="235" stroke="#333333" stroke-width="2" marker-end="url(#arrow-black)"/>
-<line x1="1005" y1="235" x2="1095" y2="235" stroke="#333333" stroke-width="2" marker-end="url(#arrow-black)"/>
-<line x1="1365" y1="235" x2="1445" y2="235" stroke="#1B5E20" stroke-width="2" marker-end="url(#arrow-allow)"/>
-<line x1="1715" y1="235" x2="1815" y2="235" stroke="#1B5E20" stroke-width="2" marker-end="url(#arrow-allow)"/>
+<line x1="335" y1="235" x2="379.0" y2="235.0" stroke="#333333" stroke-width="2"/>
+<polygon points="385,235 373.0,241.0 373.0,229.0" fill="#333333"/>
+<line x1="655" y1="235" x2="729.0" y2="235.0" stroke="#333333" stroke-width="2"/>
+<polygon points="735,235 723.0,241.0 723.0,229.0" fill="#333333"/>
+<line x1="1005" y1="235" x2="1089.0" y2="235.0" stroke="#333333" stroke-width="2"/>
+<polygon points="1095,235 1083.0,241.0 1083.0,229.0" fill="#333333"/>
+<line x1="1365" y1="235" x2="1439.0" y2="235.0" stroke="#1B5E20" stroke-width="2"/>
+<polygon points="1445,235 1433.0,241.0 1433.0,229.0" fill="#1B5E20"/>
+<line x1="1715" y1="235" x2="1809.0" y2="235.0" stroke="#1B5E20" stroke-width="2"/>
+<polygon points="1815,235 1803.0,241.0 1803.0,229.0" fill="#1B5E20"/>
 <rect x="1360" y="200" width="90" height="28" rx="12" fill="#1B5E20" stroke="#1B5E20" stroke-width="2"/>
 <text x="1405" y="215" font-size="18" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-weight="bold" fill="white" text-anchor="middle" dominant-baseline="middle">ALLOW</text>
 <line x1="80" y1="510" x2="2120" y2="510" stroke="#DDDDDD" stroke-width="1.5"/>
@@ -78,7 +51,7 @@
 <text x="200" y="603" font-size="18" font-family="Segoe UI, Helvetica, Arial, sans-serif" fill="#222222" text-anchor="middle" dominant-baseline="middle">&quot;Show Line 4</text>
 <text x="200" y="629" font-size="18" font-family="Segoe UI, Helvetica, Arial, sans-serif" fill="#222222" text-anchor="middle" dominant-baseline="middle">equipment&quot;</text>
 <rect x="390" y="570" width="260" height="90" rx="8" fill="#FFF3E0" stroke="#C43E00" stroke-width="2"/>
-<text x="520" y="603" font-size="18" font-family="Segoe UI, Helvetica, Arial, sans-serif" fill="#222222" text-anchor="middle" dominant-baseline="middle">LLM reasons →</text>
+<text x="520" y="603" font-size="18" font-family="Segoe UI, Helvetica, Arial, sans-serif" fill="#222222" text-anchor="middle" dominant-baseline="middle">LLM reasons -&gt;</text>
 <text x="520" y="629" font-size="18" font-family="Segoe UI, Helvetica, Arial, sans-serif" fill="#222222" text-anchor="middle" dominant-baseline="middle">selects MCP tool</text>
 <rect x="740" y="570" width="260" height="90" rx="8" fill="#E8EAF6" stroke="#1A237E" stroke-width="2"/>
 <text x="870" y="603" font-size="18" font-family="Segoe UI, Helvetica, Arial, sans-serif" fill="#222222" text-anchor="middle" dominant-baseline="middle">REQUEST Interceptor</text>
@@ -88,15 +61,20 @@
 <text x="1230" y="629" font-size="18" font-family="Segoe UI, Helvetica, Arial, sans-serif" fill="#222222" text-anchor="middle" dominant-baseline="middle">Plant 2 only</text>
 <rect x="1450" y="570" width="260" height="90" rx="8" fill="#FFEBEE" stroke="#B71C1C" stroke-width="2"/>
 <text x="1580" y="603" font-size="18" font-family="Segoe UI, Helvetica, Arial, sans-serif" fill="#222222" text-anchor="middle" dominant-baseline="middle">Lambda NOT</text>
-<text x="1580" y="629" font-size="18" font-family="Segoe UI, Helvetica, Arial, sans-serif" fill="#222222" text-anchor="middle" dominant-baseline="middle">invoked ✗</text>
+<text x="1580" y="629" font-size="18" font-family="Segoe UI, Helvetica, Arial, sans-serif" fill="#222222" text-anchor="middle" dominant-baseline="middle">invoked</text>
 <rect x="1820" y="570" width="260" height="90" rx="8" fill="#FFEBEE" stroke="#B71C1C" stroke-width="2"/>
 <text x="1950" y="603" font-size="18" font-family="Segoe UI, Helvetica, Arial, sans-serif" fill="#222222" text-anchor="middle" dominant-baseline="middle">Line 4 outside scope.</text>
 <text x="1950" y="629" font-size="18" font-family="Segoe UI, Helvetica, Arial, sans-serif" fill="#222222" text-anchor="middle" dominant-baseline="middle">Suggests Line 7 instead.</text>
-<line x1="335" y1="615" x2="385" y2="615" stroke="#333333" stroke-width="2" marker-end="url(#arrow-black)"/>
-<line x1="655" y1="615" x2="735" y2="615" stroke="#333333" stroke-width="2" marker-end="url(#arrow-black)"/>
-<line x1="1005" y1="615" x2="1095" y2="615" stroke="#333333" stroke-width="2" marker-end="url(#arrow-black)"/>
-<line x1="1365" y1="615" x2="1445" y2="615" stroke="#B71C1C" stroke-width="2" marker-end="url(#arrow-deny)"/>
-<line x1="1715" y1="615" x2="1815" y2="615" stroke="#B71C1C" stroke-width="2" marker-end="url(#arrow-deny)"/>
+<line x1="335" y1="615" x2="379.0" y2="615.0" stroke="#333333" stroke-width="2"/>
+<polygon points="385,615 373.0,621.0 373.0,609.0" fill="#333333"/>
+<line x1="655" y1="615" x2="729.0" y2="615.0" stroke="#333333" stroke-width="2"/>
+<polygon points="735,615 723.0,621.0 723.0,609.0" fill="#333333"/>
+<line x1="1005" y1="615" x2="1089.0" y2="615.0" stroke="#333333" stroke-width="2"/>
+<polygon points="1095,615 1083.0,621.0 1083.0,609.0" fill="#333333"/>
+<line x1="1365" y1="615" x2="1439.0" y2="615.0" stroke="#B71C1C" stroke-width="2"/>
+<polygon points="1445,615 1433.0,621.0 1433.0,609.0" fill="#B71C1C"/>
+<line x1="1715" y1="615" x2="1809.0" y2="615.0" stroke="#B71C1C" stroke-width="2"/>
+<polygon points="1815,615 1803.0,621.0 1803.0,609.0" fill="#B71C1C"/>
 <rect x="1360" y="580" width="90" height="28" rx="12" fill="#B71C1C" stroke="#B71C1C" stroke-width="2"/>
 <text x="1405" y="595" font-size="18" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-weight="bold" fill="white" text-anchor="middle" dominant-baseline="middle">DENY</text>
 <line x1="80" y1="890" x2="2120" y2="890" stroke="#DDDDDD" stroke-width="1.5"/>
@@ -107,7 +85,7 @@
 <text x="200" y="983" font-size="18" font-family="Segoe UI, Helvetica, Arial, sans-serif" fill="#222222" text-anchor="middle" dominant-baseline="middle">&quot;Machine 72</text>
 <text x="200" y="1009" font-size="18" font-family="Segoe UI, Helvetica, Arial, sans-serif" fill="#222222" text-anchor="middle" dominant-baseline="middle">vibration?&quot;</text>
 <rect x="390" y="950" width="260" height="90" rx="8" fill="#FFF3E0" stroke="#C43E00" stroke-width="2"/>
-<text x="520" y="983" font-size="18" font-family="Segoe UI, Helvetica, Arial, sans-serif" fill="#222222" text-anchor="middle" dominant-baseline="middle">LLM reasons →</text>
+<text x="520" y="983" font-size="18" font-family="Segoe UI, Helvetica, Arial, sans-serif" fill="#222222" text-anchor="middle" dominant-baseline="middle">LLM reasons -&gt;</text>
 <text x="520" y="1009" font-size="18" font-family="Segoe UI, Helvetica, Arial, sans-serif" fill="#222222" text-anchor="middle" dominant-baseline="middle">selects MCP tool</text>
 <rect x="740" y="950" width="260" height="90" rx="8" fill="#E8EAF6" stroke="#1A237E" stroke-width="2"/>
 <text x="870" y="983" font-size="18" font-family="Segoe UI, Helvetica, Arial, sans-serif" fill="#222222" text-anchor="middle" dominant-baseline="middle">REQUEST Interceptor</text>
@@ -117,15 +95,20 @@
 <text x="1230" y="1009" font-size="18" font-family="Segoe UI, Helvetica, Arial, sans-serif" fill="#222222" text-anchor="middle" dominant-baseline="middle">only</text>
 <rect x="1450" y="950" width="260" height="90" rx="8" fill="#FFEBEE" stroke="#B71C1C" stroke-width="2"/>
 <text x="1580" y="983" font-size="18" font-family="Segoe UI, Helvetica, Arial, sans-serif" fill="#222222" text-anchor="middle" dominant-baseline="middle">Lambda NOT</text>
-<text x="1580" y="1009" font-size="18" font-family="Segoe UI, Helvetica, Arial, sans-serif" fill="#222222" text-anchor="middle" dominant-baseline="middle">invoked ✗</text>
+<text x="1580" y="1009" font-size="18" font-family="Segoe UI, Helvetica, Arial, sans-serif" fill="#222222" text-anchor="middle" dominant-baseline="middle">invoked</text>
 <rect x="1820" y="950" width="260" height="90" rx="8" fill="#FFEBEE" stroke="#B71C1C" stroke-width="2"/>
 <text x="1950" y="983" font-size="18" font-family="Segoe UI, Helvetica, Arial, sans-serif" fill="#222222" text-anchor="middle" dominant-baseline="middle">Machine 72 not assigned.</text>
 <text x="1950" y="1009" font-size="18" font-family="Segoe UI, Helvetica, Arial, sans-serif" fill="#222222" text-anchor="middle" dominant-baseline="middle">Suggests Machine 42.</text>
-<line x1="335" y1="995" x2="385" y2="995" stroke="#333333" stroke-width="2" marker-end="url(#arrow-black)"/>
-<line x1="655" y1="995" x2="735" y2="995" stroke="#333333" stroke-width="2" marker-end="url(#arrow-black)"/>
-<line x1="1005" y1="995" x2="1095" y2="995" stroke="#333333" stroke-width="2" marker-end="url(#arrow-black)"/>
-<line x1="1365" y1="995" x2="1445" y2="995" stroke="#B71C1C" stroke-width="2" marker-end="url(#arrow-deny)"/>
-<line x1="1715" y1="995" x2="1815" y2="995" stroke="#B71C1C" stroke-width="2" marker-end="url(#arrow-deny)"/>
+<line x1="335" y1="995" x2="379.0" y2="995.0" stroke="#333333" stroke-width="2"/>
+<polygon points="385,995 373.0,1001.0 373.0,989.0" fill="#333333"/>
+<line x1="655" y1="995" x2="729.0" y2="995.0" stroke="#333333" stroke-width="2"/>
+<polygon points="735,995 723.0,1001.0 723.0,989.0" fill="#333333"/>
+<line x1="1005" y1="995" x2="1089.0" y2="995.0" stroke="#333333" stroke-width="2"/>
+<polygon points="1095,995 1083.0,1001.0 1083.0,989.0" fill="#333333"/>
+<line x1="1365" y1="995" x2="1439.0" y2="995.0" stroke="#B71C1C" stroke-width="2"/>
+<polygon points="1445,995 1433.0,1001.0 1433.0,989.0" fill="#B71C1C"/>
+<line x1="1715" y1="995" x2="1809.0" y2="995.0" stroke="#B71C1C" stroke-width="2"/>
+<polygon points="1815,995 1803.0,1001.0 1803.0,989.0" fill="#B71C1C"/>
 <rect x="1360" y="960" width="90" height="28" rx="12" fill="#B71C1C" stroke="#B71C1C" stroke-width="2"/>
 <text x="1405" y="975" font-size="18" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-weight="bold" fill="white" text-anchor="middle" dominant-baseline="middle">DENY</text>
 </svg>
