@@ -62,13 +62,13 @@ The foundation layer unifies data from operational and analytical systems:
 
 This diagram shows the end-to-end lifecycle of a request through the AgentCore Gateway — from authentication (Cognito JWT) through the REQUEST Interceptor, Cedar Policy Engine evaluation, and finally tool execution or denial:
 
-![Access Control Sequence Diagram](../../../docs/sequence_diagram_access_control.png)
+![Access Control Sequence Diagram](../../../docs/sequence_diagram_access_control.svg)
 
 ### User Personas — Same Interface, Different Access
 
 Three users ask similar questions but receive different results based on their Cedar policy scope. The Gateway blocks unauthorized requests before the MCP server (Lambda target) is ever invoked:
 
-![Personas Sequence Diagram](../../../docs/sequence_diagram_personas.png)
+![Personas Sequence Diagram](../../../docs/sequence_diagram_personas.svg)
 
 ### Component Interactions
 

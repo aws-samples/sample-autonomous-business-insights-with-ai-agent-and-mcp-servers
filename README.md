@@ -82,11 +82,11 @@ This sample implements a **working multi-agent system** that transforms natural 
 
 **Access Control Flow** — How the Gateway enforces Cedar policies before tool invocation:
 
-![Access Control Sequence Diagram](docs/sequence_diagram_access_control.png)
+![Access Control Sequence Diagram](docs/sequence_diagram_access_control.svg)
 
 **User Personas** — Same question, different access scopes:
 
-![Personas Sequence Diagram](docs/sequence_diagram_personas.png)
+![Personas Sequence Diagram](docs/sequence_diagram_personas.svg)
 
 **Component Interactions** — Full request lifecycle through the AgentCore Gateway:
 
