@@ -20,10 +20,6 @@ OUTPUT_DIR = os.path.dirname(os.path.abspath(__file__))
 def svg_header(width, height):
     return f'''<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {width} {height}" width="{width}" height="{height}">
-<style>
-  text {{ dominant-baseline: middle; font-family: "Segoe UI", Helvetica, Arial, sans-serif; }}
-  .mono {{ font-family: "Courier New", monospace; }}
-</style>
 <defs>
   <marker id="arrow-black" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
     <polygon points="0 0, 10 3.5, 0 7" fill="#333333"/>
@@ -67,10 +63,10 @@ def rect(x, y, w, h, fill, stroke, stroke_width=2, rx=10):
 def text(x, y, content, size, color, bold=False, italic=False, anchor="middle", mono=False):
     weight = ' font-weight="bold"' if bold else ''
     style = ' font-style="italic"' if italic else ''
-    cls = ' class="mono"' if mono else ''
+    family = "Courier New, monospace" if mono else "Segoe UI, Helvetica, Arial, sans-serif"
     # Escape special XML characters
     content = content.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;').replace('"', '&quot;')
-    return f'<text x="{x}" y="{y}" font-size="{size}"{cls}{weight}{style} fill="{color}" text-anchor="{anchor}">{content}</text>'
+    return f'<text x="{x}" y="{y}" font-size="{size}" font-family="{family}"{weight}{style} fill="{color}" text-anchor="{anchor}" dominant-baseline="middle">{content}</text>'
 
 
 def line(x1, y1, x2, y2, color="#333333", width=2.5, dashed=False, marker="arrow-black"):
