@@ -36,16 +36,16 @@ COLORS = {
 }
 
 # Font sizes — all significantly larger than original
-F_TITLE = 36
-F_SUBTITLE = 24
-F_PARTICIPANT = 24
-F_PARTICIPANT_BOTTOM = 20
-F_MESSAGE = 22
-F_NOTE = 20
-F_MONO = 18
-F_PHASE = 24
-F_LEGEND = 22
-F_ALT_GUARD = 22
+F_TITLE = 42
+F_SUBTITLE = 30
+F_PARTICIPANT = 28
+F_PARTICIPANT_BOTTOM = 24
+F_MESSAGE = 28
+F_NOTE = 26
+F_MONO = 24
+F_PHASE = 30
+F_LEGEND = 26
+F_ALT_GUARD = 26
 
 
 def draw_participant(ax, x, y_top, y_bottom, label, color, width=2.2):
@@ -144,30 +144,30 @@ def draw_alt_frame(ax, x_left, x_right, y_top, y_mid, y_bottom, label_if, label_
 # ===========================================================================
 
 def create_main_sequence_diagram():
-    fig, ax = plt.subplots(1, 1, figsize=(40, 38))
-    ax.set_xlim(-0.5, 22.0)
-    ax.set_ylim(-26.0, 2.5)
+    fig, ax = plt.subplots(1, 1, figsize=(48, 46))
+    ax.set_xlim(-0.5, 24.0)
+    ax.set_ylim(-30.0, 2.5)
     ax.axis("off")
 
     # Title
-    ax.text(11.0, 2.0, "AgentCore Gateway: Fine-Grained Access Control — Sequence Diagram",
+    ax.text(12.0, 2.0, "AgentCore Gateway: Fine-Grained Access Control — Sequence Diagram",
             ha="center", va="center", fontsize=F_TITLE, fontweight="bold", color=COLORS["user"])
-    ax.text(11.0, 1.3, "GW Policy + Custom REQUEST/RESPONSE Interceptors + Cedar Authorization",
+    ax.text(12.0, 1.3, "GW Policy + Custom REQUEST/RESPONSE Interceptors + Cedar Authorization",
             ha="center", va="center", fontsize=F_SUBTITLE, fontweight="bold", color="#333333")
 
     # Participants — wider spacing
     participants = [
         (1.0, "Ravi\n(Line Supervisor)", COLORS["user"]),
-        (4.5, "Amazon\nCognito", COLORS["cognito"]),
-        (8.0, "Agent\n(Strands SDK)", COLORS["agent"]),
-        (11.5, "AgentCore\nGateway", COLORS["gateway"]),
-        (14.8, "REQUEST\nInterceptor", COLORS["interceptor"]),
-        (18.0, "Cedar Policy\nEngine", COLORS["cedar"]),
-        (21.0, "MCP Tool\n(Lambda)", COLORS["tool"]),
+        (5.0, "Amazon\nCognito", COLORS["cognito"]),
+        (9.0, "Agent\n(Strands SDK)", COLORS["agent"]),
+        (13.0, "AgentCore\nGateway", COLORS["gateway"]),
+        (16.5, "REQUEST\nInterceptor", COLORS["interceptor"]),
+        (20.0, "Cedar Policy\nEngine", COLORS["cedar"]),
+        (23.0, "MCP Tool\n(Lambda)", COLORS["tool"]),
     ]
 
     y_top = 0.7
-    y_bottom = -23.5
+    y_bottom = -27.5
 
     for x, label, color in participants:
         draw_participant(ax, x, y_top, y_bottom, label, color)
@@ -177,118 +177,118 @@ def create_main_sequence_diagram():
     ax.text(0.0, y, "Authentication", fontsize=F_PHASE, fontweight="bold", color="#222222", va="center")
     ax.axhline(y=y - 0.2, xmin=0.02, xmax=0.97, color="#EEEEEE", linewidth=0.5)
 
-    y = -1.0
-    draw_message(ax, 1.0, 4.5, y, "1. Login (credentials)", COLORS["user"])
+    y = -1.2
+    draw_message(ax, 1.0, 5.0, y, "1. Login (credentials)", COLORS["user"])
 
-    y = -1.9
-    draw_message(ax, 4.5, 1.0, y, "2. JWT {role, line_scope, plant_scope}", COLORS["cognito"], dashed=True)
-    draw_note(ax, 4.5, y - 0.7,
+    y = -2.3
+    draw_message(ax, 5.0, 1.0, y, "2. JWT {role, line_scope, plant_scope}", COLORS["cognito"], dashed=True)
+    draw_note(ax, 5.0, y - 0.9,
               "JWT Claims:\n  role = line_supervisor\n  line_scope = Line 7\n  plant_scope = Plant 2",
-              width=3.5)
+              width=4.0)
 
     # --- Query Phase ---
-    y = -3.5
+    y = -4.5
     ax.text(0.0, y, "Tool Invocation", fontsize=F_PHASE, fontweight="bold", color="#222222", va="center")
     ax.axhline(y=y - 0.2, xmin=0.02, xmax=0.97, color="#EEEEEE", linewidth=0.5)
 
-    y = -4.2
-    draw_message(ax, 1.0, 8.0, y, '3. "What\'s the OEE for Line 7?"', COLORS["user"])
+    y = -5.3
+    draw_message(ax, 1.0, 9.0, y, '3. "What\'s the OEE for Line 7?"', COLORS["user"])
 
-    y = -5.0
-    draw_self_message(ax, 8.0, y, "4. LLM reasons: need get_oee_trends(line='Line 7')", COLORS["agent"])
+    y = -6.3
+    draw_self_message(ax, 9.0, y, "4. LLM reasons: need get_oee_trends(line='Line 7')", COLORS["agent"])
 
-    y = -6.4
-    draw_message(ax, 8.0, 11.5, y, '5. MCP call: get_oee_trends(line="Line 7") + Bearer <JWT>',
+    y = -7.8
+    draw_message(ax, 9.0, 13.0, y, '5. MCP call: get_oee_trends(line="Line 7") + Bearer <JWT>',
                  COLORS["agent"], fontsize=F_NOTE)
 
     # Activation on gateway
-    draw_activation(ax, 11.5, -6.4, -9.5, COLORS["gateway"])
+    draw_activation(ax, 13.0, -7.8, -11.5, COLORS["gateway"])
 
     # --- Interceptor Phase ---
-    y = -6.9
+    y = -8.5
     ax.text(0.0, y, "Enrichment", fontsize=F_PHASE, fontweight="bold", color="#222222", va="center")
     ax.axhline(y=y - 0.2, xmin=0.02, xmax=0.97, color="#EEEEEE", linewidth=0.5)
 
-    y = -7.6
-    draw_message(ax, 11.5, 14.8, y, "6. Invoke REQUEST Interceptor", COLORS["gateway"])
-    draw_activation(ax, 14.8, -7.6, -8.9, COLORS["interceptor"])
+    y = -9.3
+    draw_message(ax, 13.0, 16.5, y, "6. Invoke REQUEST Interceptor", COLORS["gateway"])
+    draw_activation(ax, 16.5, -9.3, -10.9, COLORS["interceptor"])
 
-    y = -8.3
-    draw_self_message(ax, 14.8, y,
+    y = -10.1
+    draw_self_message(ax, 16.5, y,
                       "7. Decode JWT payload\n     Extract: role, line_scope\n     Inject user_context",
                       COLORS["interceptor"])
 
-    y = -9.2
-    draw_message(ax, 14.8, 11.5, y, '8. Enriched request: user_context = {role, scope}',
+    y = -11.2
+    draw_message(ax, 16.5, 13.0, y, '8. Enriched request: user_context = {role, scope}',
                  COLORS["interceptor"], dashed=True)
 
     # --- Policy Phase ---
-    y = -9.8
+    y = -12.0
     ax.text(0.0, y, "Authorization", fontsize=F_PHASE, fontweight="bold", color="#222222", va="center")
     ax.axhline(y=y - 0.2, xmin=0.02, xmax=0.97, color="#EEEEEE", linewidth=0.5)
 
-    y = -10.5
-    draw_message(ax, 11.5, 18.0, y,
+    y = -12.9
+    draw_message(ax, 13.0, 20.0, y,
                  '9. Evaluate: role=line_supervisor, action=get_oee_trends, line="Line 7"',
                  COLORS["gateway"], fontsize=F_NOTE)
-    draw_activation(ax, 18.0, -10.5, -11.9, COLORS["cedar"])
+    draw_activation(ax, 20.0, -12.9, -14.5, COLORS["cedar"])
 
-    y = -11.3
-    draw_note(ax, 18.0, y,
+    y = -13.8
+    draw_note(ax, 20.0, y,
               "Cedar Evaluation:\n  permit_all → PERMIT\n  forbid_line_scope:\n    'Line 7' in ['Line 7']? YES\n    → No forbid match\n  Result: ALLOW",
-              width=3.8, color="#E8F5E9")
+              width=4.2, color="#E8F5E9")
 
     # --- ALT Frame ---
-    alt_top = -12.3
-    alt_mid = -15.5
-    alt_bottom = -20.0
-    draw_alt_frame(ax, 0.5, 21.5, alt_top, alt_mid, alt_bottom,
+    alt_top = -15.0
+    alt_mid = -18.8
+    alt_bottom = -24.0
+    draw_alt_frame(ax, 0.5, 23.5, alt_top, alt_mid, alt_bottom,
                    "ALLOW — parameter in user scope", "DENY — parameter outside scope")
 
     # ALLOW path
-    y = -12.8
-    draw_message(ax, 18.0, 11.5, y, "10a. Decision: ALLOW", COLORS["allow"], dashed=True)
+    y = -15.7
+    draw_message(ax, 20.0, 13.0, y, "10a. Decision: ALLOW", COLORS["allow"], dashed=True)
 
-    y = -13.5
-    draw_message(ax, 11.5, 21.0, y, "11a. Execute Lambda tool target", COLORS["gateway"])
-    draw_activation(ax, 21.0, -13.5, -14.1, COLORS["tool"])
+    y = -16.6
+    draw_message(ax, 13.0, 23.0, y, "11a. Execute Lambda tool target", COLORS["gateway"])
+    draw_activation(ax, 23.0, -16.6, -17.3, COLORS["tool"])
 
-    y = -14.3
-    draw_message(ax, 21.0, 11.5, y, "12a. OEE data (Line 7, 4 weeks)", COLORS["tool"], dashed=True)
+    y = -17.5
+    draw_message(ax, 23.0, 13.0, y, "12a. OEE data (Line 7, 4 weeks)", COLORS["tool"], dashed=True)
 
-    y = -15.0
-    draw_message(ax, 11.5, 8.0, y, "13a. Tool result → Agent", COLORS["gateway"], dashed=True)
+    y = -18.4
+    draw_message(ax, 13.0, 9.0, y, "13a. Tool result → Agent", COLORS["gateway"], dashed=True)
 
     # DENY path
-    y = -16.2
-    draw_message(ax, 18.0, 11.5, y, '10b. Decision: DENY — "Line 4 not in scope"',
+    y = -19.6
+    draw_message(ax, 20.0, 13.0, y, '10b. Decision: DENY — "Line 4 not in scope"',
                  COLORS["deny"], dashed=True, fontsize=F_NOTE)
 
-    y = -17.2
-    draw_note(ax, 21.0, y, "MCP Server\nNEVER\nINVOKED", width=2.0, color="#FFEBEE")
+    y = -20.8
+    draw_note(ax, 23.0, y, "MCP Server\nNEVER\nINVOKED", width=2.2, color="#FFEBEE")
 
-    y = -18.3
-    draw_message(ax, 11.5, 8.0, y,
+    y = -22.0
+    draw_message(ax, 13.0, 9.0, y,
                  '11b. Error: "[Policy] Access denied. Scope: Line 7 only"',
                  COLORS["deny"], dashed=True, fontsize=F_NOTE)
 
     # --- Response Phase ---
-    y = -20.5
-    draw_self_message(ax, 8.0, y,
+    y = -24.5
+    draw_self_message(ax, 9.0, y,
                       "LLM synthesizes:\n  ALLOW → data summary\n  DENY → explains scope",
                       COLORS["agent"])
 
-    y = -21.6
-    draw_message(ax, 8.0, 1.0, y, "14. Natural language response to user",
+    y = -25.8
+    draw_message(ax, 9.0, 1.0, y, "14. Natural language response to user",
                  COLORS["agent"], dashed=True)
 
     # Legend
-    legend_y = -24.5
+    legend_y = -28.5
     legend_items = [
         (1.0, "Solid arrow = synchronous call", "-"),
-        (6.5, "Dashed arrow = response/return", "--"),
-        (12.0, "Green = ALLOW path", None),
-        (15.5, "Red = DENY path", None),
+        (7.0, "Dashed arrow = response/return", "--"),
+        (13.5, "Green = ALLOW path", None),
+        (17.5, "Red = DENY path", None),
     ]
     for lx, ltxt, ls in legend_items:
         if ls:
@@ -313,7 +313,7 @@ def create_main_sequence_diagram():
 # ===========================================================================
 
 def create_personas_diagram():
-    fig, axes = plt.subplots(3, 1, figsize=(28, 22))
+    fig, axes = plt.subplots(3, 1, figsize=(34, 26))
 
     personas = [
         {
@@ -344,23 +344,23 @@ def create_personas_diagram():
 
     x_positions = {
         "user": 1.5,
-        "agent": 5.0,
-        "gateway": 9.0,
-        "cedar": 13.0,
-        "tool": 16.5,
-        "response": 20.0,
+        "agent": 5.5,
+        "gateway": 10.0,
+        "cedar": 14.5,
+        "tool": 18.5,
+        "response": 22.5,
     }
     captions = ["User Query", "Strands Agent", "AgentCore\nGateway", "Cedar Policy\nEngine", "MCP Tool\n(Lambda)", "Agent Response"]
     caption_xs = [x_positions["user"], x_positions["agent"], x_positions["gateway"],
                   x_positions["cedar"], x_positions["tool"], x_positions["response"]]
 
-    box_w = 3.0
-    box_h = 1.8
+    box_w = 3.4
+    box_h = 2.0
     y_center = 0.0
 
     for idx, (ax, persona) in enumerate(zip(axes, personas)):
-        ax.set_xlim(-0.5, 22.5)
-        ax.set_ylim(-2.8, 3.8)
+        ax.set_xlim(-0.5, 25.0)
+        ax.set_ylim(-3.0, 4.2)
         ax.axis("off")
 
         # AgentCore region
@@ -378,7 +378,7 @@ def create_personas_diagram():
             (x_positions["gateway"] + x_positions["cedar"]) / 2,
             y_center + box_h / 2 + 0.8,
             "Amazon Bedrock AgentCore",
-            ha="center", va="bottom", fontsize=18, fontweight="bold",
+            ha="center", va="bottom", fontsize=22, fontweight="bold",
             color=COLORS["gateway"], alpha=0.9,
         )
 
@@ -386,13 +386,13 @@ def create_personas_diagram():
         ax.text(x_positions["user"] - box_w / 2, y_center + box_h / 2 + 0.6,
                 persona["name"].replace("\n", "  "),
                 ha="left", va="bottom",
-                fontsize=22, fontweight="bold", color=COLORS["user"])
+                fontsize=26, fontweight="bold", color=COLORS["user"])
 
         # Column captions (first row only)
         if idx == 0:
             for cap, cx in zip(captions, caption_xs):
-                ax.text(cx, y_center + box_h / 2 + 2.0, cap, ha="center", va="bottom",
-                        fontsize=18, fontweight="bold", color="#333333")
+                ax.text(cx, y_center + box_h / 2 + 2.2, cap, ha="center", va="bottom",
+                        fontsize=22, fontweight="bold", color="#333333")
 
         # Step boxes
         box_data = [
@@ -418,7 +418,7 @@ def create_personas_diagram():
             )
             ax.add_patch(box)
             ax.text(cx, y_center, text, ha="center", va="center",
-                    fontsize=16, color="#222222", linespacing=1.3)
+                    fontsize=20, color="#222222", linespacing=1.3)
 
         # Arrows
         keys = ["user", "agent", "gateway", "cedar", "tool", "response"]
@@ -439,7 +439,7 @@ def create_personas_diagram():
         badge_x = (x_positions["cedar"] + x_positions["tool"]) / 2
         badge_color = COLORS["allow"] if persona["result"] == "ALLOW" else COLORS["deny"]
         ax.text(badge_x, y_center + 0.45, persona["result"], ha="center", va="bottom",
-                fontsize=18, fontweight="bold", color="white",
+                fontsize=22, fontweight="bold", color="white",
                 bbox=dict(boxstyle="round,pad=0.25", facecolor=badge_color, alpha=0.9))
 
         # Separator
@@ -449,7 +449,7 @@ def create_personas_diagram():
     fig.suptitle(
         "Same Agent, Same Interface — Different Data Access\n"
         "AgentCore Gateway enforces Cedar policies at the parameter level",
-        fontsize=26, fontweight="bold", y=0.99,
+        fontsize=30, fontweight="bold", y=0.99,
     )
     plt.tight_layout(rect=[0, 0, 1, 0.94])
     return fig
@@ -474,5 +474,5 @@ if __name__ == "__main__":
     print(f"Saved: {path2}")
     plt.close(fig2)
 
-    print(f"\nFont sizes: Title={F_TITLE}pt, Messages={F_MESSAGE}pt, Notes={F_NOTE}pt, Participants={F_PARTICIPANT}pt")
-    print("Canvas: 40x38 in (sequence), 28x22 in (personas) @ 200 DPI")
+    print(f"\nFont sizes: Title={F_TITLE}pt, Messages={F_MESSAGE}pt, Notes={F_NOTE}pt, Mono={F_MONO}pt (MINIMUM)")
+    print("Canvas: 48x46 in (sequence), 34x26 in (personas) @ 200 DPI")
