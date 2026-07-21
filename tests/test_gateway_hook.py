@@ -80,11 +80,11 @@ class TestGatewayPolicyHook:
         assert event.cancel_tool is None
 
     def test_cancel_message_includes_policy_prefix(self):
-        """Denied calls should include [Policy Enforcement] prefix for clarity."""
+        """Denied calls should include [Policy Enforcement - Simulation] prefix for clarity."""
         hook = GatewayPolicyHook(user=RAJ_PATEL, policy_engine=self.policy_engine)
         event = self._make_event("get_oee_trends", {"line": "Line 1"})
 
         hook._enforce_policy(event)
 
         assert event.cancel_tool is not None
-        assert "[Policy Enforcement]" in event.cancel_tool
+        assert "[Policy Enforcement - Simulation]" in event.cancel_tool

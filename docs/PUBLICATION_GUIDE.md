@@ -96,7 +96,7 @@ Requires Docker + mwinit:
 docker info
 
 # 2. Clone ash (if not already)
-git clone git@ssh.gitlab.aws.dev:dbbegimh/automated-security-helper.git --recurse-submodules
+git clone https://github.com/awslabs/automated-security-helper.git --recurse-submodules
 
 # 3. Run scan against our code
 cd automated-security-helper

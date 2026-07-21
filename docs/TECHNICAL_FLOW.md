@@ -6,7 +6,7 @@ A precision manufacturing company with 3 plants, 12 assembly lines, and 60 machi
 
 ### Business Requirement
 
-> "Sarah sees everything. Raj sees only Line 7. Priya sees only her assigned machines. Same agent. Same question interface. Different data access."
+> "The Plant Manager sees everything. The Line Supervisor sees only Line 7. The Maintenance Tech sees only their assigned machines. Same agent. Same question interface. Different data access."
 
 ### Deployed Infrastructure (LIVE on your AWS Account)
 
@@ -26,7 +26,7 @@ A precision manufacturing company with 3 plants, 12 assembly lines, and 60 machi
 
 ## Sequence Diagrams
 
-### Scenario 1: ALLOWED — Raj Asks About His Line (Line 7)
+### Scenario 1: ALLOWED — Line Supervisor Asks About Their Line (Line 7)
 
 ```
 ┌──────┐     ┌──────────┐     ┌───────────┐     ┌──────────┐     ┌─────────┐     ┌──────────┐
@@ -55,7 +55,7 @@ A precision manufacturing company with 3 plants, 12 assembly lines, and 60 machi
    │              │                  │                 │  Inject context│               │
    │              │                  │                 │                │               │
    │              │                  │                 │──evaluate(     │               │
-   │              │                  │                 │  user=raj,     │               │
+   │              │                  │                 │  role=line_sup,     │               │
    │              │                  │                 │  line="Line 7")│               │
    │              │                  │                 │                │               │
    │              │                  │                 │  Cedar checks: │               │
@@ -78,7 +78,7 @@ A precision manufacturing company with 3 plants, 12 assembly lines, and 60 machi
    │              │                  │                 │                │               │
 ```
 
-### Scenario 2: DENIED — Raj Asks About Line 4 (Not His Line)
+### Scenario 2: DENIED — Line Supervisor Asks About Line 4 (Not Their Line)
 
 ```
 ┌──────┐     ┌───────────┐     ┌──────────┐     ┌─────────┐     ┌──────────┐
@@ -99,7 +99,7 @@ A precision manufacturing company with 3 plants, 12 assembly lines, and 60 machi
    │               │                 │  JWT → context │               │
    │               │                 │                │               │
    │               │                 │──evaluate(     │               │
-   │               │                 │  user=raj,     │               │
+   │               │                 │  role=line_sup,     │               │
    │               │                 │  line="Line 4")│               │
    │               │                 │                │               │
    │               │                 │  Cedar checks: │               │
@@ -123,11 +123,11 @@ A precision manufacturing company with 3 plants, 12 assembly lines, and 60 machi
    │               │                 │                │               │
 ```
 
-### Scenario 3: DENIED — Priya Asks About Machine 72 (Not Assigned)
+### Scenario 3: DENIED — Maintenance Tech Asks About Machine 72 (Not Assigned)
 
 ```
 ┌──────┐     ┌───────────┐     ┌──────────┐     ┌─────────┐     ┌──────────┐
-│Priya │     │   Agent   │     │ Gateway  │     │ Policy  │     │ IoT MCP  │
+│MaintT│     │   Agent   │     │ Gateway  │     │ Policy  │     │ IoT MCP  │
 │      │     │ (Strands) │     │(Intercept│     │ (Cedar) │     │(Telemetry│
 └──┬───┘     └─────┬─────┘     └────┬─────┘     └────┬────┘     └────┬─────┘
    │               │                 │                │               │
@@ -147,7 +147,7 @@ A precision manufacturing company with 3 plants, 12 assembly lines, and 60 machi
    │               │                 │  [41-45]       │               │
    │               │                 │                │               │
    │               │                 │──evaluate(     │               │
-   │               │                 │  user=priya,   │               │
+   │               │                 │  role=maint_tech,   │               │
    │               │                 │  machine=72)   │               │
    │               │                 │                │               │
    │               │                 │  Cedar checks: │               │
@@ -167,11 +167,11 @@ A precision manufacturing company with 3 plants, 12 assembly lines, and 60 machi
    │               │                 │                │               │
 ```
 
-### Scenario 4: Sarah's Cross-System Correlation (Full Access)
+### Scenario 4: Plant Manager's Cross-System Correlation (Full Access)
 
 ```
 ┌──────┐     ┌───────────┐     ┌──────────┐     ┌─────────┐     ┌────────────────────────────┐
-│Sarah │     │   Agent   │     │ Gateway  │     │ Policy  │     │      MCP Servers           │
+│PlntMg│     │   Agent   │     │ Gateway  │     │ Policy  │     │      MCP Servers           │
 │      │     │ (Strands) │     │          │     │ (Cedar) │     │ Equipment│IoT│Supply│Analyt│
 └──┬───┘     └─────┬─────┘     └────┬─────┘     └────┬────┘     └──┬───────┬──┬──────┬──────┘
    │               │                 │                │              │       │  │      │
@@ -185,7 +185,7 @@ A precision manufacturing company with 3 plants, 12 assembly lines, and 60 machi
    │               │                 │                │              │       │  │      │
    │               │──detect_anomaly()──>             │              │       │  │      │
    │               │                 │──evaluate──────>              │       │  │      │
-   │               │                 │  (sarah, no    │              │       │  │      │
+   │               │                 │  (plant_mgr, no    │              │       │  │      │
    │               │                 │   line param)  │              │       │  │      │
    │               │                 │<──ALLOW────────│  (full access)       │  │      │
    │               │                 │──────────────────────────────>│       │  │      │
@@ -225,20 +225,20 @@ A precision manufacturing company with 3 plants, 12 assembly lines, and 60 machi
 
 | # | User | Role | Tool | Parameter | User's Scope | Match? | Decision | Cedar Rule |
 |---|------|------|------|-----------|-------------|--------|----------|-----------|
-| 1 | Sarah | plant_manager | Any | Any | Full | N/A | **ALLOW** | `has_full_access` bypass |
-| 2 | Raj | line_supervisor | get_oee_trends | line="Line 7" | line_scope=["Line 7"] | ✅ In scope | **ALLOW** | No forbid matches |
-| 3 | Raj | line_supervisor | get_oee_trends | line="Line 4" | line_scope=["Line 7"] | ❌ Not in scope | **DENY** | forbid_line_scope |
-| 4 | Raj | line_supervisor | get_equipment | plant="Plant 1" | plant_scope=["Plant 2"] | ❌ Not in scope | **DENY** | forbid_plant_scope |
-| 5 | Raj | line_supervisor | get_equipment | (no line/plant) | — | N/A | **ALLOW** | No dimension to check |
-| 6 | Priya | maintenance_tech | get_sensor | machine_id=42 | equip=["41-45"] | ✅ In scope | **ALLOW** | No forbid matches |
-| 7 | Priya | maintenance_tech | get_sensor | machine_id=72 | equip=["41-45"] | ❌ Not in scope | **DENY** | forbid_equipment_scope |
-| 8 | Priya | maintenance_tech | get_oee | line="Line 4" | line_scope=["Line 4"] | ✅ In scope | **ALLOW** | No forbid matches |
-| 9 | Priya | maintenance_tech | get_oee | line="Line 7" | line_scope=["Line 4"] | ❌ Not in scope | **DENY** | forbid_line_scope |
-| 10 | Priya | maintenance_tech | check_parts | machine_id=42 | equip=["41-45"] | ✅ In scope | **ALLOW** | Tech check exempts supply |
+| 1 | Plant Manager | plant_manager | Any | Any | Full | N/A | **ALLOW** | `has_full_access` bypass |
+| 2 | Line Supervisor | line_supervisor | get_oee_trends | line="Line 7" | line_scope=["Line 7"] | ✅ In scope | **ALLOW** | No forbid matches |
+| 3 | Line Supervisor | line_supervisor | get_oee_trends | line="Line 4" | line_scope=["Line 7"] | ❌ Not in scope | **DENY** | forbid_line_scope |
+| 4 | Line Supervisor | line_supervisor | get_equipment | plant="Plant 1" | plant_scope=["Plant 2"] | ❌ Not in scope | **DENY** | forbid_plant_scope |
+| 5 | Line Supervisor | line_supervisor | get_equipment | (no line/plant) | — | N/A | **ALLOW** | No dimension to check |
+| 6 | Maintenance Tech | maintenance_tech | get_sensor | machine_id=42 | equip=["41-45"] | ✅ In scope | **ALLOW** | No forbid matches |
+| 7 | Maintenance Tech | maintenance_tech | get_sensor | machine_id=72 | equip=["41-45"] | ❌ Not in scope | **DENY** | forbid_equipment_scope |
+| 8 | Maintenance Tech | maintenance_tech | get_oee | line="Line 4" | line_scope=["Line 4"] | ✅ In scope | **ALLOW** | No forbid matches |
+| 9 | Maintenance Tech | maintenance_tech | get_oee | line="Line 7" | line_scope=["Line 4"] | ❌ Not in scope | **DENY** | forbid_line_scope |
+| 10 | Maintenance Tech | maintenance_tech | check_parts | machine_id=42 | equip=["41-45"] | ✅ In scope | **ALLOW** | Tech check exempts supply |
 
 ### Key Insight: No Tool-Level Blocking
 
-Note that no user is blocked from a **tool** entirely. They're blocked from specific **parameter combinations**. Raj CAN call `get_oee_trends` — just not with `line="Line 4"`. This is parameter-level access control, not tool-level.
+Note that no user is blocked from a **tool** entirely. They're blocked from specific **parameter combinations**. The Line Supervisor CAN call `get_oee_trends` — just not with `line="Line 4"`. This is parameter-level access control, not tool-level.
 
 ---
 
@@ -288,11 +288,11 @@ Only applies to tools/list responses:
 
 Input:  { result: { tools: [all 12 tools] } }
 
-Processing (for raj, role=line_supervisor):
+Processing (for line_supervisor role):
   allowed_tools = ["get_equipment_status", "detect_anomaly", "get_oee_trends", ...]
   Filter: keep only tools in allowed_tools list
 
-Output: { result: { tools: [8 tools] } }  ← Raj never sees tools he can't use
+Output: { result: { tools: [8 tools] } }  ← Line Supervisor never sees tools they can't use
 ```
 
 ---
@@ -313,7 +313,7 @@ Every ALLOW and DENY is logged to CloudWatch with full context:
 ```json
 {
   "timestamp": "2026-06-16T14:23:01Z",
-  "principal": "raj.patel",
+  "principal": "line_supervisor",
   "action": "AnalyticsTarget___get_oee_trends",
   "resource": "arn:aws:bedrock-agentcore:...:gateway/mfg-insights",
   "decision": "DENY",
@@ -409,19 +409,19 @@ The agent (LLM) receives the deny message as a "tool result" and intelligently r
 
 Ask all three users: **"Are there any anomalies on the factory floor?"**
 
-- **Sarah** → sees anomalies across all 12 lines, prioritized by severity
-- **Raj** → sees only Line 7 anomalies (or "no anomalies on your line")
-- **Priya** → sees only Machine 41-45 anomalies (focused on her equipment)
+- **Plant Manager** → sees anomalies across all 12 lines, prioritized by severity
+- **Line Supervisor** → sees only Line 7 anomalies (or "no anomalies on your line")
+- **Maintenance Tech** → sees only Machine 41-45 anomalies (focused on her equipment)
 
 ### Demo 2: "Attempted Scope Violation"
 
-Raj asks: **"Show me Machine 42 vibration data"**
+The Line Supervisor asks: **"Show me Machine 42 vibration data"**
 
-Machine 42 is on Line 4 (Priya's territory, not Raj's). The policy engine denies it. Agent explains the boundary and suggests checking Line 7 machines instead.
+Machine 42 is on Line 4 (Maintenance Tech's territory, not the Line Supervisor's). The policy engine denies it. Agent explains the boundary and suggests checking Line 7 machines instead.
 
-### Demo 3: "Cross-System Intelligence" (Sarah only)
+### Demo 3: "Cross-System Intelligence" (Plant Manager only)
 
-Sarah asks: **"Why is Line 4 availability dropping?"**
+The Plant Manager asks: **"Why is Line 4 availability dropping?"**
 
 Agent correlates across 4 data sources:
 1. IoT → Machine 42 temperature +12°C
@@ -431,9 +431,9 @@ Agent correlates across 4 data sources:
 
 Synthesizes: root cause = bearing degradation under overload, shared coolant loop affecting Line 9.
 
-### Demo 4: "Memory in Action" (Priya)
+### Demo 4: "Memory in Action" (Maintenance Tech)
 
-Priya asks: **"Has the vibration gotten worse since last week?"**
+The Maintenance Tech asks: **"Has the vibration gotten worse since last week?"**
 
 - Memory surfaces: "Last week Machine 42 vibration: 3.8 mm/s"
 - IoT tool returns current: 4.5 mm/s
@@ -554,14 +554,14 @@ In Mode B, the Gateway itself invokes Cedar policy before invoking the Lambda to
 
 ## Request Lifecycle — Concrete Example
 
-**Raj asks: "What's the OEE for Line 4?"**
+**Line Supervisor asks: "What's the OEE for Line 4?"**
 
 ```
-Step 1: UI → agent.query(raj_patel, "What's the OEE for Line 4?")
+Step 1: UI → agent.query(line_supervisor, "What's the OEE for Line 4?")
 
 Step 2: System prompt built:
   "You are the Manufacturing Insights Agent...
-   User: Raj Patel, Line Supervisor
+   User role: line_supervisor
    Scope: Plants: Plant 2, Lines: Line 7"
 
 Step 3: Connect to Gateway (1 MCP endpoint, 3 tools visible)
