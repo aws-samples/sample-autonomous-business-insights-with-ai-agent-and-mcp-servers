@@ -1,0 +1,61 @@
+[
+  {
+    "session_id": "priya_vibration_followup",
+    "turns": [
+      {
+        "input": "What's the current vibration reading on Machine 42?",
+        "expected_tools": ["get_sensor_readings"],
+        "description": "Initial baseline query"
+      },
+      {
+        "input": "Has it gotten worse since last week?",
+        "expected_behavior": "Agent should reference previous session memory (3.8 mm/s baseline) and compare to current reading",
+        "description": "Follow-up requiring memory context"
+      },
+      {
+        "input": "Should I schedule maintenance?",
+        "expected_behavior": "Agent should synthesize vibration trend + maintenance history + parts availability to advise",
+        "expected_tools": ["get_maintenance_history", "check_parts_inventory"],
+        "description": "Decision support requiring multi-source synthesis"
+      }
+    ],
+    "metadata": {"user": "priya", "role": "maintenance_technician", "scope": "Machine 41-45"}
+  },
+  {
+    "session_id": "sarah_weekly_review",
+    "turns": [
+      {
+        "input": "Which assembly lines need attention this week?",
+        "expected_tools": ["detect_anomaly", "get_oee_trends", "get_equipment_status"],
+        "description": "Broad plant-wide status query"
+      },
+      {
+        "input": "Tell me more about Line 4 specifically",
+        "expected_tools": ["get_equipment_status", "get_sensor_readings"],
+        "description": "Drill-down into specific line from prior context"
+      },
+      {
+        "input": "What's the supplier lead time for parts we'd need?",
+        "expected_tools": ["get_supplier_lead_times"],
+        "description": "Follow-up supply chain query based on prior equipment context"
+      }
+    ],
+    "metadata": {"user": "sarah", "role": "plant_manager", "scope": "all"}
+  },
+  {
+    "session_id": "raj_anomaly_investigation",
+    "turns": [
+      {
+        "input": "Are there any anomalies on my line today?",
+        "expected_tools": ["detect_anomaly"],
+        "description": "Supervisor checks own line anomalies"
+      },
+      {
+        "input": "What about Line 4?",
+        "expected_behavior": "Agent should explain that Raj cannot access Line 4 data due to policy restrictions",
+        "description": "Policy denial on cross-line access mid-conversation"
+      }
+    ],
+    "metadata": {"user": "raj", "role": "line_supervisor", "scope": "Line 7"}
+  }
+]

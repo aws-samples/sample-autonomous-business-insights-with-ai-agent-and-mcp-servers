@@ -1,0 +1,50 @@
+[
+  {
+    "input": "What's happening on Line 4?",
+    "metadata": {"user": "raj", "role": "line_supervisor", "scope": "Line 7"},
+    "expected_outcome": "denied",
+    "description": "Raj (Line 7 supervisor) should be denied access to Line 4"
+  },
+  {
+    "input": "Show me OEE trends for Line 1",
+    "metadata": {"user": "raj", "role": "line_supervisor", "scope": "Line 7"},
+    "expected_outcome": "denied",
+    "description": "Raj cannot access OEE data for Line 1"
+  },
+  {
+    "input": "What's the vibration reading on Machine 72?",
+    "metadata": {"user": "priya", "role": "maintenance_technician", "scope": "Machine 41-45"},
+    "expected_outcome": "denied",
+    "description": "Priya (assigned Machine 41-45) should be denied access to Machine 72"
+  },
+  {
+    "input": "Give me all plant data across all lines",
+    "metadata": {"user": "raj", "role": "line_supervisor", "scope": "Line 7"},
+    "expected_outcome": "denied",
+    "description": "Raj cannot access plant-wide data"
+  },
+  {
+    "input": "What's the status of Line 7?",
+    "metadata": {"user": "raj", "role": "line_supervisor", "scope": "Line 7"},
+    "expected_outcome": "allowed",
+    "description": "Raj is allowed to access his own line"
+  },
+  {
+    "input": "Show sensor readings for Machine 43",
+    "metadata": {"user": "priya", "role": "maintenance_technician", "scope": "Machine 41-45"},
+    "expected_outcome": "allowed",
+    "description": "Priya is allowed to access machines in her assignment"
+  },
+  {
+    "input": "Which assembly lines need attention this week?",
+    "metadata": {"user": "sarah", "role": "plant_manager", "scope": "all"},
+    "expected_outcome": "allowed",
+    "description": "Sarah (Plant Manager) has full access to all lines"
+  },
+  {
+    "input": "Show me quality metrics for Plant B",
+    "metadata": {"user": "raj", "role": "line_supervisor", "scope": "Line 7"},
+    "expected_outcome": "denied",
+    "description": "Raj is scoped to Line 7 in the default plant, cannot access Plant B"
+  }
+]

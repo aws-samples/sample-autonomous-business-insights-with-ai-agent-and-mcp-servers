@@ -1,0 +1,50 @@
+[
+  {
+    "input": "Which assembly lines need attention this week?",
+    "metadata": {"user": "sarah", "role": "plant_manager", "scope": "all"},
+    "expected_tools": ["get_data_catalog", "detect_anomaly", "get_oee_trends", "get_equipment_status"],
+    "description": "Plant manager broad query requires IoT anomaly detection + OEE + equipment status"
+  },
+  {
+    "input": "What's the current status of Line 7?",
+    "metadata": {"user": "raj", "role": "line_supervisor", "scope": "Line 7"},
+    "expected_tools": ["get_equipment_status"],
+    "description": "Line supervisor asking about their own line — single tool call"
+  },
+  {
+    "input": "Has the vibration on Machine 42 gotten worse since last week?",
+    "metadata": {"user": "priya", "role": "maintenance_technician", "scope": "Machine 41-45"},
+    "expected_tools": ["get_sensor_readings"],
+    "description": "Technician vibration trend query — needs IoT telemetry"
+  },
+  {
+    "input": "What's the relationship between Line 4 and Line 9 issues?",
+    "metadata": {"user": "sarah", "role": "plant_manager", "scope": "all"},
+    "expected_tools": ["detect_anomaly", "get_equipment_status", "get_shared_infrastructure"],
+    "description": "Cross-line correlation requires anomaly detection + shared infrastructure"
+  },
+  {
+    "input": "Are replacement bearings in stock for Machine 42?",
+    "metadata": {"user": "priya", "role": "maintenance_technician", "scope": "Machine 41-45"},
+    "expected_tools": ["check_parts_inventory"],
+    "description": "Parts inventory query — supply chain server"
+  },
+  {
+    "input": "Give me a maintenance budget impact summary for this month.",
+    "metadata": {"user": "sarah", "role": "plant_manager", "scope": "all"},
+    "expected_tools": ["get_maintenance_history", "get_oee_trends"],
+    "description": "Budget query needs maintenance history and OEE data"
+  },
+  {
+    "input": "What parts are running low for my equipment?",
+    "metadata": {"user": "raj", "role": "line_supervisor", "scope": "Line 7"},
+    "expected_tools": ["check_parts_inventory"],
+    "description": "Supply chain inventory check"
+  },
+  {
+    "input": "What's the maintenance history for Machine 42?",
+    "metadata": {"user": "priya", "role": "maintenance_technician", "scope": "Machine 41-45"},
+    "expected_tools": ["get_maintenance_history"],
+    "description": "Equipment server maintenance history lookup"
+  }
+]
