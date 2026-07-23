@@ -1,0 +1,23 @@
+{
+  "theme": "neutral",
+  "sequence": {
+    "diagramMarginX": 50,
+    "diagramMarginY": 30,
+    "actorMargin": 100,
+    "width": 250,
+    "height": 80,
+    "boxMargin": 20,
+    "boxTextMargin": 10,
+    "noteMargin": 20,
+    "messageMargin": 45,
+    "mirrorActors": true,
+    "useMaxWidth": false,
+    "fontSize": 22,
+    "messageFontSize": 22,
+    "noteFontSize": 20,
+    "actorFontSize": 22,
+    "labelBoxWidth": 80,
+    "labelBoxHeight": 30
+  },
+  "fontFamily": "Segoe UI, Helvetica, Arial, sans-serif"
+}

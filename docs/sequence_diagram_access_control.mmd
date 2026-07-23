@@ -1,0 +1,59 @@
+---
+title: "Figure 1 — AgentCore Gateway Fine-Grained Access Control Sequence Diagram"
+---
+sequenceDiagram
+    autonumber
+
+    participant U as Ravi<br/>(Line Supervisor)
+    participant C as Amazon Cognito
+    participant A as Agent<br/>(Strands SDK)
+    participant GW as AgentCore<br/>Gateway
+    participant CE as Cedar Policy<br/>Engine
+    participant T as MCP Tool<br/>(Lambda)
+
+    %% === Authentication Phase ===
+    rect rgb(240, 248, 255)
+        Note over U, C: Authentication Phase
+        U->>C: Login (credentials)
+        C-->>U: JWT {role: line_supervisor, line_scope: Line 7, plant_scope: Plant 2}
+        Note over C: JWT Claims:<br/>role = line_supervisor<br/>line_scope = Line 7<br/>plant_scope = Plant 2<br/>equipment_scope = (all within plant)
+    end
+
+    %% === Query & Tool Invocation ===
+    rect rgb(255, 253, 240)
+        Note over U, A: Tool Invocation
+        U->>A: "What is the OEE for Line 7?"
+        Note right of A: LLM reasons:<br/>Need get_oee_trends(line="Line 7")
+        A->>GW: MCP call: get_oee_trends(line="Line 7") + Bearer JWT
+    end
+
+    %% === Enrichment Phase ===
+    rect rgb(232, 245, 233)
+        Note over GW, GW: Enrichment (REQUEST Interceptor)
+        Note right of GW: 1. Decode JWT payload<br/>2. Extract role + line_scope<br/>3. Inject user_context into args
+    end
+
+    %% === Authorization Phase ===
+    rect rgb(243, 229, 245)
+        Note over GW, CE: Authorization (Cedar)
+        GW->>CE: Evaluate: role=line_supervisor, action=get_oee_trends, line="Line 7"
+        Note right of CE: Cedar Evaluation:<br/>permit_all → PERMIT<br/>forbid_line_scope:<br/>"Line 7" in ["Line 7"]? YES<br/>→ No forbid triggered
+    end
+
+    %% === ALT: ALLOW vs DENY ===
+    alt ALLOW — parameter in user scope
+        CE-->>GW: Decision: ALLOW ✓
+        GW->>T: Execute Lambda tool target
+        activate T
+        T-->>GW: OEE data (Line 7, 4 weeks)
+        deactivate T
+        GW-->>A: Tool result (data)
+        A-->>U: "Line 7 OEE is 91.2%, trending up from 87%..."
+
+    else DENY — parameter outside user scope (e.g., Line 4)
+        CE-->>GW: Decision: DENY ✗ — "Line 4 not in scope"
+        Note over T: MCP Server<br/>NEVER INVOKED
+        GW-->>A: Error: "[Policy] Access denied. Scope: Line 7 only"
+        Note over A: LLM synthesizes:<br/>ALLOW → data summary<br/>DENY → explains scope + suggests alternative
+        A-->>U: "I can't access Line 4 data. Your scope covers Line 7.<br/>Would you like Line 7 OEE instead?"
+    end

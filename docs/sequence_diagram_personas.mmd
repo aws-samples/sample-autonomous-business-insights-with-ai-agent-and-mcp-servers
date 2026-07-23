@@ -1,0 +1,56 @@
+---
+title: "Figure 2 — Same Agent, Same Interface: Different Data Access (AgentCore Gateway enforces Cedar policies at the parameter level)"
+---
+sequenceDiagram
+    autonumber
+
+    participant U as User
+    participant A as Agent<br/>(Strands SDK)
+    participant GW as AgentCore<br/>Gateway
+    participant CE as Cedar Policy<br/>Engine
+    participant T as MCP Tool<br/>(Lambda)
+
+    %% === Sarah Chen — Plant Manager (Full Access) ===
+    rect rgb(232, 245, 233)
+        Note over U, T: Sarah Chen (Plant Manager) — Full Access: all plants, all lines
+
+        U->>A: "Which assembly lines need attention this week?"
+        A->>GW: get_equipment_status(scope=all) + Bearer JWT
+        GW->>CE: Evaluate: role=plant_manager, scope=all
+        Note right of CE: has_full_access = true<br/>→ Bypasses all forbid rules<br/>Result: ALLOW ✓
+        CE-->>GW: ALLOW
+        GW->>T: Execute Lambda
+        activate T
+        T-->>GW: Data for all 12 lines
+        deactivate T
+        GW-->>A: Full results
+        A-->>U: "Lines 4, 9, and 11 need attention.<br/>Line 4: bearing temp 12°C above baseline..."
+    end
+
+    %% === Raj Patel — Line Supervisor (Scoped to Line 7) ===
+    rect rgb(255, 235, 238)
+        Note over U, T: Raj Patel (Line Supervisor) — Scope: Line 7, Plant 2
+
+        U->>A: "Show me Line 4 equipment status"
+        A->>GW: get_equipment_status(line="Line 4") + Bearer JWT
+        GW->>CE: Evaluate: role=line_supervisor, line_scope=Line 7, requested=Line 4
+        Note right of CE: forbid_line_scope:<br/>"Line 4" in ["Line 7"]? NO<br/>→ FORBID triggered<br/>Result: DENY ✗
+        CE-->>GW: DENY
+        Note over T: Lambda NOT invoked
+        GW-->>A: "[Policy] Access denied — Line 4 outside scope"
+        A-->>U: "I can't access Line 4. Your scope covers Line 7.<br/>Would you like Line 7 equipment status instead?"
+    end
+
+    %% === Priya Nair — Maintenance Technician (Scoped to Machines 41-45) ===
+    rect rgb(255, 243, 224)
+        Note over U, T: Priya Nair (Maintenance Tech) — Scope: Machines 41–45
+
+        U->>A: "What's the vibration on Machine 72?"
+        A->>GW: get_sensor_readings(machine_id=72, metric=vibration) + Bearer JWT
+        GW->>CE: Evaluate: role=maintenance_tech, equipment_scope=[41-45], requested=72
+        Note right of CE: forbid_equipment_scope:<br/>72 in [41,42,43,44,45]? NO<br/>→ FORBID triggered<br/>Result: DENY ✗
+        CE-->>GW: DENY
+        Note over T: Lambda NOT invoked
+        GW-->>A: "[Policy] Access denied — Machine 72 not in assignment"
+        A-->>U: "Machine 72 isn't in your assignment list.<br/>I can check Machine 42 vibration — want me to?"
+    end
