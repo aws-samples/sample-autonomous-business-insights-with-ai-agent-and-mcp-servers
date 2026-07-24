@@ -1,5 +1,5 @@
 strands-agents==1.42.0
-mcp==1.27.2
+mcp==1.28.1
 boto3==1.43.25
 pydantic==2.13.4
 python-dotenv==1.2.2
