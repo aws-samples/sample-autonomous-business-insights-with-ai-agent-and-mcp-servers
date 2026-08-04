@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1800 2200" width="1800" height="2200">
+<style>
+  text { dominant-baseline: middle; }
+</style>
+<defs>
+  <marker id="arrowhead-1565C0" markerWidth="12" markerHeight="8" refX="10" refY="4" orient="auto">
+    <polygon points="0 0, 12 4, 0 8" fill="#1565C0"/>
+  </marker>
+  <marker id="arrowhead-2E7D32" markerWidth="12" markerHeight="8" refX="10" refY="4" orient="auto">
+    <polygon points="0 0, 12 4, 0 8" fill="#2E7D32"/>
+  </marker>
+  <marker id="arrowhead-C62828" markerWidth="12" markerHeight="8" refX="10" refY="4" orient="auto">
+    <polygon points="0 0, 12 4, 0 8" fill="#C62828"/>
+  </marker>
+  <marker id="arrowhead-BF360C" markerWidth="12" markerHeight="8" refX="10" refY="4" orient="auto">
+    <polygon points="0 0, 12 4, 0 8" fill="#BF360C"/>
+  </marker>
+  <marker id="arrowhead-1a1a2e" markerWidth="12" markerHeight="8" refX="10" refY="4" orient="auto">
+    <polygon points="0 0, 12 4, 0 8" fill="#1a1a2e"/>
+  </marker>
+  <marker id="arrowhead-4527A0" markerWidth="12" markerHeight="8" refX="10" refY="4" orient="auto">
+    <polygon points="0 0, 12 4, 0 8" fill="#4527A0"/>
+  </marker>
+  <marker id="arrowhead-E65100" markerWidth="12" markerHeight="8" refX="10" refY="4" orient="auto">
+    <polygon points="0 0, 12 4, 0 8" fill="#E65100"/>
+  </marker>
+  <marker id="arrowhead-00695C" markerWidth="12" markerHeight="8" refX="10" refY="4" orient="auto">
+    <polygon points="0 0, 12 4, 0 8" fill="#00695C"/>
+  </marker>
+  <marker id="arrowhead-6A1B9A" markerWidth="12" markerHeight="8" refX="10" refY="4" orient="auto">
+    <polygon points="0 0, 12 4, 0 8" fill="#6A1B9A"/>
+  </marker>
+  <marker id="arrowhead-444444" markerWidth="12" markerHeight="8" refX="10" refY="4" orient="auto">
+    <polygon points="0 0, 12 4, 0 8" fill="#444444"/>
+  </marker>
+</defs>
+<rect width="1800" height="2200" fill="white"/>
+<text x="900" y="55" font-size="46" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-weight="bold" fill="#1a1a2e" text-anchor="middle">AgentCore Component Interactions</text>
+<text x="900" y="92" font-size="24" font-family="Segoe UI, Helvetica, Arial, sans-serif" fill="#555555" text-anchor="middle">Authentication → Enrichment → Authorization → Execution → Response</text>
+<rect x="60" y="125" width="320" height="80" rx="12" ry="12" fill="#E3F2FD" stroke="#1565C0" stroke-width="3"/>
+<text x="220" y="168" font-size="30" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-weight="bold" fill="#1565C0" text-anchor="middle">User / Client</text>
+<line x1="380" y1="165" x2="520" y2="165" stroke="#1565C0" stroke-width="3" marker-end="url(#arrowhead-1565C0)"/>
+<text x="450" y="147" font-size="21" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-style="italic" fill="#1565C0" text-anchor="middle">Login</text>
+<rect x="520" y="125" width="400" height="80" rx="12" ry="12" fill="#E3F2FD" stroke="#1565C0" stroke-width="3"/>
+<text x="720" y="168" font-size="30" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-weight="bold" fill="#1565C0" text-anchor="middle">Amazon Cognito / IdP</text>
+<rect x="1050" y="115" width="380" height="100" rx="12" ry="12" fill="#E3F2FD" stroke="#1565C0" stroke-width="2"/>
+<text x="1240" y="140" font-size="22" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-weight="bold" fill="#1565C0" text-anchor="middle">JWT Claims:</text>
+<text x="1240" y="167" font-size="20" font-family="Courier New, monospace" fill="#1565C0" text-anchor="middle">role, line_scope,</text>
+<text x="1240" y="192" font-size="20" font-family="Courier New, monospace" fill="#1565C0" text-anchor="middle">equipment_scope</text>
+<line x1="920" y1="165" x2="1050" y2="165" stroke="#1565C0" stroke-width="3" marker-end="url(#arrowhead-1565C0)"/>
+<text x="985" y="147" font-size="21" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-style="italic" fill="#1565C0" text-anchor="middle">JWT</text>
+<line x1="720" y1="205" x2="720" y2="250" stroke="#1565C0" stroke-width="3" marker-end="url(#arrowhead-1565C0)"/>
+<rect x="160" y="260" width="1120" height="100" rx="12" ry="12" fill="#EDE7F6" stroke="#4527A0" stroke-width="3"/>
+<text x="720" y="298" font-size="30" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-weight="bold" fill="#4527A0" text-anchor="middle">AI AGENT (Strands SDK + Amazon Bedrock Claude)</text>
+<text x="720" y="332" font-size="22" font-family="Segoe UI, Helvetica, Arial, sans-serif" fill="#4527A0" text-anchor="middle">System prompt: identity + scope + memory. LLM decides which tools to call.</text>
+<line x1="720" y1="360" x2="720" y2="400" stroke="#4527A0" stroke-width="3" marker-end="url(#arrowhead-4527A0)"/>
+<text x="740" y="382" font-size="21" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-style="italic" fill="#4527A0" text-anchor="start">tools/call (MCP JSON-RPC)</text>
+<rect x="80" y="410" width="1640" height="1350" rx="16" ry="16" fill="#FFF8E1" stroke="#E65100" stroke-width="4"/>
+<text x="900" y="455" font-size="38" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-weight="bold" fill="#E65100" text-anchor="middle">AgentCore GATEWAY</text>
+<text x="900" y="490" font-size="22" font-family="Segoe UI, Helvetica, Arial, sans-serif" fill="#E65100" text-anchor="middle">Single entry point — every tool call flows through here</text>
+<rect x="180" y="520" width="1440" height="90" rx="12" ry="12" fill="#FFF8E1" stroke="#E65100" stroke-width="3"/>
+<text x="900" y="555" font-size="30" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-weight="bold" fill="#E65100" text-anchor="middle">1. Validate JWT Signature</text>
+<text x="900" y="586" font-size="22" font-family="Segoe UI, Helvetica, Arial, sans-serif" fill="#E65100" text-anchor="middle">Cognito JWKS verification — reject expired/invalid tokens</text>
+<line x1="900" y1="610" x2="900" y2="640" stroke="#E65100" stroke-width="3" marker-end="url(#arrowhead-E65100)"/>
+<rect x="180" y="650" width="1440" height="90" rx="12" ry="12" fill="#FBE9E7" stroke="#BF360C" stroke-width="3"/>
+<text x="900" y="685" font-size="30" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-weight="bold" fill="#BF360C" text-anchor="middle">2. REQUEST Interceptor (Lambda)</text>
+<text x="900" y="716" font-size="22" font-family="Segoe UI, Helvetica, Arial, sans-serif" fill="#BF360C" text-anchor="middle">Decode JWT → inject user_context into tool args + set x-user-role header</text>
+<line x1="900" y1="740" x2="900" y2="770" stroke="#BF360C" stroke-width="3" marker-end="url(#arrowhead-BF360C)"/>
+<rect x="180" y="780" width="1440" height="310" rx="12" ry="12" fill="#F3E5F5" stroke="#6A1B9A" stroke-width="3"/>
+<text x="900" y="818" font-size="30" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-weight="bold" fill="#6A1B9A" text-anchor="middle">3. CEDAR Policy Engine</text>
+<text x="900" y="860" font-size="20" font-family="Courier New, monospace" fill="#6A1B9A" text-anchor="middle">permit_all → PERMIT (baseline access)</text>
+<text x="900" y="898" font-size="20" font-family="Courier New, monospace" fill="#6A1B9A" text-anchor="middle">forbid_line_scope → check line param vs user scope</text>
+<text x="900" y="936" font-size="20" font-family="Courier New, monospace" fill="#6A1B9A" text-anchor="middle">forbid_equipment_scope → check machine_id vs user scope</text>
+<text x="900" y="974" font-size="20" font-family="Courier New, monospace" fill="#6A1B9A" text-anchor="middle">forbid_plant_scope → check plant param vs user scope</text>
+<text x="900" y="1050" font-size="20" font-family="Courier New, monospace" fill="#6A1B9A" text-anchor="middle">Priority: forbid > permit > deny-by-default</text>
+<line x1="580" y1="1090" x2="420" y2="1140" stroke="#2E7D32" stroke-width="3" marker-end="url(#arrowhead-2E7D32)"/>
+<text x="480" y="1115" font-size="21" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-weight="bold" fill="#2E7D32" text-anchor="middle">PERMIT</text>
+<line x1="1220" y1="1090" x2="1380" y2="1140" stroke="#C62828" stroke-width="3" marker-end="url(#arrowhead-C62828)"/>
+<text x="1320" y="1115" font-size="21" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-weight="bold" fill="#C62828" text-anchor="middle">FORBID</text>
+<rect x="140" y="1150" width="620" height="150" rx="12" ry="12" fill="#E8F5E9" stroke="#2E7D32" stroke-width="3"/>
+<text x="450" y="1188" font-size="30" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-weight="bold" fill="#2E7D32" text-anchor="middle">ALLOW</text>
+<text x="450" y="1225" font-size="22" font-family="Segoe UI, Helvetica, Arial, sans-serif" fill="#2E7D32" text-anchor="middle">Invoke Lambda Tool Target</text>
+<text x="450" y="1255" font-size="22" font-family="Segoe UI, Helvetica, Arial, sans-serif" fill="#2E7D32" text-anchor="middle">Execute tool logic, return data</text>
+<rect x="1040" y="1150" width="620" height="150" rx="12" ry="12" fill="#FFEBEE" stroke="#C62828" stroke-width="3"/>
+<text x="1350" y="1188" font-size="30" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-weight="bold" fill="#C62828" text-anchor="middle">DENY</text>
+<text x="1350" y="1225" font-size="22" font-family="Segoe UI, Helvetica, Arial, sans-serif" fill="#C62828" text-anchor="middle">"[Policy] Access denied."</text>
+<text x="1350" y="1255" font-size="22" font-family="Segoe UI, Helvetica, Arial, sans-serif" fill="#C62828" text-anchor="middle">"Not authorized for Line 4"</text>
+<line x1="450" y1="1300" x2="720" y2="1360" stroke="#2E7D32" stroke-width="3" marker-end="url(#arrowhead-2E7D32)"/>
+<line x1="1350" y1="1300" x2="1080" y2="1360" stroke="#C62828" stroke-width="3" marker-end="url(#arrowhead-C62828)"/>
+<rect x="180" y="1360" width="1440" height="90" rx="12" ry="12" fill="#E0F2F1" stroke="#00695C" stroke-width="3"/>
+<text x="900" y="1395" font-size="30" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-weight="bold" fill="#00695C" text-anchor="middle">4. RESPONSE Interceptor (Lambda)</text>
+<text x="900" y="1426" font-size="22" font-family="Segoe UI, Helvetica, Arial, sans-serif" fill="#00695C" text-anchor="middle">tools/list → filter by role  |  tool results → pass through</text>
+<line x1="900" y1="1450" x2="900" y2="1790" stroke="#00695C" stroke-width="3" marker-end="url(#arrowhead-00695C)"/>
+<rect x="160" y="1800" width="1480" height="130" rx="12" ry="12" fill="#EDE7F6" stroke="#4527A0" stroke-width="3"/>
+<text x="900" y="1838" font-size="30" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-weight="bold" fill="#4527A0" text-anchor="middle">AGENT Receives Result</text>
+<text x="900" y="1875" font-size="22" font-family="Segoe UI, Helvetica, Arial, sans-serif" fill="#2E7D32" text-anchor="middle">ALLOW → synthesizes data into human-readable response</text>
+<text x="900" y="1905" font-size="22" font-family="Segoe UI, Helvetica, Arial, sans-serif" fill="#C62828" text-anchor="middle">DENY → explains scope limit, suggests alternative within user's scope</text>
+<text x="900" y="1960" font-size="32" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-weight="bold" fill="#1a1a2e" text-anchor="middle">Design Principles</text>
+<text x="200" y="2002" font-size="22" font-family="Segoe UI, Helvetica, Arial, sans-serif" fill="#1a1a2e" text-anchor="start">▸  LLM decides WHAT to do, Cedar decides IF it's allowed</text>
+<text x="200" y="2040" font-size="22" font-family="Segoe UI, Helvetica, Arial, sans-serif" fill="#1a1a2e" text-anchor="start">▸  Fail-secure: No explicit permit = DENY</text>
+<text x="200" y="2078" font-size="22" font-family="Segoe UI, Helvetica, Arial, sans-serif" fill="#1a1a2e" text-anchor="start">▸  Parameter-level access control: Same tool, different data scope</text>
+<text x="200" y="2116" font-size="22" font-family="Segoe UI, Helvetica, Arial, sans-serif" fill="#1a1a2e" text-anchor="start">▸  MCP servers are auth-unaware: Zero access control logic in Lambdas</text>
+</svg>
