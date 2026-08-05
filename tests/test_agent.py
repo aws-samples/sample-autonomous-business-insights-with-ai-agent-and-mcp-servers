@@ -153,6 +153,101 @@ class TestMemoryManager:
         assert recent[0]["query"] == "Query 3"
         assert recent[1]["query"] == "Query 4"
 
+    def test_store_episodic_memory(self):
+        """Should store a new episodic memory entry."""
+        manager = MemoryManager()
+        entry = manager.store(
+            user_id="priya.nair",
+            key="vibration_flagged",
+            value="Machine 42 vibration at 4.5 mm/s — flagged for review",
+            memory_type="episodic",
+            namespace="user",
+            tags=["machine_42", "vibration"],
+            source_tool="get_sensor_readings",
+            source_params={"machine_id": 42, "metric": "vibration"},
+            user_action="flagged_for_review",
+        )
+        assert entry.memory_type == "episodic"
+        assert entry.source_tool == "get_sensor_readings"
+        assert entry.user_action == "flagged_for_review"
+
+    def test_recall_by_memory_type(self):
+        """Should filter recall results by memory_type."""
+        manager = MemoryManager()
+        # Priya has both long_term and episodic entries
+        episodic = manager.recall("priya.nair", memory_types=["episodic"])
+        long_term = manager.recall("priya.nair", memory_types=["long_term"])
+
+        assert all(e.memory_type == "episodic" for e in episodic)
+        assert all(e.memory_type == "long_term" for e in long_term)
+        assert len(episodic) > 0
+        assert len(long_term) > 0
+
+    def test_recall_by_query(self):
+        """Should filter recall results by keyword query."""
+        manager = MemoryManager()
+        results = manager.recall("priya.nair", query="vibration")
+        assert len(results) > 0
+        assert all("vibration" in e.content.lower() for e in results)
+
+    def test_recall_by_tags(self):
+        """Should filter recall results by tags."""
+        manager = MemoryManager()
+        results = manager.recall("priya.nair", tags=["machine_42"])
+        assert len(results) > 0
+        assert all("machine_42" in e.tags for e in results)
+
+    def test_get_episodic_timeline(self):
+        """Should return episodic events in chronological order."""
+        manager = MemoryManager()
+        timeline = manager.get_episodic_timeline("priya.nair", topic="machine 42")
+        assert len(timeline) > 0
+        # Verify chronological order (oldest first)
+        for i in range(len(timeline) - 1):
+            assert timeline[i].timestamp <= timeline[i + 1].timestamp
+
+    def test_get_episodic_timeline_all_are_episodic(self):
+        """Timeline should only return episodic entries, not long-term."""
+        manager = MemoryManager()
+        timeline = manager.get_episodic_timeline("priya.nair")
+        assert all(e.memory_type == "episodic" for e in timeline)
+
+    def test_store_then_recall(self):
+        """Stored memory should be retrievable via recall."""
+        manager = MemoryManager()
+        manager.store(
+            user_id="raj.patel",
+            key="line7_status",
+            value="Line 7 OEE at 82% — stable this week",
+            memory_type="episodic",
+            tags=["line_7", "oee"],
+        )
+        results = manager.recall("raj.patel", query="Line 7")
+        assert any("Line 7" in e.content for e in results)
+
+    def test_team_memory_accessible(self):
+        """Team-scoped memory should be accessible to team members."""
+        manager = MemoryManager()
+        results = manager.recall("priya.nair", tags=["thresholds"])
+        assert any("threshold" in e.content.lower() for e in results)
+
+    def test_org_memory_accessible(self):
+        """Org-scoped memory should be accessible to all users."""
+        manager = MemoryManager()
+        results = manager.recall("sarah.chen", tags=["oee", "critical"])
+        assert any("80%" in e.content for e in results)
+
+    def test_session_tool_result_caching(self):
+        """Session should cache tool results for coreference."""
+        manager = MemoryManager()
+        session = manager.get_or_create_session("priya.nair", "sess-1")
+        session.add_tool_result(
+            "get_sensor_readings",
+            {"machine_id": 42, "metric": "vibration"},
+            "4.5 mm/s",
+        )
+        assert len(session.tool_results) == 1
+
 
 class TestAgentConfiguration:
     """Tests for agent MCP client configuration."""
