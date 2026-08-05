@@ -50,6 +50,10 @@ By the end of this workshop, you will have:
 
 Approximately **3 hours**
 
+## Author
+
+**Sudhanshu Hate** (HiSuds@amazon.com)
+
 ## AWS Services Used
 
 | Service | Purpose |
