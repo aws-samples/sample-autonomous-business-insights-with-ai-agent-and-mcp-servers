@@ -154,3 +154,45 @@ curl -X POST https://your-gateway-id.gateway.bedrock-agentcore.us-east-1.amazona
 | Cedar ENFORCE mode | ✅ ACTIVE | All policies evaluating |
 
 **Overall:** All core infrastructure is deployed and functional. The system correctly enforces deny-by-default authorization. End-to-end authenticated flow works with user-based tokens. M2M `client_credentials` flow pending DNS propagation.
+
+---
+
+## Unit Test Results (pytest)
+
+> **Test Run:** August 2026
+> **Command:** `pytest tests/ -v`
+> **Result:** 63 passed in 0.89s
+
+### Test Breakdown
+
+| Test File | Tests | Status |
+|-----------|-------|--------|
+| `tests/test_agent.py` | 31 | All PASSED |
+| `tests/test_gateway_hook.py` | 7 | All PASSED |
+| `tests/test_mcp_servers.py` | 17 | All PASSED |
+| `tests/test_policy.py` | 8 | All PASSED |
+| **Total** | **63** | **All PASSED** |
+
+### Memory Tests (New — August 2026)
+
+| Test | What It Validates |
+|------|-------------------|
+| `test_store_episodic_memory` | `store()` creates episodic entries with source_tool and user_action |
+| `test_recall_by_memory_type` | `recall()` filters by "episodic" vs "long_term" |
+| `test_recall_by_query` | `recall()` keyword search matches content |
+| `test_recall_by_tags` | `recall()` tag-based filtering |
+| `test_get_episodic_timeline` | Chronological ordering (oldest first) |
+| `test_get_episodic_timeline_all_are_episodic` | Timeline excludes long-term entries |
+| `test_store_then_recall` | End-to-end: store → recall retrieves |
+| `test_team_memory_accessible` | Team namespace accessible to team members |
+| `test_org_memory_accessible` | Org namespace accessible to all users |
+| `test_session_tool_result_caching` | `add_tool_result()` caches for coreference |
+
+### Evaluation Metrics (evals/)
+
+| Eval | Command | Metrics Measured |
+|------|---------|-----------------|
+| Tool Use | `python -m evals.eval_tool_use` | Tool Selection Accuracy, Tool Parameter Accuracy |
+| Policy | `python -m evals.eval_policy` | Policy Denial Compliance (target: 100%) |
+| Quality | `python -m evals.eval_quality` | Faithfulness (>0.90), Helpfulness (>0.85) |
+| Trajectory | `python -m evals.eval_trajectory` | Trajectory Quality (>0.85), Goal Success Rate (>0.85) |

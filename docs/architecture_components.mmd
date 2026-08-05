@@ -1,0 +1,59 @@
+---
+title: "AgentCore Components — Full Architecture"
+---
+graph TD
+    subgraph Users["Users (JWT Authenticated)"]
+        Sarah["Sarah Chen<br/>Plant Manager<br/>Full Access"]
+        Raj["Raj Patel<br/>Line Supervisor<br/>Line 7"]
+        Priya["Priya Nair<br/>Maint. Tech<br/>Machine 41-45"]
+    end
+
+    subgraph Runtime["AgentCore Runtime"]
+        Agent["Strands Agent<br/>(Firecracker microVM)<br/>Session Isolated"]
+    end
+
+    subgraph Gateway["AgentCore Gateway"]
+        JWT["JWT Validation"]
+        REQ["REQUEST Interceptor<br/>(Lambda)"]
+        Cedar["Policy Engine<br/>(Cedar)"]
+        RESP["RESPONSE Interceptor<br/>(Lambda)"]
+        Cache["3-Tier Cache<br/>Edge | Regional | Session"]
+    end
+
+    subgraph Registry["AgentCore Registry"]
+        Catalog["Tool Catalog<br/>Versioning | Tags | Owners"]
+        Discovery["Discovery API<br/>(get_data_catalog)"]
+    end
+
+    subgraph Memory["AgentCore Memory"]
+        ST["Short-Term<br/>(Session RAM)"]
+        LT["Long-Term<br/>(S3 — Baselines, Prefs)"]
+        EP["Episodic<br/>(S3 — Events, Decisions)"]
+    end
+
+    subgraph Targets["Lambda Tool Targets"]
+        Equip["Equipment<br/>(Aurora)"]
+        IoT["IoT Telemetry<br/>(Timestream)"]
+        Supply["Supply Chain<br/>(Redshift)"]
+        Analytics["Analytics<br/>(Redshift/OpenSearch)"]
+    end
+
+    subgraph Observability["AgentCore Observability"]
+        XRay["X-Ray Traces"]
+        CW["CloudWatch Logs<br/>(Policy Audit)"]
+        Metrics["Metrics<br/>(Latency, Tokens, Deny Rate)"]
+    end
+
+    Users -->|"Natural Language Query"| Runtime
+    Agent -->|"tools/call"| Gateway
+    Agent -->|"tools/list"| Registry
+    JWT --> REQ --> Cedar --> Targets
+    Cedar -->|"DENY"| Agent
+    Targets --> RESP --> Agent
+    Agent <-->|"Session Context"| ST
+    Agent <-->|"Baselines & Prefs"| LT
+    Agent <-->|"Past Events"| EP
+    Gateway --> XRay
+    Cedar --> CW
+    Gateway --> Metrics
+    Registry -->|"Routing Table"| Gateway

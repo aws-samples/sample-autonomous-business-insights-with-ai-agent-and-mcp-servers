@@ -53,10 +53,13 @@ Equipment  IoT   Supply   Analytics  Semantic
 | Component | AWS Service | Purpose |
 |-----------|-------------|---------|
 | Identity | Cognito User Pool | 3 users with role/scope attributes |
-| Gateway | AgentCore Gateway | MCP router, JWT validation |
+| Gateway | AgentCore Gateway | MCP router, JWT validation, 3-tier caching |
+| Registry | AgentCore Registry (via Gateway) | Tool discovery, versioning, governance |
 | Tool Targets | Lambda (x5) | Domain tool implementations |
 | Policy Engine | AgentCore Policy | Cedar rules enforcement |
+| Memory | S3 | Short-term (session), long-term (baselines), episodic (events) |
 | Interceptors | Lambda (x2) | Request enrichment, response filtering |
+| Observability | CloudWatch + X-Ray | Audit logs, traces, metrics, alerts |
 
 ## Prerequisites
 

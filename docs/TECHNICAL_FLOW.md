@@ -640,3 +640,149 @@ Step 6: LLM reads deny, responds:
 | **Extensible by config** | New tool = new Lambda target, existing policies auto-apply |
 | **Forbid overrides permit** | One deny rule blocks regardless of other permits |
 | **Deterministic** | Cedar gives same result for same input (unlike LLM) |
+
+---
+
+## AgentCore Registry — Tool Discovery & Governance
+
+The Registry provides a service catalog for MCP tools. The Gateway's routing table is populated from registered targets.
+
+### Registration Model
+
+Each MCP server is registered with:
+
+| Field | Example |
+|-------|---------|
+| Name | `EquipmentTarget` |
+| Version | `1.2` |
+| Tools | `[get_equipment_status, get_maintenance_history, get_shared_infrastructure]` |
+| Tags | `["manufacturing", "equipment", "maintenance"]` |
+| Data Source | Aurora PostgreSQL |
+| Owner | manufacturing-platform-team |
+| Status | ACTIVE |
+
+### Discovery Flow
+
+```
+Agent: "Which lines need attention?" (complex query)
+  │
+  ├── Agent calls: get_data_catalog()  ← Semantic Layer acts as Registry
+  │   Returns: {equipment: [...tools], iot: [...tools], analytics: [...tools]}
+  │
+  └── Agent now knows which tools exist and what data sources they cover
+      → Makes informed decisions about which tools to call
+```
+
+### Governance Capabilities
+
+- **Versioning** — Multiple versions can coexist (v1.0 alongside v2.0)
+- **Deprecation** — Mark tools as deprecated with sunset date
+- **Ownership** — Each target has a responsible team
+- **Schema validation** — Tool schemas validated at registration time
+- **Audit trail** — Every register/update/deprecate action is logged
+
+### Adding a New MCP Server (Zero Agent Code Changes)
+
+1. Write the MCP server (FastMCP pattern)
+2. Register tool schemas in `setup_gateway.py`
+3. Deploy the Lambda target
+4. Update the Semantic Layer catalog
+5. Existing Cedar policies auto-apply if parameters match (line, machine_id, plant)
+
+---
+
+## Memory Architecture — Three Constructs
+
+### Memory Types
+
+| Type | Scope | Lifetime | Storage | Purpose |
+|------|-------|----------|---------|---------|
+| **Short-term** | Session | Destroyed on end | microVM RAM | Turn context, coreference |
+| **Long-term** | User/Team/Org | TTL (90-365 days) | S3 | Baselines, preferences, thresholds |
+| **Episodic** | User | TTL (90 days) | S3 | Timestamped events, past decisions |
+
+### Memory APIs (src/memory/manager.py)
+
+```python
+# Store an episodic event
+memory.store(
+    user_id="priya.nair",
+    key="vibration_flagged",
+    value="Machine 42 vibration at 4.5 mm/s — flagged for review",
+    memory_type="episodic",
+    tags=["machine_42", "vibration"],
+    source_tool="get_sensor_readings",
+    user_action="flagged_for_review",
+)
+
+# Recall relevant memories (keyword search across all namespaces)
+results = memory.recall("priya.nair", query="machine 42", memory_types=["episodic"])
+
+# Get chronological timeline
+timeline = memory.get_episodic_timeline("priya.nair", topic="machine 42", days=30)
+
+# Get long-term baselines (excludes episodic)
+baselines = memory.get_long_term_context("priya.nair", tags=["baseline"])
+
+# Get user preferences
+prefs = memory.get_user_preferences("sarah.chen")
+```
+
+### Namespace Isolation
+
+| Namespace | Who Can Access | Example Content |
+|-----------|----------------|-----------------|
+| User (private) | Only that user | Priya's Machine 42 baselines |
+| Team | All team members | Maintenance team vibration thresholds |
+| Organization | Everyone | Global OEE critical threshold (80%) |
+
+### Memory + Policy Integration
+
+- Memory derived from denied data is **NOT** stored
+- Recall respects namespaces — user A cannot access user B's memories
+- Team memories are accessible to all members of that team
+
+---
+
+## Evaluation Framework — 7 Metrics
+
+All evaluations use the [Strands Evals SDK](https://strandsagents.com/latest/user-guide/concepts/evals/).
+
+### Metrics Summary
+
+| # | Metric | Target | Type | File |
+|---|--------|--------|------|------|
+| 1 | Tool Selection Accuracy | > 90% | Deterministic | `evals/eval_tool_use.py` |
+| 2 | Tool Parameter Accuracy | > 95% | Deterministic | `evals/eval_tool_use.py` |
+| 3 | Policy Denial Compliance | 100% | Deterministic | `evals/eval_policy.py` |
+| 4 | Faithfulness | > 0.90 | LLM-judged | `evals/eval_quality.py` |
+| 5 | Helpfulness | > 0.85 | LLM-judged | `evals/eval_quality.py` |
+| 6 | Trajectory Quality | > 0.85 | LLM-judged | `evals/eval_trajectory.py` |
+| 7 | Goal Success Rate | > 0.85 | LLM-judged | `evals/eval_trajectory.py` |
+
+### When to Run Each
+
+| Metric | Trigger |
+|--------|---------|
+| Tool Selection | After prompt changes or new tools added |
+| Tool Parameters | After schema changes or identity model changes |
+| Policy Compliance | After every Cedar policy change (mandatory, 100% target) |
+| Faithfulness | After model upgrades or synthesis prompt changes |
+| Helpfulness | When users report unhelpful responses |
+| Trajectory | After adding MCP servers or changing semantic layer |
+| Goal Success | Weekly regression cadence |
+
+### Running Evaluations
+
+```bash
+python -m evals.eval_tool_use      # Metrics 1 & 2
+python -m evals.eval_policy        # Metric 3
+python -m evals.eval_quality       # Metrics 4 & 5
+python -m evals.eval_trajectory    # Metrics 6 & 7
+```
+
+### Test Suite (63 tests, no AWS needed)
+
+```bash
+pytest tests/ -v   # 63 tests: agent, policy, gateway hook, MCP servers, memory
+```
