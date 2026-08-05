@@ -1,27 +1,80 @@
-+++
-title = "AgentCore Gateway"
-weight = 60
-+++
+---
+title: "AgentCore Gateway"
+weight: 60
+---
 
 # AgentCore Gateway — MCP Router & Security Enforcement
 
-In this module, you'll deploy the AgentCore Gateway — the single chokepoint through which every tool call passes. You'll set up Lambda tool targets, configure MCP routing, and understand the request interception pipeline.
+In this module, you'll deploy the AgentCore Gateway — the single chokepoint through which every tool call passes. You'll **register all your MCP servers as Lambda tool targets** in the Gateway, configure MCP routing, and understand the request interception pipeline.
+
+## From Local MCP Servers to Gateway
+
+In the earlier modules, you built 4 MCP servers and connected them directly to the Strands Agent:
+
+```
+Earlier (local development):
+  Agent → Equipment Server (localhost:8001)
+  Agent → IoT Server (localhost:8002)
+  Agent → Supply Chain Server (localhost:8003)
+  Agent → Analytics Server (localhost:8004)
+```
+
+Now you're moving to production. Instead of the agent connecting to each MCP server individually, you **register all servers in the Gateway** and the agent connects to a single URL:
+
+```
+Production (via Gateway):
+  Agent → Gateway (single URL) → Equipment Target (Lambda)
+                                → IoT Target (Lambda)
+                                → Supply Chain Target (Lambda)
+                                → Analytics Target (Lambda)
+```
+
+The agent's code changes from connecting to 5 URLs to connecting to 1. The Gateway handles all routing internally.
 
 ## What Is the Gateway?
 
-The Gateway is a managed HTTPS endpoint that sits between the agent and your MCP servers. Every tool call flows through it. It provides:
+The Gateway is a managed HTTPS endpoint that sits between the agent and your MCP servers. Every tool call flows through it.
 
-- **MCP routing** — Routes `tools/call` to the correct Lambda target based on tool name
-- **JWT validation** — Verifies user tokens before any processing
-- **Request interception** — Lambda-based enrichment of requests
-- **Policy enforcement** — Cedar evaluation before tool execution
-- **Response interception** — Filtering/transformation of responses
-- **3-tier caching** — Edge (CloudFront), regional (ElastiCache), per-session
+## Why Use a Gateway Instead of Direct MCP Connections?
+
+| Concern | Direct MCP (local) | Via Gateway (production) |
+|---------|-------------------|--------------------------|
+| Security | Auth logic in each server | Centralized Cedar policy enforcement |
+| Routing | Agent manages N connections | Single URL, Gateway routes |
+| Caching | None | 3-tier: edge, regional, per-session |
+| Tool discovery | Agent queries each server | Gateway aggregates all tools |
+| Scaling | Each server scales independently | Gateway handles load balancing |
+| Observability | Scattered logs | Unified tracing + audit |
+| Latency | N round-trips for discovery | Single discovery call, cached |
+| Governance | No central control | Interceptor pipeline + policy |
+
+### Gateway Benefits Deep Dive
+
+**3-Tier Caching** — Repeated queries don't hit your data sources:
+- **Edge cache (CloudFront)** — Identical requests from any user served at the edge (~5ms)
+- **Regional cache (ElastiCache)** — Same tool+params across users within a region (~15ms)
+- **Per-session cache (in-microVM)** — Same call within a conversation, instant recall
+
+**Tool Indexing & Discovery** — The Gateway maintains a registry of all registered tool targets. When the agent calls `tools/list`, the Gateway returns a merged, deduplicated list from all targets in one response. No need to query each server.
+
+**Interceptor Pipeline** — Lambda-based hooks that run before/after every tool call:
+- Enrich requests with user context (REQUEST interceptor)
+- Filter tool visibility by role (RESPONSE interceptor)
+- Transform responses (redaction, formatting)
+
+**Deny-by-Default Security** — Cedar policy evaluates before the tool target is invoked. If denied, the MCP server is never contacted. Zero attack surface on your data layer.
+
+**Unified Observability** — Every tool call through the Gateway generates:
+- X-Ray trace (end-to-end latency breakdown)
+- CloudWatch log (policy decision + request/response)
+- Metrics (call count, latency p50/p99, deny rate)
 
 ```
 Agent ─────────────► Gateway ─────────────► Lambda Tool Targets
          HTTPS              Policy check           MCP Servers
-         (single URL)       before forward         (multiple)
+         (single URL)       + caching              (multiple)
+                            + indexing
+                            + observability
 ```
 
 The agent only knows the Gateway URL. It cannot bypass the Gateway to reach MCP servers directly.
@@ -61,17 +114,25 @@ Every tool call passes through this pipeline in order:
 └───────────────────────────────────────────────────────────────────┘
 ```
 
-## Step 1: Deploy Lambda Tool Targets
+## Step 1: Register MCP Servers as Gateway Tool Targets
 
-Each MCP server becomes a Lambda function in production. The script creates three Lambda targets:
+This is the key step — you're taking the MCP servers you built in Module 3 and **registering them in the Gateway** as Lambda tool targets. Each local server becomes a Lambda function that the Gateway routes to:
+
+| Local MCP Server (Module 3) | → | Gateway Tool Target |
+|-----------------------------|---|---------------------|
+| `equipment_server.py` (port 8001) | → | `MfgInsights-EquipmentTools` (Lambda) |
+| `iot_telemetry_server.py` (port 8002) | → | `MfgInsights-IoTTools` (Lambda) |
+| `supply_chain_server.py` + `analytics_server.py` (ports 8003-8004) | → | `MfgInsights-AnalyticsTools` (Lambda) |
+
+The deployment script packages each server's logic into a Lambda and registers it with the Gateway:
 
 ```bash
 python deploy/agentcore/setup_gateway.py --region us-east-1
 ```
 
-{{% notice note %}}
+:::alert{type="info"}
 If you haven't deployed infrastructure yet, this step creates the Lambda functions, IAM roles, and the Gateway resource. It takes about 2-3 minutes.
-{{% /notice %}}
+:::
 
 Expected output:
 

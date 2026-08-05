@@ -1,11 +1,11 @@
-+++
-title = "AgentCore Memory"
-weight = 90
-+++
+---
+title: "AgentCore Memory"
+weight: 90
+---
 
-# AgentCore Memory — Session & Cross-Session Persistence
+# AgentCore Memory — Short-Term, Long-Term & Episodic Persistence
 
-In this module, you'll explore how AgentCore Memory enables natural follow-up conversations and personalized responses by persisting context within and across sessions.
+In this module, you'll explore the three memory constructs in AgentCore — short-term, long-term, and episodic — and understand when each activates from the end user's perspective.
 
 ## Why Does an Agent Need Memory?
 
@@ -19,52 +19,177 @@ Session 2: "Has it gotten worse?"            → "What do you mean by 'it'?"
 With memory:
 
 ```
-Session 1: "What's Machine 42's vibration?"  → "4.5 mm/s" [stored: baseline=4.5]
+Session 1: "What's Machine 42's vibration?"  → "4.5 mm/s" [stored]
 Session 2: "Has it gotten worse?"            → "Yes, up from 3.8 mm/s last week (+18%)"
 ```
 
-Memory gives the agent conversational continuity and the ability to surface historical context.
-
-## Memory Architecture
-
-AgentCore Memory operates at three levels:
+## The Three Memory Constructs
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│  AgentCore Memory                                            │
-│                                                              │
-│  ┌──────────────────────────────────────────────────────┐   │
-│  │  Short-Term (Session)                                 │   │
-│  │  • Turn-by-turn conversation context                  │   │
-│  │  • Tool call results from this session                │   │
-│  │  • Lives in microVM memory (destroyed on session end) │   │
-│  └──────────────────────────────────────────────────────┘   │
-│                                                              │
-│  ┌──────────────────────────────────────────────────────┐   │
-│  │  Long-Term (User)                                     │   │
-│  │  • Baselines: "Machine 42 vibration: 3.8 mm/s"       │   │
-│  │  • Preferences: "Sarah prefers severity-ranked lists" │   │
-│  │  • Past insights: "Last week Line 4 OEE was 87%"     │   │
-│  │  • Persisted to S3 (survives session end)             │   │
-│  └──────────────────────────────────────────────────────┘   │
-│                                                              │
-│  ┌──────────────────────────────────────────────────────┐   │
-│  │  Team/Org (Shared)                                    │   │
-│  │  • Thresholds: "Temperature warning at 72°C"         │   │
-│  │  • Standards: "OEE below 80% = critical"             │   │
-│  │  • Shared by all users in the team/org namespace      │   │
-│  └──────────────────────────────────────────────────────┘   │
-│                                                              │
-└─────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────────┐
+│  AgentCore Memory Model                                              │
+│                                                                      │
+│  ┌────────────────────────────────────────────────────────────────┐ │
+│  │  SHORT-TERM MEMORY (Session)                                    │ │
+│  │  Scope: Single conversation session                             │ │
+│  │  Lifetime: Destroyed when session ends                          │ │
+│  │  Storage: In-memory (microVM RAM)                               │ │
+│  │                                                                  │ │
+│  │  Contains:                                                       │ │
+│  │  • Turn-by-turn conversation history                             │ │
+│  │  • Tool call results from this session                           │ │
+│  │  • Coreference context ("it" = Machine 42)                       │ │
+│  └────────────────────────────────────────────────────────────────┘ │
+│                                                                      │
+│  ┌────────────────────────────────────────────────────────────────┐ │
+│  │  LONG-TERM MEMORY (Persistent)                                  │ │
+│  │  Scope: User / Team / Organization                              │ │
+│  │  Lifetime: TTL-based (90 days user, 180 team, 365 org)          │ │
+│  │  Storage: S3 (persists across sessions)                         │ │
+│  │                                                                  │ │
+│  │  Contains:                                                       │ │
+│  │  • Baselines: "Machine 42 vibration normal = 3.2 mm/s"          │ │
+│  │  • Preferences: "Sarah prefers severity-ranked lists"            │ │
+│  │  • Thresholds (team): "Vibration warning = 4.0 mm/s"            │ │
+│  │  • Standards (org): "OEE critical threshold = 80%"              │ │
+│  └────────────────────────────────────────────────────────────────┘ │
+│                                                                      │
+│  ┌────────────────────────────────────────────────────────────────┐ │
+│  │  EPISODIC MEMORY (Events)                                       │ │
+│  │  Scope: User-specific past interactions                         │ │
+│  │  Lifetime: TTL-based (90 days)                                  │ │
+│  │  Storage: S3 (timestamped entries)                              │ │
+│  │                                                                  │ │
+│  │  Contains:                                                       │ │
+│  │  • Past insights: "July 15 — flagged Machine 42 vibration 3.8"  │ │
+│  │  • Decisions made: "Scheduled bearing replacement for Aug 1"     │ │
+│  │  • Queries asked: "Last week asked about Line 4 coolant"         │ │
+│  │  • Outcomes: "After coolant flush, Line 9 throughput recovered"  │ │
+│  └────────────────────────────────────────────────────────────────┘ │
+│                                                                      │
+└─────────────────────────────────────────────────────────────────────┘
 ```
 
-## Step 1: Explore the Memory Manager
+## When Each Memory Type Activates — User Scenarios
+
+### Scenario 1: Short-Term Memory — Follow-Up Within a Session
+
+**User: Priya (Maintenance Technician)**
+
+```
+Priya: "What's the vibration on Machine 42?"
+Agent: "Current vibration: 4.5 mm/s (WARNING — above 4.0 threshold)"
+       → SHORT-TERM stores: {machine_id: 42, metric: vibration, value: 4.5}
+
+Priya: "What about temperature?"
+Agent: "Machine 42 temperature: 77°C (12°C above baseline)"
+       → SHORT-TERM resolves "what about" = same machine, different metric
+       → No need to re-specify Machine 42
+
+Priya: "Is that related?"
+Agent: "Likely yes — elevated vibration often causes bearing friction,
+        which raises motor temperature. Both trending up together suggests
+        bearing degradation."
+       → SHORT-TERM correlates two tool results from this session
+```
+
+**What activates:** Short-term memory holds the conversation context. "That" and "is that related" are resolved because the agent remembers what was just discussed.
+
+### Scenario 2: Long-Term Memory — Baselines & Preferences
+
+**User: Sarah (Plant Manager)**
+
+```
+Session on Monday:
+Sarah: "Which lines need attention this week?"
+Agent: Returns severity-ranked list (Lines 4, 9, 7)
+       → LONG-TERM stores preference: "Sarah prefers severity-ranked output"
+
+Session on Friday:
+Sarah: "Weekly update?"
+Agent: Returns severity-ranked list (learned preference)
+       with comparison to Monday's values (baselines from long-term)
+       → LONG-TERM recalled: Sarah likes ranked lists
+       → LONG-TERM recalled: Monday's OEE values for comparison
+```
+
+**What activates:** Long-term memory persists across sessions. The agent learns Sarah's output preference once and applies it in every future session.
+
+### Scenario 3: Episodic Memory — Past Events & Outcomes
+
+**User: Priya (Maintenance Technician)**
+
+```
+3 weeks ago:
+Priya: "Machine 42 vibration seems high at 3.8 mm/s"
+Agent: "Noted. 3.8 is below WARNING threshold (4.0) but trending up."
+       → EPISODIC stores: {date: July 2, event: "vibration 3.8, pre-warning"}
+
+1 week ago:
+Priya: "Schedule a bearing inspection for Machine 42"
+Agent: "Inspection scheduled with Priya Nair for July 16."
+       → EPISODIC stores: {date: July 9, event: "inspection scheduled"}
+
+Today:
+Priya: "Has Machine 42's vibration gotten worse?"
+Agent: "Yes. Timeline:
+        - July 2: 3.8 mm/s (you flagged it early)
+        - July 9: 4.1 mm/s (inspection scheduled)
+        - Today: 4.5 mm/s (+18% from your initial reading)
+        Recommendation: Expedite bearing replacement."
+       → EPISODIC recalled: the full history of interactions about this machine
+```
+
+**What activates:** Episodic memory remembers *what happened when*. It provides a timeline of past interactions, not just static facts.
+
+### Scenario 4: Team Memory — Shared Thresholds
+
+**User: Any maintenance technician**
+
+```
+Priya: "Is 4.5 mm/s vibration dangerous?"
+Agent: "4.5 mm/s exceeds the team-defined WARNING threshold (4.0 mm/s)
+        but is below CRITICAL (6.0 mm/s). Action recommended within 48 hours."
+       → LONG-TERM (team namespace): thresholds shared across all technicians
+
+New technician (Arun, just joined):
+Arun: "What's the vibration limit for these machines?"
+Agent: "Your team's thresholds:
+        - Normal: < 3.5 mm/s
+        - Warning: 4.0 mm/s (investigate within 48h)
+        - Critical: 6.0 mm/s (stop machine immediately)"
+       → Same LONG-TERM team memory, accessible to all maintenance_technicians
+```
+
+**What activates:** Team-scoped long-term memory. Thresholds set by one team member are available to all team members.
+
+### Scenario 5: Episodic + Long-Term — Trend Comparison
+
+**User: Sarah (Plant Manager)**
+
+```
+Sarah: "How does this week compare to last month?"
+Agent: "Comparison (Line 4):
+        - 4 weeks ago: OEE 84.5% (your baseline reading)
+        - 3 weeks ago: 79.8% (you asked about coolant impact)
+        - 2 weeks ago: 76.4% (bearing order placed)
+        - This week:   72.2% (continued decline)
+
+        Context from your past sessions:
+        - You identified the coolant loop correlation on June 2
+        - Bearing parts were ordered June 5 (14-day lead time — overdue)
+        - Supply chain shows: bearings arrived yesterday, not yet installed"
+       → EPISODIC: recalled past session queries and decisions
+       → LONG-TERM: baseline OEE values persisted across weeks
+```
+
+## Step 1: Explore the Memory Manager Code
 
 Open `src/memory/manager.py`:
 
 ```python
 class SessionMemory:
-    """Short-term: tracks conversation context within one session."""
+    """SHORT-TERM: tracks conversation context within one session."""
 
     def __init__(self):
         self.turns: list[dict] = []
@@ -74,33 +199,81 @@ class SessionMemory:
         self.turns.append({"role": role, "content": content})
 
     def get_context_window(self, max_turns: int = 10) -> list[dict]:
-        """Return recent turns for the system prompt."""
+        """Return recent turns for coreference resolution."""
         return self.turns[-max_turns:]
 
 
 class MemoryManager:
-    """Long-term: persists insights across sessions."""
+    """LONG-TERM + EPISODIC: persists across sessions."""
 
-    def __init__(self, user_id: str, storage_path: str = None):
+    def __init__(self, user_id: str):
         self.user_id = user_id
-        self.memories: list[MemoryEntry] = []
 
-    def store(self, key: str, value: str, metadata: dict = None):
-        """Persist a fact for future sessions."""
-        self.memories.append(MemoryEntry(
+    def store(self, key: str, value: str, memory_type: str = "episodic",
+              namespace: str = "user"):
+        """Persist a fact or event.
+
+        memory_type: "baseline" (long-term fact) or "episodic" (timestamped event)
+        namespace: "user", "team", or "org"
+        """
+        entry = MemoryEntry(
             key=key,
             value=value,
+            memory_type=memory_type,
+            namespace=f"{namespace}/{self.user_id}",
             timestamp=datetime.now(),
-            metadata=metadata or {},
-        ))
+        )
+        self._persist(entry)
 
-    def recall(self, query: str, max_results: int = 5) -> list[MemoryEntry]:
-        """Retrieve relevant memories for a query."""
-        # Semantic similarity matching against stored memories
-        return self._search(query, max_results)
+    def recall(self, query: str, memory_types: list[str] = None,
+               max_results: int = 5) -> list[MemoryEntry]:
+        """Retrieve relevant memories — semantic similarity matching."""
+        return self._search(query, memory_types, max_results)
+
+    def get_user_preferences(self) -> dict:
+        """Retrieve stored user preferences (long-term)."""
+        return self._get_by_type("preference")
+
+    def get_episodic_timeline(self, topic: str, days: int = 30) -> list[MemoryEntry]:
+        """Get chronological events related to a topic."""
+        return self._search_episodic(topic, days)
 ```
 
-## Step 2: See Memory in Action
+## Step 2: How Memory Augments the System Prompt
+
+Before each LLM call, relevant memories are injected:
+
+```python
+def build_prompt(user, memory_manager, session_memory, query):
+    # 1. Recall long-term baselines relevant to this query
+    baselines = memory_manager.recall(query, memory_types=["baseline"])
+
+    # 2. Recall episodic events relevant to this query
+    episodes = memory_manager.get_episodic_timeline(query, days=30)
+
+    # 3. Get user preferences
+    preferences = memory_manager.get_user_preferences()
+
+    # 4. Get short-term session context
+    recent_turns = session_memory.get_context_window(max_turns=5)
+
+    # 5. Get team-scoped thresholds
+    team_context = memory_manager.recall(query, namespace="team")
+
+    return SYSTEM_PROMPT.format(
+        user_name=user.username,
+        user_role=user.role,
+        session_context=format_turns(recent_turns),
+        baselines=format_memories(baselines),
+        episodic_context=format_timeline(episodes),
+        preferences=format_preferences(preferences),
+        team_context=format_memories(team_context),
+    )
+```
+
+The LLM sees all relevant memory as structured context — enabling it to reference past events, apply preferences, and compare to baselines.
+
+## Step 3: Test Short-Term Memory
 
 Start the CLI as Priya:
 
@@ -108,160 +281,117 @@ Start the CLI as Priya:
 python -m src.main
 ```
 
-Select **3 (Priya Nair)** and ask:
+Select **3 (Priya Nair)** and test coreference resolution:
 
 ```
-> What's the current vibration reading on Machine 42?
+> What's the vibration on Machine 42?
+> Is that above normal?
+> Show me the trend over 7 days
+> Should I schedule maintenance?
 ```
 
-The agent calls `get_sensor_readings(machine_id=42, metric="vibration")` and returns the current value (e.g., 4.5 mm/s). This gets stored in short-term memory.
+Each follow-up uses short-term memory to maintain context. "That" refers to the vibration value. "The trend" refers to Machine 42's vibration.
 
-Now ask a follow-up:
-
-```
-> Is that normal?
-```
-
-The agent uses **session memory** to know "that" = 4.5 mm/s on Machine 42, and recalls the **long-term memory** baseline of 3.8 mm/s from last week's inspection. It responds: "No, it's up 18% from the 3.8 mm/s baseline recorded last week."
-
-## Step 3: Understand How Memory Augments the Prompt
-
-Memory entries are injected into the system prompt before each LLM call:
-
-```python
-def build_prompt(user: UserIdentity, memory_manager: MemoryManager, query: str):
-    # Recall relevant memories for this query
-    relevant_memories = memory_manager.recall(query)
-
-    memory_context = ""
-    if relevant_memories:
-        memory_context = "Relevant context from previous sessions:\n"
-        for mem in relevant_memories:
-            memory_context += f"  - [{mem.timestamp}] {mem.key}: {mem.value}\n"
-
-    return SYSTEM_PROMPT.format(
-        user_name=user.username,
-        user_role=user.role,
-        user_scope=user.line_scope,
-        memory_context=memory_context,
-    )
-```
-
-The LLM sees relevant memories as part of its system prompt, allowing it to reference past data points.
-
-## Step 4: Test Cross-Session Persistence
+## Step 4: Test Episodic Memory (Cross-Session)
 
 In the Streamlit UI (`streamlit run src/demo_ui.py`), as Priya:
 
 **Session 1:**
 ```
-> Machine 42 vibration seems high. What was it last time?
+> Machine 42 vibration is at 4.5 mm/s, flagging for review
 ```
+Agent acknowledges. Episodic entry stored.
 
-Agent responds with current reading and historical data. The system stores: "Machine 42 vibration: 4.5 mm/s (2026-07-23)"
-
-**Close the browser tab. Open a new tab (new session).**
+**Close tab. Open new tab (new session).**
 
 **Session 2:**
 ```
-> Has Machine 42's vibration gotten worse?
+> What did I flag last time about Machine 42?
 ```
-
-The agent retrieves long-term memory from Session 1, plus any stored baselines, and provides a trend comparison — even though this is a brand new session.
+Agent recalls the episodic entry: "You flagged Machine 42 vibration at 4.5 mm/s in your previous session."
 
 ## Step 5: Memory and Access Control
 
 Memory respects policy boundaries:
 
-```
-┌────────────────────────────────────────────────────────────┐
-│  Memory Policy Integration                                  │
-│                                                             │
-│  User-scoped memory: Only accessible by that user           │
-│  • Priya's memories about Machine 42 are ONLY Priya's      │
-│  • Raj cannot access Priya's stored baselines              │
-│                                                             │
-│  Team-scoped memory: Accessible by team members             │
-│  • Shared thresholds (e.g., "vibration warning = 4.0")     │
-│  • All maintenance_technicians see these                    │
-│                                                             │
-│  Org-scoped memory: Accessible by all                       │
-│  • Global standards (e.g., "OEE critical < 80%")           │
-│                                                             │
-│  IMPORTANT: Memory derived from denied data is NOT stored   │
-│  • If Raj tries to access Line 4 data → DENY               │
-│  • No memory entry created for that failed attempt          │
-└────────────────────────────────────────────────────────────┘
-```
+| Memory Namespace | Who Can Access | Example |
+|-----------------|----------------|---------|
+| User (private) | Only that user | Priya's Machine 42 baselines |
+| Team | All team members | Maintenance team thresholds |
+| Org | Everyone in org | Global OEE standards |
 
-## Step 6: Explore Memory Storage
+**Critical rule:** Memory derived from denied data is NOT stored. If Raj tries to access Line 4 data and gets denied, no memory entry is created for that attempt.
 
-In production, long-term memory persists to S3:
+## Step 6: Memory Storage Structure
+
+In production, memories persist to S3:
 
 ```
 s3://agentcore-memory-bucket/
 ├── user-memory/
-│   ├── sarah.chen/
-│   │   ├── 2026-07-22_line4_oee.json
-│   │   └── 2026-07-23_anomaly_summary.json
-│   ├── raj.patel/
-│   │   └── 2026-07-23_line7_status.json
 │   └── priya.nair/
-│       └── 2026-07-23_machine42_vibration.json
+│       ├── baselines/
+│       │   └── machine_42_vibration.json       ← LONG-TERM
+│       ├── episodes/
+│       │   ├── 2026-07-02_flagged_vibration.json  ← EPISODIC
+│       │   ├── 2026-07-09_scheduled_inspection.json
+│       │   └── 2026-07-23_vibration_worsened.json
+│       └── preferences/
+│           └── output_format.json              ← LONG-TERM
 ├── team-memory/
-│   ├── maintenance_technicians/
-│   │   └── thresholds.json
-│   └── line_supervisors/
-│       └── standards.json
+│   └── maintenance_technicians/
+│       └── thresholds.json                     ← LONG-TERM (team)
 └── org-memory/
-    └── global_standards.json
+    └── global_standards.json                   ← LONG-TERM (org)
 ```
 
-Each memory entry:
+Each episodic entry:
 
 ```json
 {
-  "key": "machine_42_vibration_baseline",
-  "value": "4.5 mm/s",
+  "key": "machine_42_vibration_flagged",
+  "value": "Vibration at 4.5 mm/s — flagged for review. Above WARNING threshold.",
+  "memory_type": "episodic",
   "timestamp": "2026-07-23T14:30:00Z",
   "source_tool": "get_sensor_readings",
   "source_params": {"machine_id": 42, "metric": "vibration"},
+  "user_action": "flagged_for_review",
   "ttl_days": 90,
   "namespace": "user/priya.nair"
 }
 ```
 
-## Step 7: Configure Memory TTL
+## Step 7: Memory TTL Configuration
 
-Memory entries have a time-to-live to prevent stale data from influencing decisions:
+| Memory Type | Namespace | Default TTL | Rationale |
+|-------------|-----------|-------------|-----------|
+| Short-term | Session | End of session | Turn context only |
+| Baseline (long-term) | User | 90 days | Equipment baselines drift |
+| Episodic | User | 90 days | Historical actions and events |
+| Preference | User | 365 days | Rarely changes |
+| Threshold (long-term) | Team | 180 days | Standards evolve slowly |
+| Standard (long-term) | Org | 365 days | Global policies persist |
 
-| Namespace | Default TTL | Rationale |
-|-----------|-------------|-----------|
-| User | 90 days | Personal baselines and preferences |
-| Team | 180 days | Shared standards evolve slowly |
-| Org | 365 days | Global policies persist |
-| Session | End of session | Turn-by-turn context only |
+## Summary: Which Memory Fires When?
 
-In the CloudFormation template, the memory bucket has a lifecycle rule:
-
-```yaml
-LifecycleConfiguration:
-  Rules:
-    - Id: ExpireUserMemory
-      Status: Enabled
-      Prefix: user-memory/
-      ExpirationInDays: 90
-```
+| User Says | Memory Used | Why |
+|-----------|-------------|-----|
+| "What about temperature?" (same session) | **Short-term** | Resolves "what about" = same machine |
+| "Has it gotten worse?" (new session) | **Episodic** | Recalls past reading for comparison |
+| "Is 4.5 dangerous?" | **Long-term (team)** | Team thresholds define danger levels |
+| "Weekly update?" | **Long-term (user)** | Knows Sarah prefers ranked lists |
+| "How does this compare to last month?" | **Episodic + Long-term** | Timeline of events + baselines |
+| "What did I flag last time?" | **Episodic** | Past actions and decisions |
 
 ## Key Takeaways
 
-1. **Two layers** — Short-term (in-session) + long-term (cross-session)
-2. **Enables follow-ups** — "Has it gotten worse?" works without restating context
-3. **Policy-respects** — Memory is user-scoped; can't access other users' memories
-4. **Prompt injection** — Relevant memories are injected into the system prompt
-5. **TTL-based expiry** — Stale data auto-expires, keeping memory fresh
-6. **Three namespaces** — User, team, org for different sharing levels
+1. **Short-term** — Within-session coreference and multi-turn context (destroyed on session end)
+2. **Long-term** — Persistent facts: baselines, preferences, thresholds (TTL-based expiry)
+3. **Episodic** — Timestamped events: what happened, when, what was decided (enables timelines)
+4. **Three namespaces** — User (private), team (shared group), org (everyone)
+5. **Policy-respecting** — Cannot store or recall data from denied scope
+6. **Prompt injection** — All relevant memories injected before each LLM call
 
 ## Next Steps
 
-Your agent remembers. In the next module, you'll validate the complete system with **AgentCore Evaluations** — systematic testing of policy decisions and agent behavior.
+Your agent remembers context across conversations. In the next module, you'll validate the complete system with **AgentCore Evaluations** — 7 metrics that measure policy compliance, tool accuracy, and response quality.
