@@ -367,7 +367,7 @@ Select a user persona from the interactive menu and ask questions:
 │   │   └── gateway_hook.py             # LOCAL SIMULATION ONLY — Strands BeforeToolCallEvent hook
 │   │                                    #   approximates Gateway policy for dev (not used in production)
 │   ├── memory/
-│   │   └── manager.py                   # SessionMemory (short-term) + MemoryManager (long-term)
+│   │   └── manager.py                   # SessionMemory (short-term) + MemoryManager (long-term + episodic)
 │   └── data/
 │       ├── sample_data.py               # Simulated factory data (default, no AWS needed)
 │       ├── data_provider.py             # Routes between simulated/live based on DATA_MODE
@@ -490,14 +490,80 @@ def get_equipment_status(line: str | None = None, machine_id: int | None = None)
 
 ### 4. Memory-Augmented Context
 
-Long-term memory persists across sessions, enabling follow-up questions and personalized responses. (See `src/memory/manager.py`)
+AgentCore Memory provides three memory constructs for natural conversations. (See `src/memory/manager.py`)
+
+| Memory Type | Scope | Lifetime | Example |
+|-------------|-------|----------|---------|
+| **Short-term** | Session | Destroyed on session end | Turn-by-turn context ("that" = Machine 42) |
+| **Long-term** | User / Team / Org | TTL-based (90-365 days) | Baselines, preferences, thresholds |
+| **Episodic** | User | TTL-based (90 days) | Timestamped events and past decisions |
 
 ```python
-# Priya asks: "Has vibration gotten worse since last week?"
-# Memory surfaces: "Last week Machine 42 vibration: 3.8 mm/s"
-# IoT tool returns current: 4.5 mm/s
-# Agent synthesizes: "+18% increase, now above warning threshold (4.0 mm/s)"
+from src.memory.manager import MemoryManager
+
+memory = MemoryManager()
+
+# Store an episodic event
+memory.store(
+    user_id="priya.nair",
+    key="vibration_flagged",
+    value="Machine 42 vibration at 4.5 mm/s — flagged for review",
+    memory_type="episodic",
+    tags=["machine_42", "vibration"],
+    source_tool="get_sensor_readings",
+    user_action="flagged_for_review",
+)
+
+# Recall timeline for a topic
+timeline = memory.get_episodic_timeline(user_id="priya.nair", topic="machine 42", days=30)
+# Returns: chronological events (3.8 → 4.1 → 4.5 mm/s progression)
+
+# Recall by type
+baselines = memory.recall("priya.nair", memory_types=["long_term"], tags=["baseline"])
 ```
+
+## Evaluations
+
+The project includes 7 evaluation metrics using the [Strands Evals SDK](https://strandsagents.com/latest/user-guide/concepts/evals/):
+
+| Metric | What It Measures | Target | File |
+|--------|-----------------|--------|------|
+| Tool Selection Accuracy | Agent calls the right MCP tools | > 90% | `evals/eval_tool_use.py` |
+| Tool Parameter Accuracy | Correct parameters passed | > 95% | `evals/eval_tool_use.py` |
+| Policy Denial Compliance | Zero data leakage on denied queries | 100% | `evals/eval_policy.py` |
+| Faithfulness | Response grounded in tool outputs | > 0.90 | `evals/eval_quality.py` |
+| Helpfulness | Actionable, useful responses | > 0.85 | `evals/eval_quality.py` |
+| Trajectory Quality | Logical tool call ordering | > 0.85 | `evals/eval_trajectory.py` |
+| Goal Success Rate | End-to-end user intent achieved | > 0.85 | `evals/eval_trajectory.py` |
+
+```bash
+# Run evaluations
+python -m evals.eval_tool_use      # Tool selection + parameters
+python -m evals.eval_policy        # Policy denial compliance
+python -m evals.eval_quality       # Faithfulness + helpfulness
+python -m evals.eval_trajectory    # Trajectory + goal success
+```
+
+## Workshop
+
+This repository includes an [AWS Workshop Studio](https://catalog.workshops.aws/) workshop covering all AgentCore components hands-on:
+
+| Module | Topic | Duration |
+|--------|-------|----------|
+| 1 | Introduction & Architecture | 10 min |
+| 2 | Prerequisites & Setup | 10 min |
+| 3 | MCP Servers | 25 min |
+| 4 | Strands Agent | 20 min |
+| 5 | AgentCore Runtime | 15 min |
+| 6 | AgentCore Gateway (registration, caching, trade-offs) | 20 min |
+| 7 | AgentCore Registry (discovery, versioning, governance) | 15 min |
+| 8 | AgentCore Identity (Cognito, JWT, scopes) | 15 min |
+| 9 | AgentCore Policy (Cedar, forbid/permit) | 25 min |
+| 10 | AgentCore Memory (short-term, long-term, episodic) | 15 min |
+| 11 | AgentCore Evaluations (7 metrics) | 20 min |
+| 12 | AgentCore Observability (X-Ray, CloudWatch) | 15 min |
+
+Workshop content is in `workshop/` (Workshop Studio format: `contentspec.yaml` + `content/` + `static/`).
 
 ## Running Tests
 
