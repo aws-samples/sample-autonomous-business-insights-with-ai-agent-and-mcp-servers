@@ -1,11 +1,22 @@
-+++
-title = "Generate Autonomous Business Insights with AI Agents and MCP Servers"
-weight = 0
-+++
+---
+title: "Generate Autonomous Business Insights with AI Agents and MCP Servers"
+weight: 0
+---
 
 # Generate Autonomous Business Insights with AI Agents and MCP Servers
 
 Welcome to this hands-on workshop! You will build a **multi-agent system** that transforms natural language questions into cross-system manufacturing insights using [Amazon Bedrock AgentCore](https://aws.amazon.com/bedrock/agentcore/), [Strands Agents SDK](https://strandsagents.com/), and the [Model Context Protocol (MCP)](https://modelcontextprotocol.io/).
+
+## Get the Source Code
+
+Clone the sample repository to follow along with the code examples in this workshop:
+
+```bash
+git clone https://github.com/aws-samples/sample-autonomous-business-insights-with-ai-agent-and-mcp-servers.git
+cd sample-autonomous-business-insights-with-ai-agent-and-mcp-servers
+```
+
+This repository contains the complete working implementation — MCP servers, Strands Agent, Cedar policies, deployment scripts, and tests. Each module in this workshop will reference specific files from this codebase.
 
 ## The Problem
 
@@ -53,6 +64,6 @@ Approximately **3 hours**
 | Amazon OpenSearch Serverless | Quality metrics (semantic search) |
 | Amazon S3 | Configuration & data lake |
 
-{{% notice info %}}
+:::alert{type="info"}
 This workshop uses simulated data by default. You can optionally deploy full AWS infrastructure for live data mode.
-{{% /notice %}}
+:::
