@@ -91,16 +91,19 @@ def main():
         '4. Component Deep Dive',
         '   4.1 AgentCore Runtime',
         '   4.2 AgentCore Gateway',
-        '   4.3 AgentCore Identity',
-        '   4.4 AgentCore Policy (Cedar)',
-        '   4.5 AgentCore Memory',
-        '   4.6 AgentCore Observability',
+        '   4.3 AgentCore Registry',
+        '   4.4 AgentCore Identity',
+        '   4.5 AgentCore Policy (Cedar)',
+        '   4.6 AgentCore Memory (Short-term, Long-term, Episodic)',
+        '   4.7 AgentCore Observability',
         '5. Persona-Based Access Flow',
         '6. Sequence Diagrams',
         '7. Cedar Policy Details',
         '8. Lambda Interceptor Pipeline',
         '9. Security Properties',
         '10. Demo Scenarios',
+        '11. Evaluation Framework (7 Metrics)',
+        '12. Cost Estimate',
     ]
     for item in toc:
         doc.add_paragraph(item, style='List Number')
@@ -132,7 +135,7 @@ def main():
     # Section 2: AgentCore Components
     add_heading(doc, '2. AgentCore Components Overview', level=1)
     add_para(doc, (
-        'Amazon Bedrock AgentCore provides six core services that together form '
+        'Amazon Bedrock AgentCore provides eight core services that together form '
         'a complete platform for building, deploying, and securing AI agents at scale.'
     ))
     doc.add_paragraph()
@@ -148,6 +151,11 @@ def main():
          'OpenAPI endpoints, or remote MCP servers). Validates JWT tokens, runs interceptors, '
          'evaluates Cedar policies, caches responses (3-tier: edge, regional, per-session). '
          'This is THE chokepoint where all security enforcement happens.'),
+        ('AgentCore Registry', 'Tool discovery, versioning, and governance',
+         'Service catalog for MCP tools. Enables agents to discover available tools at runtime '
+         'via get_data_catalog(). Supports versioning (multiple versions coexist), deprecation '
+         'with sunset dates, ownership tracking, and schema validation at registration. '
+         'The Gateway routing table is populated from Registry entries.'),
         ('AgentCore Identity', 'Authentication + credential propagation',
          'Integrates with OAuth 2.0 providers (Cognito, Okta, Entra ID). Propagates user '
          'identity through the entire call chain via session headers. Manages token vaults '
@@ -157,15 +165,22 @@ def main():
          'permit/forbid rules. Evaluates at the Gateway BEFORE tool execution. Deny-by-default '
          'semantics. Forbid always overrides permit. Every decision logged to CloudWatch. '
          'Policies can be authored in natural language and auto-generated.'),
-        ('AgentCore Memory', 'Session + cross-session context persistence',
-         'Three namespaces: user-scoped, team-scoped, organization-scoped. Short-term memory '
-         '(within session) enables follow-up questions. Long-term memory persists preferences, '
-         'baselines, and recurring patterns. Memory retrieval respects Policy — a user cannot '
-         'access memories derived from data outside their scope.'),
+        ('AgentCore Memory', 'Short-term, long-term, and episodic persistence',
+         'Three memory constructs: Short-term (session RAM, destroyed on end), Long-term '
+         '(S3: baselines, preferences, thresholds with TTL), Episodic (S3: timestamped events '
+         'and past decisions). Three namespaces: user-scoped, team-scoped, organization-scoped. '
+         'APIs: store(), recall(), get_episodic_timeline(), get_long_term_context(). '
+         'Memory retrieval respects Policy — denied data never generates memory entries.'),
+        ('AgentCore Evaluations', 'Agent quality measurement',
+         'Seven metrics: Tool Selection Accuracy (>90%), Tool Parameter Accuracy (>95%), '
+         'Policy Denial Compliance (100%), Faithfulness (>0.90), Helpfulness (>0.85), '
+         'Trajectory Quality (>0.85), Goal Success Rate (>0.85). Uses Strands Evals SDK '
+         'with rubric-based scoring.'),
         ('AgentCore Observability', 'Tracing, logging, metrics',
          'Integrates with AWS X-Ray for distributed tracing across agent → gateway → tools. '
          'All policy decisions logged to CloudWatch. Tool call latency metrics. Token usage '
-         'tracking. Anomaly detection on agent behavior patterns.'),
+         'tracking per user. Cache hit rate monitoring. Alerting on DENY spikes, latency '
+         'degradation, and token budget overruns.'),
     ]
 
     for name, tagline, description in components:

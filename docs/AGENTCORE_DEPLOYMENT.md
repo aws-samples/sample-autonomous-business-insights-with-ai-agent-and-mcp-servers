@@ -268,13 +268,21 @@ No Cedar policy changes needed — the existing rules evaluate the user's scope 
 python deploy/agentcore/cleanup.py --region us-east-1 --confirm
 ```
 
+
 ## Cost Estimate
 
 | Service | Monthly Cost (demo usage) |
 |---------|--------------------------|
+| Amazon Bedrock (Claude Sonnet) | ~$2-10 (depends on query volume) |
 | Cognito | Free (< 50K MAU) |
-| Lambda | Free tier (~1M requests) |
+| Lambda (tool targets + interceptors) | Free tier (~1M requests) |
 | AgentCore Gateway | ~$0.50/1000 requests |
-| AgentCore Policy | Included with Gateway |
-| CloudWatch Logs | ~$0.50/GB ingested |
-| **Total** | **~$2-5/month** |
+| AgentCore Policy Engine | Included with Gateway |
+| AgentCore Memory (S3) | < $0.10/month |
+| CloudWatch Logs (policy audit) | ~$0.50/GB ingested |
+| CloudWatch Alarms | Free (up to 10) |
+| X-Ray Traces | Free tier (100K/month) |
+| **Total (AgentCore only)** | **~$3-12/month** |
+
+For full infrastructure (Aurora + Redshift + OpenSearch + Timestream), add ~$140-150/month.
+Delete the CloudFormation stack when not actively using live data mode.

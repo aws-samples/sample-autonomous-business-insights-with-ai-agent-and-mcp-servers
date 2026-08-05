@@ -142,3 +142,72 @@ Given Machine 42's elevated vibration trend (3.8 mm/s last week, approaching the
 ================================================================================
   END OF DEMO
 ================================================================================
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  🧠 DEMO: Episodic Memory — Cross-Session Timeline Recall
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  User: Priya Nair | Role: Maintenance Technician | Scope: Machine 41-45
+
+────────────────────────────────────────────────────────────────────────────────
+
+  SESSION 1 (July 2):
+  Query: "Machine 42 vibration seems high"
+
+Current vibration for Machine 42: **3.8 mm/s**
+
+| Metric | Value | Status |
+|--------|-------|--------|
+| Current | 3.8 mm/s | ⚠️ Elevated (baseline: 2.5 mm/s) |
+| Warning threshold | 4.0 mm/s | Not yet crossed |
+| Critical threshold | 6.0 mm/s | — |
+
+The reading is elevated (+52% above baseline) but still below the warning threshold.
+I've noted this for monitoring.
+
+  → EPISODIC MEMORY STORED: "Vibration at 3.8 mm/s — flagged for monitoring"
+     Action: flagged_for_monitoring
+
+────────────────────────────────────────────────────────────────────────────────
+
+  SESSION 2 (July 9):
+  Query: "Schedule a bearing inspection for Machine 42"
+
+✅ Bearing inspection scheduled for Machine 42:
+- **Technician:** Priya Nair
+- **Date:** July 16, 2026
+- **Reason:** Elevated vibration trend (3.8 mm/s, +52% above baseline)
+- **Parts check:** Bearings (bearing_6205) in stock — 12 units available
+
+  → EPISODIC MEMORY STORED: "Scheduled bearing inspection for July 16"
+     Action: scheduled_maintenance
+
+────────────────────────────────────────────────────────────────────────────────
+
+  SESSION 3 (July 23 — NEW SESSION, different day):
+  Query: "Has Machine 42's vibration gotten worse?"
+
+**Yes — significantly. Here's the full timeline from your past interactions:**
+
+| Date | Reading | Event | Your Action |
+|------|---------|-------|-------------|
+| Baseline | 2.5 mm/s | Normal operating range | — |
+| July 2 | 3.8 mm/s | Elevated, pre-warning | You flagged for monitoring |
+| July 9 | — | — | You scheduled inspection |
+| July 16 | 4.1 mm/s | Inspection: early bearing wear | Inspection completed |
+| **Today** | **4.5 mm/s** | **Above WARNING threshold** | ⚠️ Action needed |
+
+**Progression:** 2.5 → 3.8 → 4.1 → 4.5 mm/s over 3 weeks (+80% from baseline)
+
+**Recommendation:** The bearing wear identified on July 16 is progressing.
+At current rate, critical threshold (6.0 mm/s) could be reached in ~3 weeks.
+Recommend expediting bearing replacement. Bearings in stock (12 units, bearing_6205).
+
+  → MEMORY USED: Episodic timeline (4 past events recalled)
+  → MEMORY USED: Long-term baseline (2.5 mm/s)
+  → MEMORY USED: Team threshold (warning: 4.0, critical: 6.0)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  END EPISODIC MEMORY DEMO
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

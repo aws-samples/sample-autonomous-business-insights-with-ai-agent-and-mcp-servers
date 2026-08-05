@@ -225,3 +225,39 @@ associated policy evaluation actions. Lambda invocation is restricted to
 | Network security | VPC, Security Groups | Your infrastructure |
 | Encryption at rest | AWS managed (KMS) | Automatic |
 | Encryption in transit | TLS 1.2+ | Automatic |
+| Memory namespace isolation | AgentCore Memory | Your namespace config |
+
+## Memory Security
+
+### Namespace Isolation
+
+Memory entries are stored in isolated namespaces. User A cannot access User B's memories.
+
+| Namespace | Access Rule | Enforcement |
+|-----------|-------------|-------------|
+| `user/priya.nair` | Only priya.nair | Namespace key in S3 path |
+| `team/maintenance` | All maintenance_technicians | Group membership check |
+| `org/global` | All authenticated users | Read-only |
+
+### Input Validation on store()
+
+The `store()` method validates:
+- `user_id` must match the authenticated session user (no storing into other users' namespaces)
+- `memory_type` must be one of: `"long_term"`, `"episodic"`, `"preference"`
+- `namespace` must be `"user"`, `"team"`, or `"organization"`
+- `ttl_days` must be positive integer (max 365)
+- `tags` are sanitized (alphanumeric + underscore only)
+
+### Policy Integration
+
+- Memory derived from **denied** tool calls is **NOT** stored
+- If Cedar denies `get_sensor_readings(machine_id=72)` for Priya, no memory entry is created
+- `recall()` only searches namespaces the user has access to
+- Team memory is read-only for non-admin users (admin writes thresholds)
+
+### Data Retention
+
+- User memories expire after TTL (default 90 days)
+- Team memories expire after 365 days
+- S3 lifecycle rules enforce deletion automatically
+- No PII stored in memory entries (only machine data, readings, actions)

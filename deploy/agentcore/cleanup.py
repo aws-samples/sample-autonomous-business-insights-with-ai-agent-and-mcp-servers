@@ -311,6 +311,11 @@ def main():
     print(f"\n  All AgentCore resources in {args.region} have been deleted.")
     print(f"  To also delete the data infrastructure stack:")
     print(f"    aws cloudformation delete-stack --stack-name manufacturing-insights-dev --region {args.region}")
+    print(f"\n  To delete CloudWatch resources (dashboard + alarms):")
+    print(f"    aws cloudwatch delete-dashboards --dashboard-names ManufacturingInsights-AgentCore --region {args.region}")
+    print(f"    aws cloudwatch delete-alarms --alarm-names AgentCore-HighDenyRate AgentCore-HighLatency AgentCore-TokenBudget --region {args.region}")
+    print(f"\n  To delete memory bucket data:")
+    print(f"    aws s3 rm s3://amzn-s3-demo-agentcore-memory-<account-id>-dev --recursive")
     print()
 
 
