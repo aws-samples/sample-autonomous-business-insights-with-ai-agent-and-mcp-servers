@@ -134,6 +134,170 @@ python deploy/agentcore/setup_gateway.py --region us-east-1
 If you haven't deployed infrastructure yet, this step creates the Lambda functions, IAM roles, and the Gateway resource. It takes about 2-3 minutes.
 :::
 
+## Step 1b: The Registration Code — How It Works
+
+Open `deploy/agentcore/setup_gateway.py`. The registration happens in three stages:
+
+**Stage 1: Define tool schemas** — Each MCP server's tools are declared with full JSON Schema:
+
+```python
+# deploy/agentcore/setup_gateway.py
+
+TOOL_SCHEMAS = {
+    "EquipmentTarget": [
+        {
+            "name": "get_equipment_status",
+            "description": "Get current status and metadata for equipment on an assembly line.",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "line": {"type": "string", "description": "Assembly line (e.g., 'Line 4')"},
+                    "machine_id": {"type": "integer", "description": "Machine ID number"},
+                    "plant": {"type": "string", "description": "Plant identifier"},
+                },
+            },
+        },
+        {
+            "name": "get_maintenance_history",
+            "description": "Get maintenance history for a specific machine.",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "machine_id": {"type": "integer", "description": "Machine ID"},
+                },
+                "required": ["machine_id"],
+            },
+        },
+        # ... get_shared_infrastructure
+    ],
+    "IoTTarget": [
+        {
+            "name": "get_sensor_readings",
+            "description": "Get sensor readings (temperature, vibration, pressure) for a machine.",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "machine_id": {"type": "integer"},
+                    "metric": {"type": "string", "enum": ["temperature", "vibration", "pressure"]},
+                    "days": {"type": "integer", "description": "Days of history (default 7)"},
+                },
+                "required": ["machine_id"],
+            },
+        },
+        # ... detect_anomaly
+    ],
+    "AnalyticsTarget": [
+        # ... get_oee_trends, get_quality_metrics, check_parts_inventory, get_supplier_lead_times
+    ],
+}
+```
+
+**Stage 2: Create Lambda targets** — Each target becomes a Lambda function:
+
+```python
+def create_tool_lambda(lambda_client, iam_client, function_name, target_name, region):
+    """Create a Lambda function that handles tool invocations for a domain."""
+    lambda_code = '''
+import json
+
+def lambda_handler(event, context):
+    """Handle tool invocation from AgentCore Gateway."""
+    tool_name = event.get("name", "")
+    arguments = event.get("arguments", {})
+    
+    # Remove injected user_context before passing to tool logic
+    user_context = arguments.pop("user_context", None)
+    
+    # Log for audit trail
+    print(f"Tool call: {tool_name}, user: {user_context.get('username', 'unknown')}")
+    
+    # Route to tool implementation (queries Aurora/Timestream/Redshift)
+    return {"status": "success", "tool": tool_name, "arguments": arguments}
+'''
+    # ... creates IAM role, zips code, deploys Lambda
+```
+
+**Stage 3: Register targets with the Gateway** — The Gateway config maps target names to Lambda ARNs + tool schemas:
+
+```python
+gateway_config = {
+    "region": args.region,
+    "gateway_role_arn": gateway_role_arn,
+    "identity": {
+        "user_pool_id": identity_config["user_pool_id"],
+        "client_id": identity_config["client_id"],
+    },
+    "targets": {
+        target_name: {
+            "lambda_arn": arn,
+            "tool_schema": TOOL_SCHEMAS[target_name],
+        }
+        for target_name, arn in lambda_arns.items()
+    },
+}
+```
+
+This config tells the Gateway: "When the agent calls `get_equipment_status`, route it to `MfgInsights-EquipmentTarget` Lambda. When it calls `detect_anomaly`, route to `MfgInsights-IoTTarget` Lambda."
+
+## Step 1c: Trade-offs — Direct MCP vs Gateway Registration
+
+| Consideration | Direct MCP (dev mode) | Gateway Registration (production) |
+|---------------|----------------------|-----------------------------------|
+| **Setup complexity** | None — just start servers | Need Lambda + IAM + Gateway config |
+| **Latency** | ~5ms (localhost) | ~50ms (Lambda cold) / ~15ms (warm) |
+| **Security** | No enforcement | Cedar + interceptors + JWT |
+| **Scaling** | Manual (process per server) | Auto (Lambda concurrency) |
+| **Caching** | None | 3-tier (62% hit rate = big savings) |
+| **Cost (idle)** | Always running | $0 (Lambda pay-per-use) |
+| **Cost (busy)** | Fixed compute | ~$0.50/1000 requests |
+| **Observability** | stdout logs | X-Ray + CloudWatch + metrics |
+| **Tool discovery** | Agent queries N servers | One `tools/list` call to Gateway |
+| **Adding new tools** | Restart server + agent | Register target, no agent restart |
+| **Access control** | In-process hook (soft) | Cedar at Gateway (hard, deterministic) |
+
+**When to use Direct MCP (dev mode):**
+- Local development and debugging
+- Rapid iteration on tool logic
+- No AWS infrastructure available
+- Single-user testing
+
+**When to use Gateway Registration (production):**
+- Multi-user access with different scopes
+- Need audit trail and policy enforcement
+- Production workloads that need scaling
+- When tool results should be cached
+- When you need to add/remove tools without agent restarts
+
+## Step 1d: What Happens When You Register a New MCP Server
+
+Adding a 5th data source (e.g., Quality Inspections from OpenSearch) requires:
+
+```python
+# 1. Add tool schema to TOOL_SCHEMAS
+TOOL_SCHEMAS["QualityTarget"] = [
+    {
+        "name": "search_defect_reports",
+        "description": "Semantic search across quality inspection documents.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "query": {"type": "string", "description": "Search query"},
+                "line": {"type": "string"},
+            },
+            "required": ["query"],
+        },
+    },
+]
+
+# 2. Create Lambda
+arn = create_tool_lambda(lambda_client, iam, "MfgInsights-QualityTarget", "QualityTarget")
+
+# 3. Re-run setup_gateway.py — Gateway config is regenerated
+#    The Gateway now routes "search_defect_reports" to the new Lambda
+```
+
+**Zero changes to agent code.** The agent discovers the new tool via `tools/list` on the next query. Cedar policies auto-apply if the tool has `line` or `machine_id` parameters.
+
 Expected output:
 
 ```

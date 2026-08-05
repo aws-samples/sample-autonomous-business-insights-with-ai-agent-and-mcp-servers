@@ -14,12 +14,14 @@ python deploy/agentcore/cleanup.py --region us-east-1 --confirm
 ```
 
 This removes:
-- AgentCore Gateway
+- AgentCore Gateway + test gateway
 - Policy Engine + Cedar policies
 - Lambda tool targets (Equipment, IoT, Analytics)
 - Lambda interceptors (Request, Response)
 - IAM roles created for the Gateway
-- Cognito User Pool + users
+- Cognito User Pool + users + groups
+- Registry entries (tool registrations)
+- Memory bucket data (user/team/org namespaces)
 
 Expected output:
 

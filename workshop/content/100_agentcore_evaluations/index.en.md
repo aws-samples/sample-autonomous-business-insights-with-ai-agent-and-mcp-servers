@@ -19,6 +19,69 @@ In this module, you'll run 7 evaluation metrics against the manufacturing insigh
 | 6 | **Trajectory Quality** | Are tool calls in logical order (semantic-layer first)? | > 0.85 | LLM-judged |
 | 7 | **Goal Success Rate** | Does the agent achieve the user's intent end-to-end? | > 0.85 | LLM-judged |
 
+## What Each Eval Means and When to Use It
+
+### 1. Tool Selection Accuracy
+**In plain language:** "Did the agent pick the right tools for the job?"
+
+When Sarah asks "Which lines need attention?", the agent should call `detect_anomaly`, `get_oee_trends`, and `get_equipment_status` — not `check_parts_inventory`. This metric checks that the LLM's reasoning picks the correct tools from the 12 available.
+
+**When to use:** After changing the system prompt, adding new tools, or modifying tool descriptions. These are the signals the LLM uses to decide which tools to call.
+
+---
+
+### 2. Tool Parameter Accuracy
+**In plain language:** "Did the agent fill in the right values?"
+
+Raj asks "What's the status of my line?" — the agent should call `get_equipment_status(line="Line 7")`, not `line="Line 4"`. This metric catches incorrect parameter mapping even when the right tool was selected.
+
+**When to use:** After changing tool schemas, user identity models, or how the agent resolves references like "my line" or "this machine."
+
+---
+
+### 3. Policy Denial Compliance
+**In plain language:** "When access is denied, does the agent stay silent about restricted data?"
+
+This is the security metric. If Raj asks about Line 4 and policy denies it, the agent must NOT reveal any Line 4 data — even if it saw something before the denial. It should explain the restriction and suggest an alternative.
+
+**When to use:** After every Cedar policy change, every prompt change, and before every production deployment. This is non-negotiable — target is always 100%.
+
+---
+
+### 4. Faithfulness
+**In plain language:** "Is the agent making things up?"
+
+If `get_sensor_readings` returns 4.5 mm/s but the agent says "4.8 mm/s", that's a hallucination. Faithfulness checks that every data point in the response traces back to an actual tool output.
+
+**When to use:** After changing the model (e.g., upgrading Claude versions), modifying the system prompt's synthesis instructions, or if users report incorrect numbers.
+
+---
+
+### 5. Helpfulness
+**In plain language:** "Is the response actually useful for making a decision?"
+
+A response that says "Machine 42 vibration is 4.5 mm/s" is faithful but not helpful. A helpful response adds: "This exceeds the 4.0 warning threshold, has increased 18% in 7 days, and correlates with the bearing replacement needed — recommend expedited maintenance."
+
+**When to use:** After changing the system prompt's instruction section, or when users report the agent is "too literal" or "not actionable enough."
+
+---
+
+### 6. Trajectory Quality
+**In plain language:** "Did the agent think in a logical order?"
+
+The ideal pattern: discover data sources first (semantic layer) → gather relevant data → synthesize. A bad trajectory: calling random tools, making redundant calls, or skipping the catalog and guessing.
+
+**When to use:** After adding new MCP servers, changing the semantic layer, or modifying the "think step by step" instructions in the prompt.
+
+---
+
+### 7. Goal Success Rate
+**In plain language:** "Did the user get what they asked for, end to end?"
+
+This is the holistic metric. Regardless of which tools were called or in what order — did Sarah get a severity-ranked list of lines needing attention? Did Priya get a clear yes/no on whether to schedule maintenance?
+
+**When to use:** As a regression test on a regular cadence (weekly). If this drops, dig into metrics 1-6 to find the root cause.
+
 ## Metric 1: Tool Selection Accuracy
 
 **Question:** Given a user query, did the agent call the *correct* MCP tools?

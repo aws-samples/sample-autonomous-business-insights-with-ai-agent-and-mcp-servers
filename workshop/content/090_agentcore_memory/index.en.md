@@ -310,6 +310,71 @@ Agent acknowledges. Episodic entry stored.
 ```
 Agent recalls the episodic entry: "You flagged Machine 42 vibration at 4.5 mm/s in your previous session."
 
+## Step 4b: Episodic Memory — Code Usage
+
+Here's how the agent uses `store()` and `get_episodic_timeline()` in practice:
+
+```python
+# After a tool call, store the event as episodic memory
+from src.memory.manager import MemoryManager
+
+memory = MemoryManager()
+
+# Store an episodic event (what happened + when + user action)
+memory.store(
+    user_id="priya.nair",
+    key="vibration_flagged",
+    value="Machine 42 vibration at 4.5 mm/s — flagged for review",
+    memory_type="episodic",
+    namespace="user",
+    tags=["machine_42", "vibration", "flagged"],
+    source_tool="get_sensor_readings",
+    source_params={"machine_id": 42, "metric": "vibration"},
+    user_action="flagged_for_review",
+)
+
+# Later (different session) — retrieve the timeline
+timeline = memory.get_episodic_timeline(
+    user_id="priya.nair",
+    topic="machine 42",
+    days=30,
+)
+
+for event in timeline:
+    print(f"  [{event.timestamp}] {event.content}")
+    if event.user_action:
+        print(f"    Action: {event.user_action}")
+```
+
+**Output:**
+```
+  [2026-07-02T14:30:00] Vibration reading on Machine 42: 3.8 mm/s — elevated but within warning threshold
+    Action: flagged_for_monitoring
+  [2026-07-09T11:00:00] Scheduled bearing inspection for Machine 42
+    Action: scheduled_maintenance
+  [2026-07-16T15:00:00] Inspection result: Bearing shows early wear pattern. Vibration at 4.1 mm/s
+    Action: inspection_completed
+  [2026-07-23T14:30:00] Machine 42 vibration at 4.5 mm/s — flagged for review
+    Action: flagged_for_review
+```
+
+This timeline gives the agent full context to answer "Has it gotten worse?" — it can trace the progression from 3.8 → 4.1 → 4.5 mm/s over 3 weeks, with the actions taken at each step.
+
+### When to Use Each Memory API
+
+| API | Use When | Example |
+|-----|----------|---------|
+| `session.add_interaction()` | Every turn within a conversation | Track Q&A for follow-ups |
+| `session.add_tool_result()` | After each tool call | Cache results for coreference ("that" = last value) |
+| `memory.store(memory_type="long_term")` | Agent learns a stable fact | "Machine 42 normal baseline = 2.5 mm/s" |
+| `memory.store(memory_type="episodic")` | Something happened worth remembering | "User flagged vibration at 4.5" |
+| `memory.store(memory_type="preference")` | Agent learns user preference | "Sarah prefers ranked lists" |
+| `memory.recall(query=...)` | Before answering, find relevant context | Search all memory by keyword |
+| `memory.recall(memory_types=["episodic"])` | Need event history specifically | "What happened with Machine 42?" |
+| `memory.get_episodic_timeline(topic=...)` | Need chronological event sequence | "Show me the progression" |
+| `memory.get_long_term_context(tags=...)` | Need baselines or thresholds | "What's the normal vibration?" |
+| `memory.get_user_preferences()` | Before formatting output | "Does Sarah want ranked or detailed?" |
+
 ## Step 5: Memory and Access Control
 
 Memory respects policy boundaries:
