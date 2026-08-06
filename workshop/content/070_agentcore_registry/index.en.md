@@ -1,6 +1,6 @@
 ---
 title: "AgentCore Registry"
-weight: 70
+weight: 65
 ---
 
 # AgentCore Registry — Discover, Register & Govern MCP Servers
