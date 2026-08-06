@@ -1,6 +1,6 @@
 ---
 title: "AgentCore Gateway"
-weight: 50
+weight: 60
 ---
 
 # AgentCore Gateway — MCP Router & Security Enforcement

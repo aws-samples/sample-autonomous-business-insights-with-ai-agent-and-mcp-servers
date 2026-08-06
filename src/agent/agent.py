@@ -97,16 +97,20 @@ class ManufacturingInsightsAgent:
       A local GatewayPolicyHook approximates Cedar policy enforcement.
     """
 
-    def __init__(self, config: AppConfig) -> None:
+    def __init__(self, config: AppConfig, budget_manager=None) -> None:
         self.config = config
         self.policy_engine = PolicyEngine()
         self.memory_manager = MemoryManager()
-        # Budget manager — use singleton so UI and agent share the same counters
-        try:
-            from src.budget.manager import BudgetManager
-            self.budget_manager = BudgetManager.get_instance(use_dynamodb=False)
-        except Exception:
-            self.budget_manager = None
+        # Budget manager — injected by caller (e.g., Streamlit UI) for shared state.
+        # If not provided, creates a local instance.
+        if budget_manager is not None:
+            self.budget_manager = budget_manager
+        else:
+            try:
+                from src.budget.manager import BudgetManager
+                self.budget_manager = BudgetManager(use_dynamodb=False)
+            except Exception:
+                self.budget_manager = None
 
     def _create_mcp_clients(self) -> list[MCPClient]:
         """Create MCP client connections based on the current operating mode.

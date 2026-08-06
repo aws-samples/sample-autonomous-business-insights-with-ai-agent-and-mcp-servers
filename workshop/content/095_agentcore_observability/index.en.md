@@ -1,6 +1,6 @@
 ---
 title: "AgentCore Observability"
-weight: 110
+weight: 95
 ---
 
 # AgentCore Observability — Tracing, Logging & Metrics

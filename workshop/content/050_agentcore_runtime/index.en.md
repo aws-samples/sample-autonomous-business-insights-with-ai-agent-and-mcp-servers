@@ -1,6 +1,6 @@
 +++
 title = "AgentCore Runtime"
-weight: 55
+weight: 50
 +++
 
 # AgentCore Runtime — Serverless Agent Execution
