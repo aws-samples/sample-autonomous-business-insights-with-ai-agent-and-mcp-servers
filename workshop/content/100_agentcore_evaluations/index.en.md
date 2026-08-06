@@ -442,6 +442,137 @@ After running all evaluations:
 Policy denial compliance (Metric 3) is the most critical. If it drops below 100%, you have a security issue. The other metrics can tolerate some variance since they involve LLM reasoning.
 :::
 
+## Two Evaluation Approaches: Strands Evals vs AgentCore Evaluations
+
+This project demonstrates **both** — they serve different purposes and complement each other.
+
+### Strands Evals (Open Source — Local Development)
+
+[Strands Evals](https://strandsagents.com/docs/user-guide/evals-sdk/quickstart/) is a Python SDK that runs evaluations locally. It's open source, free, and works offline.
+
+```bash
+pip install strands-agents-evals
+```
+
+**How it works:** You define Cases, run your agent, and Evaluators score the output using LLM-as-a-judge or deterministic checks.
+
+```python
+from strands_evals import Case, Experiment
+from strands_evals.evaluators import HelpfulnessEvaluator, FaithfulnessEvaluator
+
+cases = [Case(case_id="test1", input="Which lines need attention?", metadata={...})]
+evaluators = [HelpfulnessEvaluator(), FaithfulnessEvaluator()]
+experiment = Experiment(cases=cases, evaluators=evaluators)
+report = await experiment.run_evaluations_async(my_agent_function)
+```
+
+**Available evaluators in Strands Evals:**
+
+| Category | Evaluators |
+|----------|-----------|
+| Response Quality | `HelpfulnessEvaluator`, `FaithfulnessEvaluator`, `CorrectnessEvaluator`, `CoherenceEvaluator`, `ConcisenessEvaluator`, `ResponseRelevanceEvaluator` |
+| Safety | `HarmfulnessEvaluator`, `StereotypingEvaluator`, `RefusalEvaluator` |
+| Tool Usage | `ToolSelectionAccuracyEvaluator`, `ToolParameterAccuracyEvaluator` |
+| Conversation Flow | `TrajectoryEvaluator`, `InteractionsEvaluator`, `GoalSuccessRateEvaluator` |
+| Resilience | `FailureCommunicationEvaluator`, `PartialCompletionEvaluator`, `RecoveryStrategyEvaluator` |
+| Multimodal | `MultimodalOutputEvaluator`, `MultimodalCorrectnessEvaluator`, `MultimodalFaithfulnessEvaluator` |
+| Deterministic | `Equals`, `Contains`, `StartsWith`, `ToolCalled`, `StateEquals` |
+| Custom | Extend `Evaluator` base class for domain-specific logic |
+
+### AgentCore Evaluations (Managed Service — Production)
+
+[AgentCore Evaluations](https://docs.aws.amazon.com/bedrock-agentcore/latest/devguide/evaluations.html) is a managed AWS service (GA March 2026) that evaluates agents deployed on AgentCore.
+
+**How it works:** Integrates via OpenTelemetry traces. Agents instrumented with Strands or LangGraph automatically emit traces. AgentCore converts these to a unified format and scores them using LLM-as-a-Judge — both built-in and custom evaluators.
+
+**Key capabilities:**
+- **Online evaluation** — Scores every production invocation in real-time
+- **On-demand evaluation** — Run a batch of test cases against a deployed agent
+- **Batch evaluation** — Process historical traces for regression analysis
+- **Dataset evaluation** — Score against curated test datasets
+- **Simulation** — Generate synthetic conversations for edge-case testing
+- **Custom evaluators** — Define domain-specific scoring via ARN-based resources
+
+**Evaluator ARNs:**
+```
+# Built-in (public, all accounts)
+arn:aws:bedrock-agentcore:::evaluator/Builtin.Helpfulness
+arn:aws:bedrock-agentcore:::evaluator/Builtin.Faithfulness
+
+# Custom (private, your account)
+arn:aws:bedrock-agentcore:us-east-1:123456789012:evaluator/manufacturing-quality-eval
+```
+
+### When to Use Which — Architecture Decision
+
+| Factor | Strands Evals | AgentCore Evaluations |
+|--------|--------------|----------------------|
+| **Stage** | Development, CI/CD, pre-deploy | Production, post-deploy |
+| **Environment** | Local machine, GitHub Actions | Deployed on AgentCore Harness |
+| **Cost** | Free (open source) + model inference | AgentCore service charges |
+| **Latency** | Seconds (runs locally) | Async (batch processing) |
+| **Scale** | Tens of test cases | Thousands of production traces |
+| **Instrumentation** | Import evaluators explicitly | Auto via OpenTelemetry |
+| **Custom evaluators** | Python class | AWS resource (ARN + IAM) |
+| **Online scoring** | Not supported | Yes — scores every invocation |
+| **Simulation** | Basic (write your own) | Built-in conversation simulation |
+| **Regression** | Manual (re-run experiments) | Automated batch over historical traces |
+| **CI/CD integration** | `strands-evals` CLI | AWS SDK / CloudFormation |
+| **Multi-framework** | Strands only | Strands + LangGraph + any OTel |
+
+### Recommended Architecture: Both Together
+
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│  Development Loop (Strands Evals — free, fast, local)                │
+│                                                                      │
+│  Developer changes prompt → runs `python -m evals.eval_tool_use`     │
+│  → 7 metrics scored in ~30s → iterate until passing                  │
+│  → commit + push → CI runs Strands Evals → gate deployment           │
+└─────────────────────────────────────┬───────────────────────────────┘
+                                      │ Deploy to AgentCore Harness
+                                      ▼
+┌─────────────────────────────────────────────────────────────────────┐
+│  Production (AgentCore Evaluations — managed, continuous)             │
+│                                                                      │
+│  Every invocation auto-traced (OpenTelemetry)                        │
+│  → AgentCore scores: Helpfulness, Faithfulness (online)              │
+│  → Dashboard: quality trends, regression alerts                      │
+│  → Weekly batch eval: score all traces from the week                 │
+│  → Simulation: generate edge cases the dev loop missed               │
+└─────────────────────────────────────────────────────────────────────┘
+```
+
+**In this project:**
+- `evals/eval_tool_use.py` → Strands Evals (development)
+- `evals/eval_policy.py` → Strands Evals (development)
+- `evals/eval_quality.py` → Strands Evals (development)
+- `evals/eval_trajectory.py` → Strands Evals (development)
+- Production: AgentCore Evaluations auto-scores via Harness telemetry
+
+### Pricing Comparison
+
+| Component | Cost |
+|-----------|------|
+| **Strands Evals SDK** | Free (MIT license, open source) |
+| **Model inference for LLM-as-Judge** | ~$0.003/eval (Claude Haiku) or ~$0.015/eval (Claude Sonnet) |
+| **AgentCore Evaluations (online)** | Included with AgentCore Harness (no additional charge for evaluation) |
+| **AgentCore Evaluations (batch/on-demand)** | Charged per evaluation input/output tokens (same rate as model inference) |
+| **Custom evaluators (AgentCore)** | No additional charge for the evaluator resource; you pay for judge model tokens |
+
+**Cost for this workshop:**
+- Running all 4 Strands eval scripts (~30 cases × 4 metrics = 120 evaluations): ~$0.36 using Claude Haiku as judge
+- Running in production (100 queries/day × online eval): ~$0.30/day
+
+### Cleanup for Evaluations
+
+| Resource | How to Clean Up |
+|----------|----------------|
+| Strands Evals | Nothing to clean — runs locally, no AWS resources created |
+| AgentCore custom evaluator | `aws bedrock-agentcore delete-evaluator --evaluator-id <id>` |
+| AgentCore evaluation configs | `aws bedrock-agentcore delete-evaluation-configuration --id <id>` |
+| Eval results (CloudWatch) | Deleted with log group in cleanup.py |
+
 ## Key Takeaways
 
 1. **7 metrics, 2 categories** — Deterministic (1-3) test guardrails; LLM-judged (4-7) test quality
