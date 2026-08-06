@@ -310,3 +310,5 @@ python deploy/agentcore/cleanup.py --region us-east-1 --confirm
 
 For full infrastructure (Aurora + Redshift + OpenSearch + Timestream), add ~$140-150/month.
 Delete the CloudFormation stack when not actively using live data mode.
+
+For current pricing details, see: [Amazon Bedrock AgentCore Pricing](https://aws.amazon.com/bedrock/agentcore/pricing/)
