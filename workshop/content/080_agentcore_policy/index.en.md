@@ -1,6 +1,6 @@
 +++
 title = "AgentCore Policy (Cedar)"
-weight: 75
+weight: 80
 +++
 
 # AgentCore Policy — Cedar-Based Deterministic Authorization

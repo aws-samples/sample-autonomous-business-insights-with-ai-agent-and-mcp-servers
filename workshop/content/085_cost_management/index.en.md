@@ -1,6 +1,6 @@
 ---
 title: "Cost Management"
-weight: 80
+weight: 85
 ---
 
 # Cost Management — Per-User Budget Enforcement with Cedar + DynamoDB
