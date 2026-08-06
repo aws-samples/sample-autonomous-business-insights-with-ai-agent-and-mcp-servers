@@ -228,11 +228,15 @@ with tab_admin:
     st.caption("View usage, edit limits, and control enforcement. Changes take effect immediately.")
 
     from src.budget.manager import BudgetManager, BudgetConfig
-
+    # Use DynamoDB for Gateway/Live modes, in-memory for Simulated
+    use_ddb = st.session_state.get("current_mode", "simulated") != "simulated"
     if "budget_manager" not in st.session_state:
-        st.session_state.budget_manager = BudgetManager.get_instance(use_dynamodb=False)
-
+        st.session_state.budget_manager = BudgetManager.get_instance(use_dynamodb=use_ddb)
     budget_mgr = st.session_state.budget_manager
+    if use_ddb:
+        st.success("Using DynamoDB for budget counters (persistent)")
+    else:
+        st.info("Using in-memory counters (simulated mode). Switch to Gateway mode for DynamoDB.")
 
     # Current usage
     st.subheader("📊 Current Usage (Today)")
@@ -294,7 +298,7 @@ with tab_admin:
 
     # Admin actions
     st.subheader("🔧 Admin Actions")
-    action_cols = st.columns(3)
+    action_cols = st.columns(4)
 
     with action_cols[0]:
         reset_user = st.selectbox("Reset daily counter for:", ["sarah.chen", "raj.patel", "priya.nair"])
@@ -323,6 +327,18 @@ with tab_admin:
         if st.button("Add Usage"):
             budget_mgr.increment_usage(sim_user, tokens_used=int(sim_tokens))
             st.success(f"Added {sim_tokens} tokens to {sim_user}")
+            st.rerun()
+
+    with action_cols[3]:
+        st.markdown("**Reset All (Demo)**")
+        if st.button(
+            "🔄 Reset All Counters",
+            help="Resets token counters for ALL users to zero. Use this before demos to start fresh.",
+            type="primary",
+        ):
+            for uid in ["sarah.chen", "raj.patel", "priya.nair"]:
+                budget_mgr.reset_daily_usage(uid)
+            st.success("All counters reset to 0. Ready for demo!")
             st.rerun()
 
 with tab_chat:

@@ -49,6 +49,7 @@ class TestBudgetManager:
         os.environ["BUDGET_DB_PATH"] = self._tmp.name
         BudgetManager.reset_instance()
         self.manager = BudgetManager(config=self.config, use_dynamodb=False)
+        BudgetManager._instance = self.manager
 
     def test_initial_budget_status_is_clean(self):
         """New user should have zero usage."""

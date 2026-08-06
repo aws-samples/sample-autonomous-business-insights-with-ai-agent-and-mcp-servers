@@ -96,8 +96,10 @@ class BudgetManager:
     In production: reads/writes DynamoDB atomic counters.
     In simulation: uses in-memory dict.
 
-    Uses singleton pattern so all components (agent, UI, hooks) share
-    the same counter state within a process.
+    Note: In the Streamlit demo, use the "Simulate Usage" button on the Admin tab
+    to add tokens and observe graduated enforcement (warn/throttle/block).
+    In production, the Gateway interceptors automatically read/write DynamoDB counters
+    on every tool call — no application code changes needed.
 
     Usage:
         budget_mgr = BudgetManager.get_instance()
