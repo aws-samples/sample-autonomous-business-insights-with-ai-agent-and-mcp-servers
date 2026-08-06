@@ -1,6 +1,6 @@
 ---
 title: "AgentCore Evaluations"
-weight: 90
+weight: 100
 ---
 
 # AgentCore Evaluations — Managed Quality Assessment for AI Agents

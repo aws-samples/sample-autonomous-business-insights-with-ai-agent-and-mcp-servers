@@ -1,6 +1,6 @@
 ---
 title: "AgentCore Memory"
-weight: 86
+weight: 90
 ---
 
 # AgentCore Memory — Short-Term, Long-Term & Episodic Persistence
