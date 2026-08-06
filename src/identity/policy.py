@@ -50,7 +50,26 @@ class PolicyEngine:
         Returns:
             PolicyDecision indicating allow/deny with reason.
         """
-        # Plant managers have unrestricted access
+        # Evaluate budget limits FIRST (cost governance applies to ALL users)
+        if "_budget_context" in parameters:
+            budget = parameters["_budget_context"]
+            daily_count = budget.get("daily_token_count", 0)
+            daily_limit = budget.get("daily_token_limit", 999999)
+            if daily_count >= daily_limit:
+                logger.warning(
+                    "Policy DENY: User '%s' budget exceeded (%d/%d tokens)",
+                    user.name, daily_count, daily_limit,
+                )
+                return PolicyDecision(
+                    allowed=False,
+                    reason=(
+                        f"Daily token budget exceeded for '{user.name}'. "
+                        f"Used: {daily_count:,} / Limit: {daily_limit:,} tokens. "
+                        f"Budget resets at midnight UTC."
+                    ),
+                )
+
+        # Plant managers have unrestricted access (scope only — budget still applies above)
         if user.has_full_access:
             return PolicyDecision(
                 allowed=True,
@@ -110,25 +129,6 @@ class PolicyEngine:
                     reason=(
                         f"Access denied. User '{user.name}' is not authorized "
                         f"for '{requested_plant}'. Authorized plants: {user.plant_scope}"
-                    ),
-                )
-
-        # Evaluate budget limits (cost governance)
-        if "_budget_context" in parameters:
-            budget = parameters["_budget_context"]
-            daily_count = budget.get("daily_token_count", 0)
-            daily_limit = budget.get("daily_token_limit", 999999)
-            if daily_count >= daily_limit:
-                logger.warning(
-                    "Policy DENY: User '%s' budget exceeded (%d/%d tokens)",
-                    user.name, daily_count, daily_limit,
-                )
-                return PolicyDecision(
-                    allowed=False,
-                    reason=(
-                        f"Daily token budget exceeded for '{user.name}'. "
-                        f"Used: {daily_count:,} / Limit: {daily_limit:,} tokens. "
-                        f"Budget resets at midnight UTC."
                     ),
                 )
 
