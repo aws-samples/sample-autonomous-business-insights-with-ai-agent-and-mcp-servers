@@ -334,6 +334,20 @@ class ManufacturingInsightsAgent:
             response = agent(question)
             response_text = str(response)
 
+            # Track token usage for budget management
+            # Estimate tokens: ~4 chars per token (rough approximation)
+            estimated_tokens = (len(question) + len(response_text)) // 4
+            try:
+                from src.budget.manager import BudgetManager
+                budget_mgr = BudgetManager(use_dynamodb=False)
+                budget_mgr.increment_usage(user.user_id, tokens_used=estimated_tokens)
+                logger.info(
+                    "Budget: user=%s consumed ~%d tokens this query",
+                    user.user_id, estimated_tokens,
+                )
+            except Exception as e:
+                logger.debug("Budget tracking skipped: %s", e)
+
             session = self.memory_manager.get_or_create_session(user.user_id, session_id)
             session.add_interaction(
                 query=question,

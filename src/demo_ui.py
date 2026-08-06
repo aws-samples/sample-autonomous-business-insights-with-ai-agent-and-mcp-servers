@@ -120,6 +120,8 @@ with st.sidebar:
     st.image("https://d1.awsstatic.com/logos/aws-logo-lockups/poweredbyaws/PB_AWS_logo_RGB.61d334f1a1172da22295b6578b4bafa7c87fba20.png", width=180)
     st.title("🏭 Manufacturing Insights")
     st.caption("Powered by Amazon Bedrock AgentCore + Strands Agents + MCP")
+    st.caption("**Author:** Sudhanshu Hate (HiSuds@amazon.com)")
+    st.caption("Author: **Sudhanshu Hate**")
 
     st.divider()
 
