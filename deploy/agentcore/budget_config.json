@@ -1,0 +1,79 @@
+{
+  "_description": "Central configuration for all cost management limits. One file, one deploy command.",
+  "_usage": "python deploy/agentcore/setup_budgets.py --region us-east-1",
+
+  "global_defaults": {
+    "max_tokens_per_invocation": 5000,
+    "max_iterations_per_invocation": 10,
+    "timeout_seconds": 120,
+    "idle_session_timeout_seconds": 300,
+    "max_session_lifetime_seconds": 3600
+  },
+
+  "role_limits": {
+    "plant_manager": {
+      "max_tokens_per_invocation": 10000,
+      "max_iterations_per_invocation": 15,
+      "daily_token_limit": 100000,
+      "monthly_cost_limit_usd": 50.00,
+      "description": "Complex cross-system correlation queries — needs higher budget"
+    },
+    "line_supervisor": {
+      "max_tokens_per_invocation": 5000,
+      "max_iterations_per_invocation": 10,
+      "daily_token_limit": 50000,
+      "monthly_cost_limit_usd": 25.00,
+      "description": "Focused single-line queries — moderate budget"
+    },
+    "maintenance_technician": {
+      "max_tokens_per_invocation": 3000,
+      "max_iterations_per_invocation": 8,
+      "daily_token_limit": 30000,
+      "monthly_cost_limit_usd": 15.00,
+      "description": "Simple equipment lookups — lower budget"
+    }
+  },
+
+  "team_limits": {
+    "plant_managers": {
+      "monthly_cost_limit_usd": 200.00,
+      "daily_token_limit": 500000,
+      "members": ["sarah.chen"]
+    },
+    "line_supervisors": {
+      "monthly_cost_limit_usd": 150.00,
+      "daily_token_limit": 300000,
+      "members": ["raj.patel"]
+    },
+    "maintenance_technicians": {
+      "monthly_cost_limit_usd": 100.00,
+      "daily_token_limit": 200000,
+      "members": ["priya.nair"]
+    }
+  },
+
+  "enforcement": {
+    "mode": "enforce",
+    "warn_at_percent": 80,
+    "throttle_at_percent": 90,
+    "block_at_percent": 100,
+    "graduated_response": {
+      "80_percent": "Log warning, continue execution",
+      "90_percent": "Throttle — add 2s delay between tool calls",
+      "100_percent": "Block — deny tool calls, inform user"
+    }
+  },
+
+  "alerts": {
+    "warn_at_percent": 80,
+    "notify_sns_topic": "arn:aws:sns:us-east-1:<ACCOUNT_ID>:agentcore-budget-alerts",
+    "alarm_evaluation_periods": 1,
+    "alarm_period_seconds": 300
+  },
+
+  "dynamo_table": {
+    "table_name": "MfgInsights-BudgetCounters",
+    "ttl_attribute": "expires_at",
+    "ttl_days": 90
+  }
+}

@@ -564,6 +564,33 @@ Resources:
                   - logs:PutLogEvents
                 Resource: !GetAtt AgentLogGroup.Arn
 
+  # ============================================================
+  # Amazon DynamoDB — Budget Counters (Cost Governance)
+  # ============================================================
+  BudgetCountersTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub 'MfgInsights-BudgetCounters-${Environment}'
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: user_id
+          AttributeType: S
+        - AttributeName: date
+          AttributeType: S
+      KeySchema:
+        - AttributeName: user_id
+          KeyType: HASH
+        - AttributeName: date
+          KeyType: RANGE
+      TimeToLiveSpecification:
+        AttributeName: expires_at
+        Enabled: true
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      Tags:
+        - Key: Purpose
+          Value: AgentCore budget tracking per user per day
+
 Outputs:
   # Aurora
   AuroraClusterArn:
@@ -628,3 +655,10 @@ Outputs:
   IoTSensorTopic:
     Description: MQTT topic for publishing sensor data
     Value: manufacturing/sensors/+
+  # Budget
+  BudgetCountersTableName:
+    Description: DynamoDB table for budget tracking (set as BUDGET_TABLE_NAME)
+    Value: !Ref BudgetCountersTable
+  BudgetCountersTableArn:
+    Description: DynamoDB table ARN for IAM policies
+    Value: !GetAtt BudgetCountersTable.Arn

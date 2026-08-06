@@ -388,6 +388,18 @@ def main():
     logger.info("\nStep 8: Cleaning memory bucket data...")
     cleanup_memory_data(session.client("s3"), args.region)
 
+    # Step 9: DynamoDB budget counters table
+    logger.info("\nStep 9: Deleting DynamoDB budget table...")
+    try:
+        dynamodb = session.client("dynamodb")
+        table_name = "MfgInsights-BudgetCounters"
+        dynamodb.delete_table(TableName=table_name)
+        logger.info(f"  Deleted table: {table_name}")
+    except dynamodb.exceptions.ResourceNotFoundException:
+        logger.info("  No budget table to delete")
+    except Exception as e:
+        logger.info(f"  Budget table cleanup: {e}")
+
     print(f"\n{'=' * 60}")
     print("  ✅ Full cleanup complete!")
     print(f"{'=' * 60}")

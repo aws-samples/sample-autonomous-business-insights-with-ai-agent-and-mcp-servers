@@ -113,6 +113,25 @@ class PolicyEngine:
                     ),
                 )
 
+        # Evaluate budget limits (cost governance)
+        if "_budget_context" in parameters:
+            budget = parameters["_budget_context"]
+            daily_count = budget.get("daily_token_count", 0)
+            daily_limit = budget.get("daily_token_limit", 999999)
+            if daily_count >= daily_limit:
+                logger.warning(
+                    "Policy DENY: User '%s' budget exceeded (%d/%d tokens)",
+                    user.name, daily_count, daily_limit,
+                )
+                return PolicyDecision(
+                    allowed=False,
+                    reason=(
+                        f"Daily token budget exceeded for '{user.name}'. "
+                        f"Used: {daily_count:,} / Limit: {daily_limit:,} tokens. "
+                        f"Budget resets at midnight UTC."
+                    ),
+                )
+
         return PolicyDecision(
             allowed=True,
             reason=f"Access granted for user '{user.name}' (role={user.role.value}).",

@@ -31,6 +31,8 @@ SCRIPTS = [
     ("setup_gateway.py", "Gateway (Lambda targets)"),
     ("setup_policy.py", "Policy (Cedar rules)"),
     ("setup_interceptor.py", "Interceptors (Request + Response)"),
+    ("setup_harness.py", "Harness (Cost-controlled deployment)"),
+    ("setup_budgets.py", "Budgets (DynamoDB counters + alarms)"),
 ]
 
 

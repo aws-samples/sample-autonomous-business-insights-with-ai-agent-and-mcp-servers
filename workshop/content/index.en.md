@@ -33,12 +33,15 @@ By the end of this workshop, you will have:
 1. **Four MCP servers** exposing manufacturing data tools (equipment, IoT telemetry, supply chain, analytics)
 2. **A Strands Agent** that autonomously reasons across all data sources
 3. **AgentCore Runtime** — serverless agent execution on Firecracker microVMs
-4. **AgentCore Gateway** — MCP routing with request/response interceptors
-5. **AgentCore Identity** — Cognito authentication with role-based scope attributes
-6. **AgentCore Policy** — Cedar deterministic authorization (forbid/permit)
-7. **AgentCore Memory** — session + cross-session context persistence
-8. **AgentCore Evaluations** — systematic testing and validation
-9. **AgentCore Observability** — X-Ray tracing, CloudWatch logging, metrics
+4. **AgentCore Harness** — managed deployment with hard cost caps (maxTokens, maxIterations)
+5. **AgentCore Gateway** — MCP routing with request/response interceptors
+6. **AgentCore Registry** — tool discovery, versioning, and governance
+7. **AgentCore Identity** — Cognito authentication with role-based scope attributes
+8. **AgentCore Policy** — Cedar deterministic authorization (forbid/permit)
+9. **Cost Management** — Three-layer budget enforcement (Harness + Cedar + DynamoDB)
+10. **AgentCore Memory** — session + cross-session context persistence (short-term, long-term, episodic)
+11. **AgentCore Evaluations** — 7 metrics for systematic testing and validation
+12. **AgentCore Observability** — X-Ray tracing, CloudWatch logging, metrics
 
 ## Target Audience
 
