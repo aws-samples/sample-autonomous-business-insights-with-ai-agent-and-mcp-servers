@@ -101,7 +101,12 @@ class ManufacturingInsightsAgent:
         self.config = config
         self.policy_engine = PolicyEngine()
         self.memory_manager = MemoryManager()
-        self.budget_manager = None  # Set externally by UI or caller
+        # Budget manager — use singleton so UI and agent share the same counters
+        try:
+            from src.budget.manager import BudgetManager
+            self.budget_manager = BudgetManager.get_instance(use_dynamodb=False)
+        except Exception:
+            self.budget_manager = None
 
     def _create_mcp_clients(self) -> list[MCPClient]:
         """Create MCP client connections based on the current operating mode.
@@ -343,14 +348,10 @@ class ManufacturingInsightsAgent:
                     self.budget_manager.increment_usage(
                         user.user_id, tokens_used=estimated_tokens
                     )
-                else:
-                    from src.budget.manager import BudgetManager
-                    budget_mgr = BudgetManager.get_instance(use_dynamodb=False)
-                    budget_mgr.increment_usage(user.user_id, tokens_used=estimated_tokens)
-                logger.info(
-                    "Budget: user=%s consumed ~%d tokens this query",
-                    user.user_id, estimated_tokens,
-                )
+                    logger.info(
+                        "Budget: user=%s consumed ~%d tokens this query",
+                        user.user_id, estimated_tokens,
+                    )
             except Exception as e:
                 logger.debug("Budget tracking skipped: %s", e)
 

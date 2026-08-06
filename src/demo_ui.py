@@ -106,7 +106,7 @@ if "messages" not in st.session_state:
     st.session_state.messages = []
 if "budget_manager" not in st.session_state:
     from src.budget.manager import BudgetManager
-    st.session_state.budget_manager = BudgetManager(use_dynamodb=False)
+    st.session_state.budget_manager = BudgetManager.get_instance(use_dynamodb=False)
 if "agent" not in st.session_state:
     st.session_state.agent = ManufacturingInsightsAgent(AppConfig())
     st.session_state.agent.budget_manager = st.session_state.budget_manager
@@ -114,6 +114,8 @@ if "current_user_key" not in st.session_state:
     st.session_state.current_user_key = "sarah"
 if "last_logs" not in st.session_state:
     st.session_state.last_logs = []
+if "needs_response" not in st.session_state:
+    st.session_state.needs_response = False
 if "current_mode" not in st.session_state:
     st.session_state.current_mode = "agentcore_gateway"
 
@@ -220,6 +222,7 @@ with st.sidebar:
     for q in sample_queries[selected]:
         if st.button(q, key=q, use_container_width=True):
             st.session_state.messages.append({"role": "user", "content": q})
+            st.session_state.needs_response = True
             st.rerun()
 
 # --------------------------------------------------------------------------
@@ -232,15 +235,8 @@ with tab_admin:
     st.caption("View usage, edit limits, and control enforcement. Changes take effect immediately.")
 
     from src.budget.manager import BudgetManager, BudgetConfig
-    # Use DynamoDB for Gateway/Live modes, in-memory for Simulated
-    use_ddb = st.session_state.get("current_mode", "simulated") != "simulated"
-    if "budget_manager" not in st.session_state:
-        st.session_state.budget_manager = BudgetManager.get_instance(use_dynamodb=use_ddb)
-    budget_mgr = st.session_state.budget_manager
-    if use_ddb:
-        st.success("Using DynamoDB for budget counters (persistent)")
-    else:
-        st.info("Using in-memory counters (simulated mode). Switch to Gateway mode for DynamoDB.")
+
+    budget_mgr = BudgetManager.get_instance(use_dynamodb=False)
 
     # Current usage
     st.subheader("📊 Current Usage (Today)")
@@ -363,11 +359,12 @@ with tab_chat:
         # Chat input
         if prompt := st.chat_input("Ask about your manufacturing operations..."):
             st.session_state.messages.append({"role": "user", "content": prompt})
-            with st.chat_message("user"):
-                st.markdown(prompt)
+            st.session_state.needs_response = True
+            st.rerun()
     
-        # Generate response for the last user message
-        if st.session_state.messages and st.session_state.messages[-1]["role"] == "user":
+        # Generate response for the last user message (only once per user message)
+        if st.session_state.get("needs_response") and st.session_state.messages and st.session_state.messages[-1]["role"] == "user":
+            st.session_state.needs_response = False
             last_query = st.session_state.messages[-1]["content"]
     
             with st.chat_message("assistant"):
