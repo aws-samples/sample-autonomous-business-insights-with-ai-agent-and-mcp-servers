@@ -161,7 +161,7 @@ curl -X POST https://your-gateway-id.gateway.bedrock-agentcore.us-east-1.amazona
 
 > **Test Run:** August 2026
 > **Command:** `pytest tests/ -v`
-> **Result:** 63 passed in 0.89s
+> **Result:** 80 passed in 0.91s
 
 ### Test Breakdown
 

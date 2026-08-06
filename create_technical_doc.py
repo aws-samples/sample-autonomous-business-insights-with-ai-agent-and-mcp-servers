@@ -137,7 +137,7 @@ def main():
     # Section 2: AgentCore Components
     add_heading(doc, '2. AgentCore Components Overview', level=1)
     add_para(doc, (
-        'Amazon Bedrock AgentCore provides eight core services that together form '
+        'Amazon Bedrock AgentCore provides ten core services that together form '
         'a complete platform for building, deploying, and securing AI agents at scale.'
     ))
     doc.add_paragraph()
