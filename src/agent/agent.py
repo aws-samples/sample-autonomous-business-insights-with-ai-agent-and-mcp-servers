@@ -101,6 +101,7 @@ class ManufacturingInsightsAgent:
         self.config = config
         self.policy_engine = PolicyEngine()
         self.memory_manager = MemoryManager()
+        self.budget_manager = None  # Set externally by UI or caller
 
     def _create_mcp_clients(self) -> list[MCPClient]:
         """Create MCP client connections based on the current operating mode.
@@ -338,9 +339,14 @@ class ManufacturingInsightsAgent:
             # Estimate tokens: ~4 chars per token (rough approximation)
             estimated_tokens = (len(question) + len(response_text)) // 4
             try:
-                from src.budget.manager import BudgetManager
-                budget_mgr = BudgetManager.get_instance(use_dynamodb=False)
-                budget_mgr.increment_usage(user.user_id, tokens_used=estimated_tokens)
+                if self.budget_manager:
+                    self.budget_manager.increment_usage(
+                        user.user_id, tokens_used=estimated_tokens
+                    )
+                else:
+                    from src.budget.manager import BudgetManager
+                    budget_mgr = BudgetManager.get_instance(use_dynamodb=False)
+                    budget_mgr.increment_usage(user.user_id, tokens_used=estimated_tokens)
                 logger.info(
                     "Budget: user=%s consumed ~%d tokens this query",
                     user.user_id, estimated_tokens,

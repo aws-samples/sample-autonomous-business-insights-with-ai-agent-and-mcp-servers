@@ -104,8 +104,12 @@ log_handler: StreamlitLogHandler = st.session_state.log_handler
 # --------------------------------------------------------------------------
 if "messages" not in st.session_state:
     st.session_state.messages = []
+if "budget_manager" not in st.session_state:
+    from src.budget.manager import BudgetManager
+    st.session_state.budget_manager = BudgetManager(use_dynamodb=False)
 if "agent" not in st.session_state:
     st.session_state.agent = ManufacturingInsightsAgent(AppConfig())
+    st.session_state.agent.budget_manager = st.session_state.budget_manager
 if "current_user_key" not in st.session_state:
     st.session_state.current_user_key = "sarah"
 if "last_logs" not in st.session_state:
@@ -117,7 +121,6 @@ if "current_mode" not in st.session_state:
 # Sidebar — User persona selection
 # --------------------------------------------------------------------------
 with st.sidebar:
-    st.image("https://d1.awsstatic.com/logos/aws-logo-lockups/poweredbyaws/PB_AWS_logo_RGB.61d334f1a1172da22295b6578b4bafa7c87fba20.png", width=180)
     st.title("🏭 Manufacturing Insights")
     st.caption("Powered by Amazon Bedrock AgentCore + Strands Agents + MCP")
     st.caption("**Author:** Sudhanshu Hate (HiSuds@amazon.com)")
@@ -155,6 +158,7 @@ with st.sidebar:
     if data_mode != st.session_state.current_mode:
         st.session_state.current_mode = data_mode
         st.session_state.agent = ManufacturingInsightsAgent(AppConfig())
+        st.session_state.agent.budget_manager = st.session_state.budget_manager
         st.session_state.messages = []
         st.rerun()
 
