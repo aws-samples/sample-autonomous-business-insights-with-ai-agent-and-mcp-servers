@@ -786,3 +786,60 @@ python -m evals.eval_trajectory    # Metrics 6 & 7
 ```bash
 pytest tests/ -v   # 63 tests: agent, policy, gateway hook, MCP servers, memory
 ```
+
+
+---
+
+## Cost Governance — Three-Layer Budget Enforcement
+
+### Architecture
+
+```
+Layer 1: Harness (per-invocation hard cap)
+  maxTokens: 5000 | maxIterations: 10 | timeoutSeconds: 120
+  Platform-enforced — agent cannot bypass
+
+Layer 2: Cedar at Gateway (per-user daily budget)
+  REQUEST Interceptor reads DynamoDB → injects _budget_context
+  Cedar: forbid when daily_token_count >= daily_token_limit
+  Graduated: 80% warn → 90% throttle → 100% block
+
+Layer 3: Observability (visibility + alerting)
+  CloudWatch: tokens/user/day, budget utilization %, cutoff events
+  Alarms: fire at 80% threshold
+```
+
+### DynamoDB Budget Counter Table
+
+```
+Table: MfgInsights-BudgetCounters
+  PK: user_id (S)
+  SK: date (S) — e.g., "2026-08-05"
+  Attributes: daily_token_count, invocation_count, last_updated, expires_at (TTL)
+```
+
+Atomic increment via `UpdateExpression: SET daily_token_count = if_not_exists(...) + :tokens`
+
+### Cedar Budget Policy
+
+```cedar
+forbid(principal, action, resource) when {
+    context.input._budget_context.daily_token_count >=
+        context.input._budget_context.daily_token_limit
+};
+```
+
+### Admin Configuration
+
+Single file: `deploy/agentcore/budget_config.json`
+Single command: `python deploy/agentcore/setup_budgets.py --region us-east-1`
+
+Configures: DynamoDB limits + Cedar policy + CloudWatch alarms — all from one file.
+
+### Per-Role Limits
+
+| Role | Daily Tokens | Monthly USD | maxTokens/invocation |
+|------|-------------|-------------|---------------------|
+| Plant Manager | 100,000 | $50 | 10,000 |
+| Line Supervisor | 50,000 | $25 | 5,000 |
+| Maintenance Tech | 30,000 | $15 | 3,000 |

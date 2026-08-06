@@ -555,13 +555,15 @@ This repository includes an [AWS Workshop Studio](https://catalog.workshops.aws/
 | 3 | MCP Servers | 25 min |
 | 4 | Strands Agent | 20 min |
 | 5 | AgentCore Runtime | 15 min |
-| 6 | AgentCore Gateway (registration, caching, trade-offs) | 20 min |
-| 7 | AgentCore Registry (discovery, versioning, governance) | 15 min |
-| 8 | AgentCore Identity (Cognito, JWT, scopes) | 15 min |
-| 9 | AgentCore Policy (Cedar, forbid/permit) | 25 min |
-| 10 | AgentCore Memory (short-term, long-term, episodic) | 15 min |
-| 11 | AgentCore Evaluations (7 metrics) | 20 min |
-| 12 | AgentCore Observability (X-Ray, CloudWatch) | 15 min |
+| 6 | AgentCore Harness (cost caps, managed deployment) | 15 min |
+| 7 | AgentCore Gateway (registration, caching, trade-offs) | 20 min |
+| 8 | AgentCore Registry (discovery, versioning, governance) | 15 min |
+| 9 | AgentCore Identity (Cognito, JWT, scopes) | 15 min |
+| 10 | Cost Management (Cedar + DynamoDB + graduated enforcement) | 25 min |
+| 11 | AgentCore Policy (Cedar, forbid/permit) | 25 min |
+| 12 | AgentCore Memory (short-term, long-term, episodic) | 15 min |
+| 13 | AgentCore Evaluations (7 metrics) | 20 min |
+| 14 | AgentCore Observability (X-Ray, CloudWatch) | 15 min |
 
 Workshop content is in `workshop/` (Workshop Studio format: `contentspec.yaml` + `content/` + `static/`).
 

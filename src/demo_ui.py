@@ -219,98 +219,203 @@ with st.sidebar:
 # --------------------------------------------------------------------------
 # Main layout: Chat (left 65%) + Activity Log (right 35%)
 # --------------------------------------------------------------------------
-chat_col, log_col = st.columns([0.65, 0.35])
+tab_chat, tab_admin = st.tabs(["💬 Agent Chat", "⚙️ Admin — Budget Management"])
 
-# --------------------------------------------------------------------------
-# Left column — Chat
-# --------------------------------------------------------------------------
-with chat_col:
-    st.title("🏭 Manufacturing Insights Agent")
-    st.caption(f"Logged in as **{user.name}** ({user.role.value.replace('_', ' ').title()})")
+with tab_admin:
+    st.header("⚙️ Budget Management")
+    st.caption("View usage, edit limits, and control enforcement. Changes take effect immediately.")
 
-    # Display chat history
-    for msg in st.session_state.messages:
-        with st.chat_message(msg["role"]):
-            st.markdown(msg["content"])
+    from src.budget.manager import BudgetManager, BudgetConfig
 
-    # Chat input
-    if prompt := st.chat_input("Ask about your manufacturing operations..."):
-        st.session_state.messages.append({"role": "user", "content": prompt})
-        with st.chat_message("user"):
-            st.markdown(prompt)
+    if "budget_manager" not in st.session_state:
+        st.session_state.budget_manager = BudgetManager(use_dynamodb=False)
 
-    # Generate response for the last user message
-    if st.session_state.messages and st.session_state.messages[-1]["role"] == "user":
-        last_query = st.session_state.messages[-1]["content"]
+    budget_mgr = st.session_state.budget_manager
 
-        with st.chat_message("assistant"):
-            with st.spinner("Querying MCP servers..."):
-                # Clear logs before this query
-                log_handler.clear()
+    # Current usage
+    st.subheader("📊 Current Usage (Today)")
+    all_usage = budget_mgr.get_all_usage()
 
-                try:
-                    response = st.session_state.agent.query(user, last_query)
-                    st.markdown(response)
-                    st.session_state.messages.append({"role": "assistant", "content": response})
-                    # Capture logs from this query
-                    st.session_state.last_logs = log_handler.logs.copy()
-                except Exception as e:
-                    error_msg = f"❌ **Error:** {str(e)}\n\nMake sure MCP servers are running:\n```\npython -m src.servers.start_all\n```"
-                    st.error(error_msg)
-                    st.session_state.messages.append({"role": "assistant", "content": error_msg})
-                    st.session_state.last_logs = log_handler.logs.copy()
+    usage_cols = st.columns(3)
+    for i, (user_id, status) in enumerate(all_usage.items()):
+        with usage_cols[i]:
+            name = user_id.split(".")[0].title()
+            pct = status.percent_used * 100
 
-# --------------------------------------------------------------------------
-# Right column — Backend Activity Log
-# --------------------------------------------------------------------------
-with log_col:
-    st.markdown("### ⚡ Backend Activity")
-    st.caption("Real-time log of MCP calls, policy decisions, and memory lookups")
+            if pct >= 100:
+                color = "🔴"
+            elif pct >= 80:
+                color = "🟡"
+            else:
+                color = "🟢"
+
+            st.metric(
+                label=f"{color} {name}",
+                value=f"{status.daily_token_count:,} tokens",
+                delta=f"{pct:.0f}% of {status.daily_token_limit:,}",
+            )
+            st.progress(min(status.percent_used, 1.0))
+            st.caption(f"Role: {status.role} | Level: {status.enforcement_level}")
+
     st.divider()
 
-    if st.session_state.last_logs:
-        for log_entry in st.session_state.last_logs:
-            emoji = log_entry["emoji"]
-            source = log_entry["source"]
-            message = log_entry["message"]
-            timestamp = log_entry["time"]
+    # Edit limits
+    st.subheader("✏️ Edit Role Limits")
+    edit_cols = st.columns(3)
+    roles = ["plant_manager", "line_supervisor", "maintenance_technician"]
+    role_names = ["Plant Manager", "Line Supervisor", "Maintenance Technician"]
 
-            # Color-code by type
-            if "DENY" in message:
-                st.markdown(
-                    f"<div style='background-color:#ffcccc;padding:8px;border-radius:5px;margin-bottom:6px;font-size:13px;'>"
-                    f"<b>{emoji} {timestamp}</b> [{source}]<br/>{message}</div>",
-                    unsafe_allow_html=True,
-                )
-            elif "ALLOW" in message:
-                st.markdown(
-                    f"<div style='background-color:#ccffcc;padding:8px;border-radius:5px;margin-bottom:6px;font-size:13px;'>"
-                    f"<b>{emoji} {timestamp}</b> [{source}]<br/>{message}</div>",
-                    unsafe_allow_html=True,
-                )
-            elif "Connected" in message or "tools available" in message:
-                st.markdown(
-                    f"<div style='background-color:#cce5ff;padding:8px;border-radius:5px;margin-bottom:6px;font-size:13px;'>"
-                    f"<b>{emoji} {timestamp}</b> [{source}]<br/>{message}</div>",
-                    unsafe_allow_html=True,
-                )
-            else:
-                st.markdown(
-                    f"<div style='background-color:#f0f0f0;padding:8px;border-radius:5px;margin-bottom:6px;font-size:13px;'>"
-                    f"<b>{emoji} {timestamp}</b> [{source}]<br/>{message}</div>",
-                    unsafe_allow_html=True,
-                )
-    else:
-        st.markdown(
-            "<div style='color:#888;text-align:center;padding:40px;'>"
-            "Submit a query to see backend activity here.<br/><br/>"
-            "You'll see:<br/>"
-            "🔌 MCP server connections<br/>"
-            "🔧 Tool discovery<br/>"
-            "✅ Policy ALLOW decisions<br/>"
-            "🚫 Policy DENY decisions<br/>"
-            "💾 Memory lookups<br/>"
-            "🧠 Agent reasoning<br/>"
-            "</div>",
-            unsafe_allow_html=True,
+    for i, (role, name) in enumerate(zip(roles, role_names)):
+        with edit_cols[i]:
+            st.markdown(f"**{name}**")
+            current = budget_mgr.config.role_limits.get(role, {})
+
+            new_daily = st.number_input(
+                "Daily token limit",
+                value=current.get("daily_token_limit", 50000),
+                step=5000,
+                key=f"daily_{role}",
+            )
+            new_monthly = st.number_input(
+                "Monthly USD limit",
+                value=float(current.get("monthly_cost_limit_usd", 25.0)),
+                step=5.0,
+                key=f"monthly_{role}",
+            )
+
+            if st.button(f"Update {name}", key=f"update_{role}"):
+                budget_mgr.update_limits(role, daily_token_limit=int(new_daily), monthly_cost_limit=new_monthly)
+                st.success(f"Updated {name} limits")
+                st.rerun()
+
+    st.divider()
+
+    # Admin actions
+    st.subheader("🔧 Admin Actions")
+    action_cols = st.columns(3)
+
+    with action_cols[0]:
+        reset_user = st.selectbox("Reset daily counter for:", ["sarah.chen", "raj.patel", "priya.nair"])
+        if st.button("Reset Counter"):
+            budget_mgr.reset_daily_usage(reset_user)
+            st.success(f"Reset {reset_user}'s daily counter to 0")
+            st.rerun()
+
+    with action_cols[1]:
+        st.markdown("**Enforcement Mode**")
+        mode = st.radio(
+            "Mode:",
+            ["enforce", "audit"],
+            index=0 if budget_mgr.config.enforcement.get("mode") == "enforce" else 1,
+            key="enforce_mode",
+            help="Audit mode logs but doesn't block. Enforce mode blocks at 100%.",
         )
+        if mode != budget_mgr.config.enforcement.get("mode"):
+            budget_mgr.config.enforcement["mode"] = mode
+            st.info(f"Mode changed to: {mode}")
+
+    with action_cols[2]:
+        st.markdown("**Simulate Usage**")
+        sim_user = st.selectbox("User:", ["priya.nair", "raj.patel", "sarah.chen"], key="sim_user")
+        sim_tokens = st.number_input("Tokens to add:", value=5000, step=1000, key="sim_tokens")
+        if st.button("Add Usage"):
+            budget_mgr.increment_usage(sim_user, tokens_used=int(sim_tokens))
+            st.success(f"Added {sim_tokens} tokens to {sim_user}")
+            st.rerun()
+
+with tab_chat:
+    chat_col, log_col = st.columns([0.65, 0.35])
+    
+    # --------------------------------------------------------------------------
+    # Left column — Chat
+    # --------------------------------------------------------------------------
+    with chat_col:
+        st.title("🏭 Manufacturing Insights Agent")
+        st.caption(f"Logged in as **{user.name}** ({user.role.value.replace('_', ' ').title()})")
+    
+        # Display chat history
+        for msg in st.session_state.messages:
+            with st.chat_message(msg["role"]):
+                st.markdown(msg["content"])
+    
+        # Chat input
+        if prompt := st.chat_input("Ask about your manufacturing operations..."):
+            st.session_state.messages.append({"role": "user", "content": prompt})
+            with st.chat_message("user"):
+                st.markdown(prompt)
+    
+        # Generate response for the last user message
+        if st.session_state.messages and st.session_state.messages[-1]["role"] == "user":
+            last_query = st.session_state.messages[-1]["content"]
+    
+            with st.chat_message("assistant"):
+                with st.spinner("Querying MCP servers..."):
+                    # Clear logs before this query
+                    log_handler.clear()
+    
+                    try:
+                        response = st.session_state.agent.query(user, last_query)
+                        st.markdown(response)
+                        st.session_state.messages.append({"role": "assistant", "content": response})
+                        # Capture logs from this query
+                        st.session_state.last_logs = log_handler.logs.copy()
+                    except Exception as e:
+                        error_msg = f"❌ **Error:** {str(e)}\n\nMake sure MCP servers are running:\n```\npython -m src.servers.start_all\n```"
+                        st.error(error_msg)
+                        st.session_state.messages.append({"role": "assistant", "content": error_msg})
+                        st.session_state.last_logs = log_handler.logs.copy()
+    
+    # --------------------------------------------------------------------------
+    # Right column — Backend Activity Log
+    # --------------------------------------------------------------------------
+    with log_col:
+        st.markdown("### ⚡ Backend Activity")
+        st.caption("Real-time log of MCP calls, policy decisions, and memory lookups")
+        st.divider()
+    
+        if st.session_state.last_logs:
+            for log_entry in st.session_state.last_logs:
+                emoji = log_entry["emoji"]
+                source = log_entry["source"]
+                message = log_entry["message"]
+                timestamp = log_entry["time"]
+    
+                # Color-code by type
+                if "DENY" in message:
+                    st.markdown(
+                        f"<div style='background-color:#ffcccc;padding:8px;border-radius:5px;margin-bottom:6px;font-size:13px;'>"
+                        f"<b>{emoji} {timestamp}</b> [{source}]<br/>{message}</div>",
+                        unsafe_allow_html=True,
+                    )
+                elif "ALLOW" in message:
+                    st.markdown(
+                        f"<div style='background-color:#ccffcc;padding:8px;border-radius:5px;margin-bottom:6px;font-size:13px;'>"
+                        f"<b>{emoji} {timestamp}</b> [{source}]<br/>{message}</div>",
+                        unsafe_allow_html=True,
+                    )
+                elif "Connected" in message or "tools available" in message:
+                    st.markdown(
+                        f"<div style='background-color:#cce5ff;padding:8px;border-radius:5px;margin-bottom:6px;font-size:13px;'>"
+                        f"<b>{emoji} {timestamp}</b> [{source}]<br/>{message}</div>",
+                        unsafe_allow_html=True,
+                    )
+                else:
+                    st.markdown(
+                        f"<div style='background-color:#f0f0f0;padding:8px;border-radius:5px;margin-bottom:6px;font-size:13px;'>"
+                        f"<b>{emoji} {timestamp}</b> [{source}]<br/>{message}</div>",
+                        unsafe_allow_html=True,
+                    )
+        else:
+            st.markdown(
+                "<div style='color:#888;text-align:center;padding:40px;'>"
+                "Submit a query to see backend activity here.<br/><br/>"
+                "You'll see:<br/>"
+                "🔌 MCP server connections<br/>"
+                "🔧 Tool discovery<br/>"
+                "✅ Policy ALLOW decisions<br/>"
+                "🚫 Policy DENY decisions<br/>"
+                "💾 Memory lookups<br/>"
+                "🧠 Agent reasoning<br/>"
+                "</div>",
+                unsafe_allow_html=True,
+            )
