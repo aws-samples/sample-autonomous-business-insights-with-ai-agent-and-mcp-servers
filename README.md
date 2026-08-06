@@ -367,6 +367,9 @@ Select a user persona from the interactive menu and ask questions:
 │   │   └── gateway_hook.py             # LOCAL SIMULATION ONLY — Strands BeforeToolCallEvent hook
 │   │                                    #   approximates Gateway policy for dev (not used in production)
 │   ├── memory/
+│   │   └── manager.py                   # SessionMemory + MemoryManager (long-term + episodic)
+│   ├── budget/
+│   │   └── manager.py                   # BudgetManager (DynamoDB counters, limit checking, enforcement)
 │   │   └── manager.py                   # SessionMemory (short-term) + MemoryManager (long-term + episodic)
 │   └── data/
 │       ├── sample_data.py               # Simulated factory data (default, no AWS needed)
