@@ -174,6 +174,7 @@ For rapid iteration during development, Strands Evals runs evaluations locally w
 | 5 | Helpfulness | `HelpfulnessEvaluator` | `Builtin.Helpfulness` |
 | 6 | Trajectory Quality | `TrajectoryEvaluator` | `Builtin.ToolCorrectness` + custom |
 | 7 | Goal Success Rate | `GoalSuccessRateEvaluator` | `Builtin.Completeness` |
+| **8** | **Budget Denial Compliance** | **`OutputEvaluator(rubric=...)`** | **Custom evaluator** |
 
 ### Running Locally
 
@@ -189,6 +190,10 @@ python -m evals.eval_quality
 
 # Metric 6 & 7: Trajectory + goal success
 python -m evals.eval_trajectory
+
+# Metric 8: Cost governance — budget denial compliance + efficiency
+# Tests: 100% block at budget exceeded, warn at 80%, throttle at 90%, reset restores access
+python -m evals.eval_cost
 ```
 
 ### Example: Tool Selection Accuracy (Local)
