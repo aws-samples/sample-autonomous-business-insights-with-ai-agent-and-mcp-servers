@@ -1,6 +1,6 @@
 +++
 title = "AgentCore Identity"
-weight = 70
+weight: 75
 +++
 
 # AgentCore Identity — Authentication & Scope Propagation

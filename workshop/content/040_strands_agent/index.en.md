@@ -1,6 +1,6 @@
 +++
 title = "Building the Strands Agent"
-weight = 40
+weight: 40
 +++
 
 # Building the Strands Agent

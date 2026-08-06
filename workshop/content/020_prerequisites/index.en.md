@@ -1,6 +1,6 @@
 +++
 title = "Prerequisites & Setup"
-weight = 20
+weight: 20
 +++
 
 # Prerequisites & Environment Setup

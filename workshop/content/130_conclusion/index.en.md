@@ -1,6 +1,6 @@
 +++
 title = "Conclusion"
-weight = 130
+weight: 130
 +++
 
 # Conclusion

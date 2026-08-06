@@ -1,6 +1,6 @@
 +++
 title = "Understanding MCP Servers"
-weight = 30
+weight: 30
 +++
 
 # Understanding MCP Servers

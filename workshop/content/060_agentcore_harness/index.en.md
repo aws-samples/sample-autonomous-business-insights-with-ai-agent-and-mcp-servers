@@ -1,6 +1,6 @@
 ---
 title: "AgentCore Harness"
-weight: 55
+weight: 60
 ---
 
 # AgentCore Harness — Managed Deployment with Hard Cost Caps
