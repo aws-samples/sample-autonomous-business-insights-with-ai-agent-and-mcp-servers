@@ -196,3 +196,40 @@ curl -X POST https://your-gateway-id.gateway.bedrock-agentcore.us-east-1.amazona
 | Policy | `python -m evals.eval_policy` | Policy Denial Compliance (target: 100%) |
 | Quality | `python -m evals.eval_quality` | Faithfulness (>0.90), Helpfulness (>0.85) |
 | Trajectory | `python -m evals.eval_trajectory` | Trajectory Quality (>0.85), Goal Success Rate (>0.85) |
+
+
+### Budget / Cost Management Tests (New — August 2026)
+
+> **Command:** `pytest tests/test_budget.py -v`
+> **Result:** 17 passed
+
+| Test | What It Validates |
+|------|-------------------|
+| `test_load_config_from_file` | budget_config.json loads correctly |
+| `test_config_has_daily_limits` | Each role has daily_token_limit |
+| `test_config_has_monthly_limits` | Each role has monthly_cost_limit_usd |
+| `test_config_has_enforcement_thresholds` | 80/90/100 percentages present |
+| `test_initial_budget_status_is_clean` | New user starts at 0 |
+| `test_increment_usage` | Token counter increments correctly |
+| `test_budget_check_under_limit` | Under-budget → ALLOW |
+| `test_budget_check_exceeded` | Over-budget → DENY with reason |
+| `test_budget_warning_at_80_percent` | Enforcement level = "warn" |
+| `test_budget_throttle_at_90_percent` | Enforcement level = "throttle" |
+| `test_budget_block_at_100_percent` | Enforcement level = "block" |
+| `test_different_limits_per_role` | Plant mgr=100K, Tech=30K |
+| `test_reset_daily_usage` | Admin reset clears counter |
+| `test_update_limits` | Admin can change limits dynamically |
+| `test_get_all_usage` | Returns status for all known users |
+| `test_multiple_increments_accumulate` | 10 calls × 450 = 4500 tokens |
+| `test_percent_used_calculation` | 15000/50000 = 30% |
+
+### Full Suite Summary
+
+| Test File | Tests | Status |
+|-----------|-------|--------|
+| `tests/test_agent.py` | 31 | All PASSED |
+| `tests/test_budget.py` | 17 | All PASSED |
+| `tests/test_gateway_hook.py` | 7 | All PASSED |
+| `tests/test_mcp_servers.py` | 17 | All PASSED |
+| `tests/test_policy.py` | 8 | All PASSED |
+| **Total** | **80** | **All PASSED** |

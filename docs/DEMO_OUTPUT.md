@@ -211,3 +211,40 @@ Recommend expediting bearing replacement. Bearings in stock (12 units, bearing_6
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   END EPISODIC MEMORY DEMO
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  💰 DEMO: Cost Management — Budget Exceeded Scenario
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  User: Priya Nair | Role: Maintenance Technician
+  Daily Token Limit: 30,000 | Current Usage: 29,400
+
+────────────────────────────────────────────────────────────────────────────────
+
+  Query: "What's the temperature trend on Machine 43?"
+
+  [BUDGET] Daily token budget exceeded for 'Priya Nair'.
+  Used: 29,400 / Limit: 30,000 tokens.
+  Budget resets at midnight UTC.
+
+I'm unable to process additional queries right now — your daily usage budget
+has been reached.
+
+**Current usage:** 29,400 / 30,000 tokens (98%)
+
+**Options:**
+1. Wait until midnight UTC for the daily reset
+2. Contact your admin to increase your limit or reset your counter
+3. Ask fewer, more targeted questions tomorrow to stay within budget
+
+Your previous queries and results from today's session are still available
+in memory for reference.
+
+  → CEDAR POLICY: forbid_budget_exceeded MATCHED → DENY
+  → DynamoDB: {user: priya.nair, date: 2026-08-05, count: 29400, limit: 30000}
+  → No tool call executed. Zero additional tokens consumed.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  END COST MANAGEMENT DEMO
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

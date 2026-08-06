@@ -261,3 +261,30 @@ The `store()` method validates:
 - Team memories expire after 365 days
 - S3 lifecycle rules enforce deletion automatically
 - No PII stored in memory entries (only machine data, readings, actions)
+
+
+## Cost Governance Security
+
+### Budget Counter Integrity
+
+| Threat | Mitigation |
+|--------|-----------|
+| Agent manipulates counter | Counter is in DynamoDB — agent has no direct access |
+| User resets own budget | DynamoDB IAM restricts write to interceptor Lambda role only |
+| Prompt injection bypasses limit | Cedar evaluates at Gateway, outside LLM control loop |
+| Race condition (concurrent queries) | DynamoDB atomic `ADD` — lock-free, correct under concurrency |
+| Budget context spoofing | `_budget_context` injected by interceptor (Lambda), not by agent |
+
+### DynamoDB Table Security
+
+- **Encryption:** AES-256 (AWS-owned key) at rest
+- **Access:** Only REQUEST/RESPONSE interceptor Lambda roles have read/write
+- **TTL:** Records auto-expire after 90 days (no PII accumulation)
+- **Point-in-time recovery:** Enabled (accidental deletion protection)
+
+### Cedar Budget Policy — Properties
+
+- **Deterministic:** Same counter value → same decision (no LLM variance)
+- **Fail-secure:** If DynamoDB read fails → interceptor returns 0 → allows (safe default for availability)
+- **Auditable:** Every budget DENY logged to CloudWatch with counter value + limit
+- **Non-bypassable:** Cedar evaluates at Gateway; agent only sees the deny message

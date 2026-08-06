@@ -31,6 +31,17 @@ graph TD
         EP["Episodic<br/>(S3 — Events, Decisions)"]
     end
 
+    subgraph Harness["AgentCore Harness"]
+        HLimits["Hard Limits<br/>maxTokens | maxIterations<br/>timeout | idleTimeout"]
+        HTags["Cost Allocation Tags<br/>project | cost-center | user"]
+    end
+
+    subgraph CostControl["Cost Management"]
+        DDB["DynamoDB<br/>Budget Counters<br/>(atomic per-user/day)"]
+        CedarBudget["Cedar Policy<br/>forbid_budget_exceeded"]
+        BudgetConfig["budget_config.json<br/>(single admin file)"]
+    end
+
     subgraph Targets["Lambda Tool Targets"]
         Equip["Equipment<br/>(Aurora)"]
         IoT["IoT Telemetry<br/>(Timestream)"]
@@ -45,11 +56,15 @@ graph TD
     end
 
     Users -->|"Natural Language Query"| Runtime
+    Runtime -->|"Wrapped by"| Harness
     Agent -->|"tools/call"| Gateway
     Agent -->|"tools/list"| Registry
     JWT --> REQ --> Cedar --> Targets
     Cedar -->|"DENY"| Agent
+    Cedar -->|"Budget check"| CedarBudget
+    REQ -->|"Read counter"| DDB
     Targets --> RESP --> Agent
+    RESP -->|"Increment counter"| DDB
     Agent <-->|"Session Context"| ST
     Agent <-->|"Baselines & Prefs"| LT
     Agent <-->|"Past Events"| EP
@@ -57,3 +72,6 @@ graph TD
     Cedar --> CW
     Gateway --> Metrics
     Registry -->|"Routing Table"| Gateway
+    BudgetConfig -->|"Configures"| DDB
+    BudgetConfig -->|"Generates"| CedarBudget
+    HLimits -->|"Enforces per-invocation"| Runtime

@@ -155,8 +155,32 @@ python deploy/agentcore/setup_interceptor.py --region us-east-1
 ```
 
 Creates:
-- REQUEST interceptor (JWT → user context injection)
-- RESPONSE interceptor (tool list filtering)
+- REQUEST interceptor (JWT → user context injection + budget counter read)
+- RESPONSE interceptor (tool list filtering + budget counter increment)
+
+---
+
+#### Step 5: Harness (Cost-Controlled Deployment)
+
+```bash
+python deploy/agentcore/setup_harness.py --region us-east-1
+```
+
+Creates:
+- AgentCore Harness with per-role maxTokens/maxIterations limits
+- Tags for cost allocation (project, cost-center)
+- Configuration saved to `harness_config.json`
+
+#### Step 6: Budgets (DynamoDB + Alarms)
+
+```bash
+python deploy/agentcore/setup_budgets.py --region us-east-1
+```
+
+Creates:
+- DynamoDB table (`MfgInsights-BudgetCounters`) with TTL
+- Seeds per-role daily/monthly limits
+- CloudWatch budget warning alarm
 
 ---
 

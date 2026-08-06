@@ -7,8 +7,17 @@ This directory contains deployment artifacts for running the multi-agent system 
 | File | Purpose |
 |------|---------|
 | `agentcore_deploy.py` | Script demonstrating Amazon Bedrock AgentCore deployment workflow |
-| `cloudformation/template.yaml` | AWS CloudFormation template for supporting infrastructure |
+| `cloudformation/template.yaml` | AWS CloudFormation template (Aurora, Timestream, Redshift, OpenSearch, S3, IoT, DynamoDB) |
 | `sql/create_tables.sql` | Redshift DDL for the SageMaker Lakehouse schema |
+| `agentcore/setup_identity.py` | Deploy Cognito User Pool + 3 users with scope attributes |
+| `agentcore/setup_gateway.py` | Deploy Gateway + Lambda tool targets + IAM roles |
+| `agentcore/setup_policy.py` | Deploy Cedar Policy Engine (ENFORCE mode) |
+| `agentcore/setup_interceptor.py` | Deploy REQUEST + RESPONSE Lambda interceptors |
+| `agentcore/setup_harness.py` | Deploy AgentCore Harness with per-role cost caps |
+| `agentcore/setup_budgets.py` | Deploy DynamoDB budget counters + seed limits + alarms |
+| `agentcore/budget_config.json` | Central cost config (one file controls all limits) |
+| `agentcore/cleanup.py` | Delete ALL deployed resources (9 cleanup steps) |
+| `agentcore/deploy_all.py` | Run all 6 setup scripts in sequence |
 
 ## CloudFormation Stack
 

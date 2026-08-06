@@ -94,8 +94,10 @@ def main():
         '   4.3 AgentCore Registry',
         '   4.4 AgentCore Identity',
         '   4.5 AgentCore Policy (Cedar)',
-        '   4.6 AgentCore Memory (Short-term, Long-term, Episodic)',
-        '   4.7 AgentCore Observability',
+        '   4.6 AgentCore Harness (Managed Deployment + Hard Cost Caps)',
+        '   4.7 Cost Management (Cedar + DynamoDB + Graduated Enforcement)',
+        '   4.8 AgentCore Memory (Short-term, Long-term, Episodic)',
+        '   4.9 AgentCore Observability',
         '5. Persona-Based Access Flow',
         '6. Sequence Diagrams',
         '7. Cedar Policy Details',
@@ -103,7 +105,7 @@ def main():
         '9. Security Properties',
         '10. Demo Scenarios',
         '11. Evaluation Framework (7 Metrics)',
-        '12. Cost Estimate',
+        '12. Cost Governance (Three-Layer Model)',
     ]
     for item in toc:
         doc.add_paragraph(item, style='List Number')
@@ -176,6 +178,17 @@ def main():
          'Policy Denial Compliance (100%), Faithfulness (>0.90), Helpfulness (>0.85), '
          'Trajectory Quality (>0.85), Goal Success Rate (>0.85). Uses Strands Evals SDK '
          'with rubric-based scoring.'),
+        ('AgentCore Harness', 'Managed deployment with hard cost caps',
+         'Wraps AgentCore Runtime with declarative configuration. Provides hard per-invocation '
+         'limits: maxTokens (5000 default), maxIterations (10), timeoutSeconds (120), '
+         'idleRuntimeSessionTimeout (300). Tags auto-propagate for cost allocation. '
+         'Agent physically cannot exceed these limits — platform-enforced.'),
+        ('Cost Management', 'Three-layer budget governance (Harness + Cedar + DynamoDB)',
+         'Layer 1: Harness hard caps (per invocation). Layer 2: Cedar budget policy at Gateway '
+         '— reads DynamoDB atomic counter, forbids tool calls when daily_token_count >= limit. '
+         'Layer 3: CloudWatch observability + alerts. Graduated enforcement: 80% warn, '
+         '90% throttle (2s delay), 100% block. Single config file (budget_config.json) '
+         'configures all three layers via one deploy command.'),
         ('AgentCore Observability', 'Tracing, logging, metrics',
          'Integrates with AWS X-Ray for distributed tracing across agent → gateway → tools. '
          'All policy decisions logged to CloudWatch. Tool call latency metrics. Token usage '
