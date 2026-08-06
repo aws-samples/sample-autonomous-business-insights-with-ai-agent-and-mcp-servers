@@ -459,4 +459,4 @@ Each episodic entry:
 
 ## Next Steps
 
-Your agent remembers context across conversations. In the next module, you'll validate the complete system with **AgentCore Evaluations** — 7 metrics that measure policy compliance, tool accuracy, and response quality.
+Your agent remembers context across conversations. In the next module, you'll validate the complete system with **AgentCore Evaluations** — metrics covering policy compliance, tool accuracy, budget governance, and response quality.
