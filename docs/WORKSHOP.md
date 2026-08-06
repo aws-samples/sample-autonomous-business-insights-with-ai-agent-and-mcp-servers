@@ -1,6 +1,6 @@
 # Workshop: Build Autonomous Business Insights with AI Agents, MCP Servers, and Amazon Bedrock AgentCore
 
-**Duration:** 3 hours
+**Duration:** 5-6 hours
 **Level:** 300 (Intermediate to Advanced)
 **Audience:** Developers, Solutions Architects, Security Engineers
 

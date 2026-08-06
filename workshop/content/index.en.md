@@ -51,7 +51,7 @@ By the end of this workshop, you will have:
 
 ## Duration
 
-Approximately **3 hours**
+Approximately **5-6 hours**
 
 ## Author
 
