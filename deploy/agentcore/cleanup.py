@@ -231,6 +231,75 @@ def cleanup_config_files():
         logger.info("  Reset: live_config.json")
 
 
+def cleanup_cloudwatch(cloudwatch_client, logs_client, region: str):
+    """Delete CloudWatch dashboards, alarms, and log groups created by the project."""
+    logger.info("Deleting CloudWatch resources...")
+
+    # Delete dashboards
+    dashboard_name = "ManufacturingInsights-AgentCore"
+    try:
+        cloudwatch_client.delete_dashboards(DashboardNames=[dashboard_name])
+        logger.info(f"  Deleted dashboard: {dashboard_name}")
+    except Exception as e:
+        logger.info(f"  No dashboard to delete: {dashboard_name}")
+
+    # Delete alarms
+    alarm_names = [
+        "AgentCore-HighDenyRate",
+        "AgentCore-HighLatency",
+        "AgentCore-TokenBudget",
+    ]
+    try:
+        cloudwatch_client.delete_alarms(AlarmNames=alarm_names)
+        logger.info(f"  Deleted alarms: {alarm_names}")
+    except Exception as e:
+        logger.info(f"  No alarms to delete: {e}")
+
+    # Delete log groups
+    log_group_prefixes = [
+        "/aws/agentcore/gateway/policy-decisions",
+        "/aws/lambda/MfgInsights-",
+    ]
+    try:
+        paginator = logs_client.get_paginator("describe_log_groups")
+        for prefix in log_group_prefixes:
+            for page in paginator.paginate(logGroupNamePrefix=prefix):
+                for lg in page.get("logGroups", []):
+                    logs_client.delete_log_group(logGroupName=lg["logGroupName"])
+                    logger.info(f"  Deleted log group: {lg['logGroupName']}")
+    except Exception as e:
+        logger.info(f"  Log group cleanup: {e}")
+
+
+def cleanup_memory_data(s3_client, region: str):
+    """Delete memory data from S3 (user/team/org namespaces)."""
+    logger.info("Cleaning memory bucket data...")
+
+    # Find the memory bucket
+    try:
+        buckets = s3_client.list_buckets()["Buckets"]
+        memory_buckets = [b["Name"] for b in buckets if "agentcore-memory" in b["Name"]]
+
+        for bucket_name in memory_buckets:
+            # List and delete all objects
+            paginator = s3_client.get_paginator("list_objects_v2")
+            deleted = 0
+            for page in paginator.paginate(Bucket=bucket_name):
+                objects = page.get("Contents", [])
+                if objects:
+                    s3_client.delete_objects(
+                        Bucket=bucket_name,
+                        Delete={"Objects": [{"Key": obj["Key"]} for obj in objects]},
+                    )
+                    deleted += len(objects)
+            if deleted > 0:
+                logger.info(f"  Deleted {deleted} objects from {bucket_name}")
+            else:
+                logger.info(f"  Memory bucket {bucket_name} already empty")
+    except Exception as e:
+        logger.info(f"  Memory cleanup: {e}")
+
+
 def main():
     parser = argparse.ArgumentParser(
         description="Cleanup ALL AgentCore resources for Manufacturing Insights"
@@ -257,6 +326,8 @@ def main():
         print(f"    • IAM roles (Lambda-MfgInsights-*, AgentCore-Manufacturing*)")
         if not args.keep_cognito:
             print(f"    • Cognito User Pool (MfgInsights-*)")
+        print(f"    • CloudWatch dashboard + alarms + log groups")
+        print(f"    • Memory bucket data (user/team/org)")
         print(f"    • Local config files")
         print()
         response = input("  Type 'yes' to confirm deletion: ")
@@ -305,17 +376,24 @@ def main():
     logger.info("\nStep 6: Removing local config files...")
     cleanup_config_files()
 
+    # Step 7: CloudWatch (dashboards, alarms, log groups)
+    logger.info("\nStep 7: Deleting CloudWatch resources...")
+    cleanup_cloudwatch(
+        session.client("cloudwatch"),
+        session.client("logs"),
+        args.region,
+    )
+
+    # Step 8: Memory bucket data
+    logger.info("\nStep 8: Cleaning memory bucket data...")
+    cleanup_memory_data(session.client("s3"), args.region)
+
     print(f"\n{'=' * 60}")
     print("  ✅ Full cleanup complete!")
     print(f"{'=' * 60}")
     print(f"\n  All AgentCore resources in {args.region} have been deleted.")
     print(f"  To also delete the data infrastructure stack:")
     print(f"    aws cloudformation delete-stack --stack-name manufacturing-insights-dev --region {args.region}")
-    print(f"\n  To delete CloudWatch resources (dashboard + alarms):")
-    print(f"    aws cloudwatch delete-dashboards --dashboard-names ManufacturingInsights-AgentCore --region {args.region}")
-    print(f"    aws cloudwatch delete-alarms --alarm-names AgentCore-HighDenyRate AgentCore-HighLatency AgentCore-TokenBudget --region {args.region}")
-    print(f"\n  To delete memory bucket data:")
-    print(f"    aws s3 rm s3://amzn-s3-demo-agentcore-memory-<account-id>-dev --recursive")
     print()
 
 
