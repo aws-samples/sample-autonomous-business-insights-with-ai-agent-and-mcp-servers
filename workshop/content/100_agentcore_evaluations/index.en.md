@@ -163,7 +163,7 @@ custom_evaluator_arn = response["evaluatorArn"]
 
 For rapid iteration during development, Strands Evals runs evaluations locally without deploying to AgentCore:
 
-### Our 7 Local Metrics
+### Our 8 Local Metrics
 
 | # | Metric | Strands Evaluator | Production Equivalent |
 |---|--------|-------------------|----------------------|
