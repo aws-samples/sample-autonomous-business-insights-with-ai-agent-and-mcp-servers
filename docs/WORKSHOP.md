@@ -23,11 +23,11 @@ Deploy and explore Amazon Bedrock AgentCore end-to-end using a pre-built manufac
 | 5 | AgentCore Runtime | 15 min | Understand Firecracker microVMs, session isolation |
 | 6 | AgentCore Harness | 15 min | Managed deployment with hard cost caps (maxTokens, maxIterations) |
 | 7 | AgentCore Gateway | 20 min | Deploy Gateway, register MCP servers as Lambda targets, interceptor pipeline |
-| 8 | AgentCore Registry | 15 min | Tool discovery, versioning, governance, adding new servers |
-| 9 | AgentCore Identity | 15 min | Set up Cognito, users with scope attributes, JWT flow |
-| 10 | Cost Management | 25 min | Three-layer budget enforcement (Harness + Cedar + DynamoDB), admin UI |
+| 8 | AgentCore Memory | 15 min | Short-term, long-term, episodic memory with store/recall/timeline APIs |
+| 9 | AgentCore Registry | 15 min | Tool discovery, versioning, governance, adding new servers |
+| 10 | AgentCore Identity | 15 min | Set up Cognito, users with scope attributes, JWT flow |
 | 11 | AgentCore Policy | 25 min | Write Cedar policies, test ALLOW/DENY scenarios |
-| 12 | AgentCore Memory | 15 min | Explore short-term, long-term, episodic memory with code |
+| 12 | Cost Management | 25 min | Three-layer budget enforcement (Harness + Cedar + DynamoDB), admin UI |
 | 13 | AgentCore Evaluations | 20 min | Run 7 eval metrics, understand rubrics, validate system |
 | 14 | AgentCore Observability | 15 min | X-Ray tracing, CloudWatch logs, metrics, alerts |
 | 15 | Cleanup | 5 min | Remove all AWS resources |
