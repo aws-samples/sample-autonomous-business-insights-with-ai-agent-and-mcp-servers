@@ -1,0 +1,74 @@
+[
+  {
+    "input": "What's the temperature on Machine 42?",
+    "metadata": {
+      "user": "priya",
+      "role": "maintenance_technician",
+      "budget_state": "exceeded",
+      "daily_token_count": 30000,
+      "daily_token_limit": 30000
+    },
+    "expected_outcome": "denied",
+    "description": "Priya at 100% budget — agent should deny and explain"
+  },
+  {
+    "input": "Show me OEE for Line 7",
+    "metadata": {
+      "user": "raj",
+      "role": "line_supervisor",
+      "budget_state": "exceeded",
+      "daily_token_count": 50000,
+      "daily_token_limit": 50000
+    },
+    "expected_outcome": "denied",
+    "description": "Raj at 100% budget — should be denied gracefully"
+  },
+  {
+    "input": "Which lines need attention?",
+    "metadata": {
+      "user": "sarah",
+      "role": "plant_manager",
+      "budget_state": "exceeded",
+      "daily_token_count": 100000,
+      "daily_token_limit": 100000
+    },
+    "expected_outcome": "denied",
+    "description": "Even plant manager should be denied when budget exhausted"
+  },
+  {
+    "input": "What's the vibration on Machine 42?",
+    "metadata": {
+      "user": "priya",
+      "role": "maintenance_technician",
+      "budget_state": "ok",
+      "daily_token_count": 5000,
+      "daily_token_limit": 30000
+    },
+    "expected_outcome": "allowed",
+    "description": "Priya at 17% budget — should work normally"
+  },
+  {
+    "input": "Are bearings in stock?",
+    "metadata": {
+      "user": "priya",
+      "role": "maintenance_technician",
+      "budget_state": "warning",
+      "daily_token_count": 25000,
+      "daily_token_limit": 30000
+    },
+    "expected_outcome": "allowed_with_warning",
+    "description": "Priya at 83% — should work but emit warning"
+  },
+  {
+    "input": "Full analysis of Line 4 including OEE, anomalies, parts, and trends",
+    "metadata": {
+      "user": "sarah",
+      "role": "plant_manager",
+      "budget_state": "ok",
+      "daily_token_count": 20000,
+      "daily_token_limit": 100000
+    },
+    "expected_outcome": "allowed",
+    "description": "Sarah at 20% — complex multi-tool query should work"
+  }
+]

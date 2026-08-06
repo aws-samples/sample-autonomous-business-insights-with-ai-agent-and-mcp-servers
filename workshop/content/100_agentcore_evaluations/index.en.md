@@ -380,6 +380,9 @@ python -m evals.eval_quality
 
 # Metric 6 & 7: Trajectory + goal success
 python -m evals.eval_trajectory
+
+# Metric 8: Cost governance (budget denial + efficiency)
+python -m evals.eval_cost
 ```
 
 Or run the unit tests (deterministic, fast, no LLM needed):
@@ -387,6 +390,9 @@ Or run the unit tests (deterministic, fast, no LLM needed):
 ```bash
 # Policy logic (no LLM)
 python -m pytest tests/test_policy.py -v
+
+# Budget enforcement logic (no LLM, no DynamoDB)
+python -m pytest tests/test_budget.py -v
 
 # Gateway hook enforcement (no LLM)
 python -m pytest tests/test_gateway_hook.py -v
