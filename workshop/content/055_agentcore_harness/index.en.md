@@ -191,4 +191,4 @@ idleSessionTimeout: 900  → Expensive but instant responses
 
 ## Next Steps
 
-Harness provides hard per-invocation caps (Layer 1). In the Cost Management module, you'll add per-user daily/monthly budget enforcement via Cedar policies (Layer 2) — graduated controls that warn, throttle, and block.
+Harness provides hard per-invocation caps (Layer 1). In the next module, you'll set up the **AgentCore Gateway** — the MCP router that connects your agent to all registered tool targets with security enforcement, caching, and interceptors.

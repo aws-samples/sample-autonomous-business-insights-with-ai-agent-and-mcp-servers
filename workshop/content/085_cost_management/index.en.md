@@ -1,6 +1,6 @@
 ---
 title: "Cost Management"
-weight: 85
+weight: 80
 ---
 
 # Cost Management — Per-User Budget Enforcement with Cedar + DynamoDB
@@ -274,4 +274,4 @@ Call after: 29400 + 600 = 30000 → Cedar BLOCKS
 
 ## Next Steps
 
-Your cost controls are in place. In the next module, you'll write Cedar policies for data access control (which uses the same evaluation pattern you just learned here).
+Your cost controls are in place. In the next module, you'll explore **AgentCore Memory** — how the agent maintains context within and across sessions using short-term, long-term, and episodic memory.

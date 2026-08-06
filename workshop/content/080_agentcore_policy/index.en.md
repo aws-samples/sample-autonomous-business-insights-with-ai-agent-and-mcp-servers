@@ -1,6 +1,6 @@
 +++
 title = "AgentCore Policy (Cedar)"
-weight: 80
+weight: 75
 +++
 
 # AgentCore Policy — Cedar-Based Deterministic Authorization
@@ -297,4 +297,4 @@ forbid(
 
 ## Next Steps
 
-Policies are enforced. But how does the agent maintain context across conversations? In the next module, you'll explore **AgentCore Memory** — session persistence and cross-session recall.
+Policies are enforced. But how do you control costs? In the next module, you'll implement **Cost Management** — three-layer budget enforcement using the same Cedar pattern you just learned, plus DynamoDB counters and graduated controls.

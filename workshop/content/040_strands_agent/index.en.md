@@ -195,9 +195,9 @@ The loop continues until the LLM decides it has enough information to answer. Fo
 1. **One agent, many tools** — All MCP server tools appear as a flat list; the LLM picks
 2. **No orchestration code** — The LLM's reasoning replaces hardcoded workflows
 3. **Memory enables follow-ups** — Session context makes conversations natural
-4. **Hooks intercept tool calls** — Policy enforcement happens before execution (next module)
+4. **Hooks intercept tool calls** — Policy enforcement happens before execution (covered later)
 5. **Cross-system synthesis** — The real value is correlation across data sources
 
 ## Next Steps
 
-The agent works, but right now all users see all data. In the next module, you'll implement Cedar-based access control so each persona only sees data within their authorized scope.
+The agent works, but right now all users see all data. In the next module, you'll deploy the agent to **AgentCore Runtime** — serverless Firecracker microVMs with session isolation.

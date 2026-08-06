@@ -479,4 +479,4 @@ Expected: `Active`
 
 ## Next Steps
 
-The Gateway validates JWTs, but where do those tokens come from? In the next module, you'll set up **AgentCore Identity** with Cognito, creating users with role-based scope attributes.
+Your MCP servers are registered in the Gateway with full tool schemas. But how does the Gateway know which tools exist across your organization? In the next module, you'll explore the **AgentCore Registry** — the service catalog that enables tool discovery, versioning, and governance at scale.

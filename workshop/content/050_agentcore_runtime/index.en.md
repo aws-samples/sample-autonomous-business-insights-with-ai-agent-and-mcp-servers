@@ -212,4 +212,4 @@ Raj gets a **policy denial** because Machine 42 is outside his scope. Even if Sa
 
 ## Next Steps
 
-Your agent runs in an isolated Runtime. But how does it reach the MCP servers? In the next module, you'll set up the **AgentCore Gateway** — the MCP router and security enforcement point.
+Your agent runs in an isolated Runtime. But how does it reach the MCP servers? First, in the next module, you'll wrap the Runtime with **AgentCore Harness** — the managed deployment layer that adds hard cost caps and session lifecycle management.
