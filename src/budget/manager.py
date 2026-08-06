@@ -96,24 +96,51 @@ class BudgetManager:
     In production: reads/writes DynamoDB atomic counters.
     In simulation: uses in-memory dict.
 
+    Uses singleton pattern so all components (agent, UI, hooks) share
+    the same counter state within a process.
+
     Usage:
-        budget_mgr = BudgetManager()
+        budget_mgr = BudgetManager.get_instance()
         status = budget_mgr.get_budget_status("priya.nair", "maintenance_technician")
         if status.is_exceeded:
             # Block the request
         budget_mgr.increment_usage("priya.nair", tokens_used=450)
     """
 
+    _instance: "BudgetManager | None" = None
+
+    @classmethod
+    def get_instance(cls, config: "BudgetConfig | None" = None,
+                     use_dynamodb: bool = False) -> "BudgetManager":
+        """Get or create the singleton BudgetManager instance."""
+        if cls._instance is None:
+            cls._instance = cls(config=config, use_dynamodb=use_dynamodb)
+        return cls._instance
+
+    @classmethod
+    def reset_instance(cls) -> None:
+        """Reset singleton (for testing)."""
+        cls._instance = None
+
     def __init__(self, config: BudgetConfig | None = None, use_dynamodb: bool = False):
         self.config = config or BudgetConfig.load()
         self.use_dynamodb = use_dynamodb
-        self._counters: dict[str, dict] = {}  # In-memory for simulation
+        self._counters: dict[str, dict] = {}  # Fallback in-memory
 
         if use_dynamodb:
             import boto3
             table_name = os.getenv("BUDGET_TABLE_NAME", "MfgInsights-BudgetCounters")
             region = os.getenv("AWS_REGION", "us-east-1")
             self._table = boto3.resource("dynamodb", region_name=region).Table(table_name)
+        else:
+            # Use SQLite for local persistence (survives restarts)
+            import sqlite3
+            db_path = os.getenv(
+                "BUDGET_DB_PATH",
+                str(Path(__file__).parent.parent.parent / ".budget_counters.db"),
+            )
+            self._db_path = db_path
+            self._init_sqlite()
 
     def get_budget_status(self, user_id: str, role: str) -> BudgetStatus:
         """Get current budget status for a user.
@@ -217,7 +244,6 @@ class BudgetManager:
     def reset_daily_usage(self, user_id: str) -> None:
         """Reset daily token counter for a user (admin action)."""
         today = date.today().isoformat()
-        key = f"{user_id}#{today}"
 
         if self.use_dynamodb:
             self._table.put_item(
@@ -231,7 +257,15 @@ class BudgetManager:
                 },
             )
         else:
-            self._counters[key] = {"daily_token_count": 0, "invocation_count": 0}
+            import sqlite3
+            conn = sqlite3.connect(self._db_path)
+            conn.execute(
+                "INSERT OR REPLACE INTO budget_counters (user_id, date, daily_token_count, invocation_count, last_updated) "
+                "VALUES (?, ?, 0, 0, ?)",
+                (user_id, today, datetime.now().isoformat()),
+            )
+            conn.commit()
+            conn.close()
 
         logger.info("Reset daily budget for user '%s'", user_id)
 
@@ -247,34 +281,60 @@ class BudgetManager:
 
     # --- Private methods ---
 
+    def _init_sqlite(self):
+        """Initialize SQLite database for local budget persistence."""
+        import sqlite3
+        conn = sqlite3.connect(self._db_path)
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS budget_counters (
+                user_id TEXT NOT NULL,
+                date TEXT NOT NULL,
+                daily_token_count INTEGER DEFAULT 0,
+                invocation_count INTEGER DEFAULT 0,
+                last_updated TEXT,
+                PRIMARY KEY (user_id, date)
+            )
+        """)
+        conn.commit()
+        conn.close()
+
     def _get_daily_count(self, user_id: str) -> int:
         """Get today's token count for a user."""
         today = date.today().isoformat()
-        key = f"{user_id}#{today}"
 
         if self.use_dynamodb:
             return self._dynamodb_get_count(user_id, today)
         else:
-            return self._counters.get(key, {}).get("daily_token_count", 0)
+            import sqlite3
+            conn = sqlite3.connect(self._db_path)
+            row = conn.execute(
+                "SELECT daily_token_count FROM budget_counters WHERE user_id = ? AND date = ?",
+                (user_id, today),
+            ).fetchone()
+            conn.close()
+            return row[0] if row else 0
 
     def _get_monthly_cost(self, user_id: str) -> float:
-        """Get current month's estimated cost (simplified: tokens × rate)."""
-        # Simplified: $0.003 per 1K input tokens + $0.015 per 1K output tokens
-        # Approximate: $0.01 per 1K tokens blended
+        """Get current month's estimated cost (simplified: tokens x rate)."""
         daily_count = self._get_daily_count(user_id)
-        # Rough monthly estimate based on today's usage × 22 working days
         return (daily_count / 1000) * 0.01
 
     def _memory_increment(self, user_id: str, tokens_used: int) -> None:
-        """Increment in-memory counter (simulation mode)."""
+        """Increment SQLite counter (local persistent mode)."""
+        import sqlite3
         today = date.today().isoformat()
-        key = f"{user_id}#{today}"
-
-        if key not in self._counters:
-            self._counters[key] = {"daily_token_count": 0, "invocation_count": 0}
-
-        self._counters[key]["daily_token_count"] += tokens_used
-        self._counters[key]["invocation_count"] += 1
+        conn = sqlite3.connect(self._db_path)
+        conn.execute("""
+            INSERT INTO budget_counters (user_id, date, daily_token_count, invocation_count, last_updated)
+            VALUES (?, ?, ?, 1, ?)
+            ON CONFLICT(user_id, date) DO UPDATE SET
+                daily_token_count = daily_token_count + ?,
+                invocation_count = invocation_count + 1,
+                last_updated = ?
+        """, (user_id, today, tokens_used, datetime.now().isoformat(),
+              tokens_used, datetime.now().isoformat()))
+        conn.commit()
+        conn.close()
 
     def _dynamodb_increment(self, user_id: str, tokens_used: int) -> None:
         """Atomic increment in DynamoDB."""

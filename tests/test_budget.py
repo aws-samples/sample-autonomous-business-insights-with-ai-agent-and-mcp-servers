@@ -42,6 +42,12 @@ class TestBudgetManager:
 
     def setup_method(self):
         self.config = BudgetConfig.load()
+        # Use temp DB for test isolation
+        import tempfile
+        import os
+        self._tmp = tempfile.NamedTemporaryFile(suffix=".db", delete=False)
+        os.environ["BUDGET_DB_PATH"] = self._tmp.name
+        BudgetManager.reset_instance()
         self.manager = BudgetManager(config=self.config, use_dynamodb=False)
 
     def test_initial_budget_status_is_clean(self):

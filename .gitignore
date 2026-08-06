@@ -30,3 +30,7 @@ Thumbs.db
 .pytest_cache/
 .coverage
 htmlcov/
+
+
+# Budget counter SQLite database (local persistence)
+.budget_counters.db

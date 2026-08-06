@@ -339,7 +339,7 @@ class ManufacturingInsightsAgent:
             estimated_tokens = (len(question) + len(response_text)) // 4
             try:
                 from src.budget.manager import BudgetManager
-                budget_mgr = BudgetManager(use_dynamodb=False)
+                budget_mgr = BudgetManager.get_instance(use_dynamodb=False)
                 budget_mgr.increment_usage(user.user_id, tokens_used=estimated_tokens)
                 logger.info(
                     "Budget: user=%s consumed ~%d tokens this query",

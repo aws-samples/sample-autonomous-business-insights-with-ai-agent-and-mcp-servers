@@ -230,7 +230,7 @@ with tab_admin:
     from src.budget.manager import BudgetManager, BudgetConfig
 
     if "budget_manager" not in st.session_state:
-        st.session_state.budget_manager = BudgetManager(use_dynamodb=False)
+        st.session_state.budget_manager = BudgetManager.get_instance(use_dynamodb=False)
 
     budget_mgr = st.session_state.budget_manager
 
