@@ -108,7 +108,7 @@ class ManufacturingInsightsAgent:
         else:
             try:
                 from src.budget.manager import BudgetManager
-                self.budget_manager = BudgetManager(use_dynamodb=False)
+                self.budget_manager = BudgetManager.get_instance(use_dynamodb=False)
             except Exception:
                 self.budget_manager = None
 
